@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: BcsdInternalApiV2
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bcsd_internal_api_v2
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+server:
+  port: 8080
