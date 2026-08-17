@@ -81,6 +81,9 @@ public class Member extends BaseTimeEntity {
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
+    @Column(name = "welcome_mail_sent_at")
+    private Instant welcomeMailSentAt;
+
     @Builder
     private Member(String studentNumber, String password, String name, Track track, String generation,
                    MemberType memberType, String university, String email, String phoneNumber, String githubId,
@@ -149,6 +152,12 @@ public class Member extends BaseTimeEntity {
         this.passwordChangedAt = truncateToMillis(now);
         this.loginFailCount = 0;
         this.lockedUntil = null;
+    }
+
+    public void reissueTemporaryPassword(String encodedPassword, Instant now) {
+        this.password = encodedPassword;
+        this.passwordChangedAt = truncateToMillis(now);
+        this.welcomeMailSentAt = null;
     }
 
     private static Instant truncateToMillis(Instant instant) {
