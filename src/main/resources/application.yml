@@ -44,3 +44,4 @@ app:
   mail:
     transport: ${MAIL_TRANSPORT:sendmail}
     from: ${MAIL_FROM:no-reply@bcsdlab.com}
+    ses-region: ${AWS_SES_REGION:us-west-2}
