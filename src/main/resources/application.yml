@@ -3,9 +3,9 @@ spring:
     name: BcsdInternalApiV2
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/bcsd_internal_api_v2
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:bcsd_internal_api_v2}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -18,4 +18,4 @@ spring:
     open-in-view: false
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
