@@ -1,0 +1,64 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/arm64
+          tags: ghcr.io/bcsdlab/bcsd-internal-api:latest
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull ghcr.io/bcsdlab/bcsd-internal-api:latest
+            docker stop bcsd-internal-api || true
+            docker rm bcsd-internal-api || true
+            docker run -d \
+              --name bcsd-internal-api \
+              --restart unless-stopped \
+              --network bcsdlab-internal_default \
+              -p 127.0.0.1:8081:8081 \
+              -e SERVER_PORT=8081 \
+              -e DB_HOST=bcsdlab-internal-postgres \
+              -e DB_PORT=5432 \
+              -e DB_NAME=bcsdlab_internal \
+              -e DB_USERNAME=bcsdlab_internal \
+              -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+              --memory=256m \
+              ghcr.io/bcsdlab/bcsd-internal-api:latest
