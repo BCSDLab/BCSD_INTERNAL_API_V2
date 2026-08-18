@@ -19,6 +19,10 @@ repositories {
 }
 
 dependencies {
+	implementation(platform("software.amazon.awssdk:bom:2.53.2"))
+	implementation("software.amazon.awssdk:ses")
+	implementation("org.springframework.retry:spring-retry:2.0.13")
+	implementation("org.aspectj:aspectjweaver:1.9.25")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
