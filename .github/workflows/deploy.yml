@@ -60,5 +60,6 @@ jobs:
               -e DB_NAME=bcsdlab_internal \
               -e DB_USERNAME=bcsdlab_internal \
               -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+              -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
               --memory=256m \
               ghcr.io/bcsdlab/bcsd-internal-api:latest
