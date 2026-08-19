@@ -25,6 +25,7 @@ public class AdminCurriculumService {
 
     private final CurriculumRepository curriculumRepository;
     private final TrackPageRepository trackPageRepository;
+    private final AdminCurriculumTreeService adminCurriculumTreeService;
 
     public List<AdminCurriculumSummaryResponse> getCurriculums(Long trackPageId) {
         return curriculumRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId).stream()
@@ -37,13 +38,28 @@ public class AdminCurriculumService {
         TrackPage trackPage = trackPageRepository.findById(trackPageId)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_PAGE_NOT_FOUND));
 
+        String name = request.name();
+        Curriculum source = null;
+        if (request.isClone()) {
+            source = findOrThrow(request.sourceCurriculumId());
+            if (name == null || name.isBlank()) {
+                name = source.getName();
+            }
+        } else if (name == null || name.isBlank()) {
+            throw new CurriculumException(CurriculumExceptionType.NAME_REQUIRED);
+        }
+
         int displayOrder = curriculumRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId).size();
         Curriculum curriculum = curriculumRepository.save(Curriculum.builder()
                 .trackPage(trackPage)
-                .name(request.name())
+                .name(name)
                 .published(false)
                 .displayOrder(displayOrder)
                 .build());
+
+        if (source != null) {
+            adminCurriculumTreeService.cloneTree(source, curriculum);
+        }
         return AdminCurriculumSummaryResponse.from(curriculum);
     }
 

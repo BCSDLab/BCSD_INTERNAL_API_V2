@@ -155,6 +155,41 @@ public class AdminCurriculumTreeService {
         return saved.stream().map(CurriculumTopicDetail::getContent).toList();
     }
 
+    /**
+     * source의 주차 &gt; 토픽 &gt; 세부항목을 전부 target 아래로 복제한다(AC-2.8). id는
+     * 새로 발급되지만 개수·순서(display_order)는 원본과 동일하게 유지한다.
+     */
+    @Transactional
+    public void cloneTree(Curriculum source, Curriculum target) {
+        for (CurriculumWeek sourceWeek : curriculumWeekRepository
+                .findAllByCurriculum_IdOrderByDisplayOrderAsc(source.getId())) {
+            CurriculumWeek clonedWeek = curriculumWeekRepository.save(CurriculumWeek.builder()
+                    .curriculum(target)
+                    .weekFrom(sourceWeek.getWeekFrom())
+                    .weekTo(sourceWeek.getWeekTo())
+                    .displayOrder(sourceWeek.getDisplayOrder())
+                    .build());
+
+            for (CurriculumTopic sourceTopic : curriculumTopicRepository
+                    .findAllByWeek_IdOrderByDisplayOrderAsc(sourceWeek.getId())) {
+                CurriculumTopic clonedTopic = curriculumTopicRepository.save(CurriculumTopic.builder()
+                        .week(clonedWeek)
+                        .title(sourceTopic.getTitle())
+                        .displayOrder(sourceTopic.getDisplayOrder())
+                        .build());
+
+                for (CurriculumTopicDetail sourceDetail : curriculumTopicDetailRepository
+                        .findAllByTopic_IdOrderByDisplayOrderAsc(sourceTopic.getId())) {
+                    curriculumTopicDetailRepository.save(CurriculumTopicDetail.builder()
+                            .topic(clonedTopic)
+                            .content(sourceDetail.getContent())
+                            .displayOrder(sourceDetail.getDisplayOrder())
+                            .build());
+                }
+            }
+        }
+    }
+
     private void validateRange(WeekRequest request) {
         if (request.weekTo() != null && request.weekTo() < request.weekFrom()) {
             throw new CurriculumException(CurriculumExceptionType.WEEK_RANGE_INVALID);
