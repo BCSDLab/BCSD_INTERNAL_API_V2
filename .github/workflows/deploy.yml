@@ -35,7 +35,9 @@ jobs:
           context: .
           push: true
           platforms: linux/arm64
-          tags: ghcr.io/bcsdlab/bcsd-internal-api:latest
+          tags: |
+            ghcr.io/bcsdlab/bcsd-internal-api:latest
+            ghcr.io/bcsdlab/bcsd-internal-api:${{ github.sha }}
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
