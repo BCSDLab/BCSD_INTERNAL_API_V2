@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.bcsdlab.bcsdinternalapiv2.IntegrationTestSupport;
+import com.bcsdlab.bcsdinternalapiv2.auth.repository.RefreshTokenRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
@@ -30,6 +31,9 @@ class TrackPromotionIntegrationTest extends IntegrationTestSupport {
     private MemberRepository memberRepository;
 
     @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -37,6 +41,9 @@ class TrackPromotionIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
+        // IntegrationTestSupport로 컨테이너/컨텍스트를 공유하는 다른 테스트(로그인을 호출하는 클래스)가
+        // 남긴 refresh_token이 있으면 member 삭제가 FK 위반으로 실패한다 — 항상 먼저 지운다.
+        refreshTokenRepository.deleteAll();
         memberRepository.deleteAll();
     }
 

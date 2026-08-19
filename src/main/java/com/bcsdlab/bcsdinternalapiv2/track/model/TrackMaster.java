@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -38,4 +39,16 @@ public class TrackMaster extends BaseTimeEntity {
 
     @Column(name = "is_active", nullable = false)
     private boolean active;
+
+    @Builder
+    private TrackMaster(String code, String name) {
+        this.code = code;
+        this.name = name;
+        this.active = true;
+    }
+
+    public void update(String name, boolean active) {
+        this.name = name;
+        this.active = active;
+    }
 }

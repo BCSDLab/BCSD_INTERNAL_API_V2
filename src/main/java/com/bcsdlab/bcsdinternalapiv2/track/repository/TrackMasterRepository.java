@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TrackMasterRepository extends JpaRepository<TrackMaster, Long> {
 
     Optional<TrackMaster> findByCode(String code);
+
+    boolean existsByCode(String code);
 }
