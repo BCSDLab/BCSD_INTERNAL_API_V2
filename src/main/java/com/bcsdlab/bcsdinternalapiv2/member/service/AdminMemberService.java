@@ -10,6 +10,10 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.AdminMemberCr
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberCreateResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.mail.MailSender;
+import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
+import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -34,6 +38,7 @@ public class AdminMemberService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final MemberRepository memberRepository;
+    private final TrackMasterRepository trackMasterRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoginPageProperties loginPageProperties;
     private final ApplicationEventPublisher eventPublisher;
@@ -53,6 +58,8 @@ public class AdminMemberService {
         String normalizedPhone = isBlank(request.phoneNumber()) ? null
                 : PhoneNumberNormalizer.normalize(request.phoneNumber());
         String normalizedGithubId = GithubIdNormalizer.normalize(request.githubId());
+        TrackMaster track = trackMasterRepository.findByCode(request.track().name())
+                .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_NOT_FOUND));
 
         String temporaryPassword = generateTemporaryPassword();
         Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
@@ -61,7 +68,7 @@ public class AdminMemberService {
                 .studentNumber(request.studentNumber())
                 .password(passwordEncoder.encode(temporaryPassword))
                 .name(request.name())
-                .track(request.track())
+                .track(track)
                 .generation(request.generation())
                 .memberType(request.memberType())
                 .university(request.university())

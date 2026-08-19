@@ -8,8 +8,9 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Track;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -49,8 +50,13 @@ class AdminMemberWelcomeMailIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private TrackMaster backend;
+
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private TrackMasterRepository trackMasterRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -61,12 +67,13 @@ class AdminMemberWelcomeMailIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        backend = trackMasterRepository.findByCode("BACKEND").orElseThrow();
         memberRepository.deleteAll();
         Member admin = Member.builder()
                 .studentNumber("20230001")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("관리자")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")

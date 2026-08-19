@@ -8,8 +8,9 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Track;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,8 +46,13 @@ class AdminMemberIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private TrackMaster backend;
+
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private TrackMasterRepository trackMasterRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -55,6 +61,7 @@ class AdminMemberIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        backend = trackMasterRepository.findByCode("BACKEND").orElseThrow();
         memberRepository.deleteAll();
     }
 
@@ -64,7 +71,7 @@ class AdminMemberIntegrationTest {
                 .studentNumber("20234321")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("김민재")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
