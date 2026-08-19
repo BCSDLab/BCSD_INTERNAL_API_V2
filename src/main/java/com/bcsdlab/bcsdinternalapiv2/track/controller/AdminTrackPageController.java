@@ -4,11 +4,13 @@ import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.SlugChangeRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.StudyPointsReplaceRequest;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TechStacksReplaceRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageSummaryResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.StudyPointResponse;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TechStackResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.service.AdminTrackPageService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -91,5 +93,12 @@ public class AdminTrackPageController implements AdminTrackPageApi {
     public List<StudyPointResponse> replaceStudyPoints(@PathVariable Long id,
                                                         @Valid @RequestBody StudyPointsReplaceRequest request) {
         return adminTrackPageService.replaceStudyPoints(id, request);
+    }
+
+    @Override
+    @PutMapping("/{id}/tech-stacks")
+    public List<TechStackResponse> replaceTechStacks(@PathVariable Long id,
+                                                      @Valid @RequestBody TechStacksReplaceRequest request) {
+        return adminTrackPageService.replaceTechStacks(id, request);
     }
 }
