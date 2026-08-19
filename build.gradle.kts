@@ -21,6 +21,10 @@ repositories {
 dependencies {
 	implementation(platform("software.amazon.awssdk:bom:2.53.2"))
 	implementation("software.amazon.awssdk:ses")
+	// software.amazon.awssdk:s3에 S3Presigner가 포함되어 있어 별도 s3-presigner 아티팩트가 없다
+	// (AWS SDK가 이 버전대에서 통합함 — Maven Central에 s3-presigner 좌표 자체가 존재하지 않는다).
+	implementation("software.amazon.awssdk:s3")
+	implementation("org.jsoup:jsoup:1.18.3")
 	implementation("org.springframework.retry:spring-retry:2.0.13")
 	implementation("org.aspectj:aspectjweaver:1.9.25")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
