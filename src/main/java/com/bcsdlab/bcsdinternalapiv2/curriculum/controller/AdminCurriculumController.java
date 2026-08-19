@@ -2,12 +2,15 @@ package com.bcsdlab.bcsdinternalapiv2.curriculum.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.CurriculumUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumSummaryResponse;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumTreeResponse;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.service.AdminCurriculumService;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.service.AdminCurriculumTreeService;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,6 +24,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminCurriculumController implements AdminCurriculumApi {
 
     private final AdminCurriculumService adminCurriculumService;
+    private final AdminCurriculumTreeService adminCurriculumTreeService;
+
+    @Override
+    @GetMapping("/{id}")
+    public AdminCurriculumTreeResponse getTree(@PathVariable Long id) {
+        return adminCurriculumTreeService.getTree(id);
+    }
 
     @Override
     @PutMapping("/{id}")

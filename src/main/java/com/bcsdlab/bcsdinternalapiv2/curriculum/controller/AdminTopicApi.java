@@ -1,9 +1,8 @@
 package com.bcsdlab.bcsdinternalapiv2.curriculum.controller;
 
-import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.CurriculumUpdateRequest;
-import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumSummaryResponse;
-import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumTreeResponse;
-import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.TopicDetailsReplaceRequest;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.TopicRequest;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.CurriculumTopicResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,32 +11,24 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@Tag(name = "관리자 - 커리큘럼 세트 API")
+@Tag(name = "관리자 - 커리큘럼 토픽 API")
 @SecurityRequirement(name = "JWT")
-public interface AdminCurriculumApi {
+public interface AdminTopicApi {
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "주차 > 토픽 > 세부항목 3단 트리 전체 조회")
-    AdminCurriculumTreeResponse getTree(@PathVariable Long id);
-
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200"),
-            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
-            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
-            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
-    })
-    @Operation(summary = "커리큘럼 세트 이름 수정")
-    AdminCurriculumSummaryResponse updateCurriculum(@PathVariable Long id,
-                                                     @RequestBody @Valid CurriculumUpdateRequest request);
+    @Operation(summary = "토픽 제목 수정")
+    CurriculumTopicResponse updateTopic(@PathVariable Long id, @RequestBody @Valid TopicRequest request);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -45,15 +36,16 @@ public interface AdminCurriculumApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "커리큘럼 세트 삭제", description = "soft delete — 하위 주차·토픽·세부항목은 cascade로 물리 삭제된다.")
-    ResponseEntity<Void> deleteCurriculum(@PathVariable Long id);
+    @Operation(summary = "토픽 삭제", description = "하위 세부항목이 cascade로 함께 삭제된다.")
+    ResponseEntity<Void> deleteTopic(@PathVariable Long id);
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "공개/숨김", description = "공개로 지정하면 같은 트랙의 기존 공개 세트가 자동으로 비공개된다(AC-2.1).")
-    ResponseEntity<Void> publish(@PathVariable Long id, @RequestBody @Valid PublishRequest request);
+    @Operation(summary = "세부 항목 전체 교체", description = "빈 배열이면 전부 삭제된다(AC-2.9, 에러가 아니다).")
+    List<String> replaceDetails(@PathVariable Long id, @RequestBody @Valid TopicDetailsReplaceRequest request);
 }
