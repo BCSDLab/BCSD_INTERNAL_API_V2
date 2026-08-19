@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 public enum ActivityExceptionType implements BcsdExceptionType {
 
     ACTIVITY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 활동입니다."),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 활동 카테고리입니다."),
+    CATEGORY_SLUG_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 카테고리 주소입니다."),
     ;
 
     private final HttpStatus status;
