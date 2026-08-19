@@ -23,6 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 class AdminActivityCategoryIntegrationTest extends IntegrationTestSupport {
@@ -44,13 +45,20 @@ class AdminActivityCategoryIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private String adminToken;
 
     @BeforeEach
     void setUp() throws Exception {
-        activityCategoryRepository.deleteAll();
+        // @SQLRestriction 때문에 deleteAll()은 soft-delete된 행을 찾지 못해 물리적으로
+        // 남겨 두고, 그 남은 행이 activity_category FK를 계속 참조해 다음 deleteAll()을 막는다.
+        jdbcTemplate.update("delete from activity_image");
+        jdbcTemplate.update("delete from activity");
+        jdbcTemplate.update("delete from activity_category");
         refreshTokenRepository.deleteAll();
         memberRepository.deleteAll();
 
