@@ -1,5 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.track.service;
 
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.CurriculumResponse;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.service.CurriculumQueryService;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.StudyPointResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TechStackSummaryResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TrackDetailResponse;
@@ -23,6 +25,7 @@ public class TrackService {
     private final TrackPageRepository trackPageRepository;
     private final TrackStudyPointRepository trackStudyPointRepository;
     private final TrackPageTechStackRepository trackPageTechStackRepository;
+    private final CurriculumQueryService curriculumQueryService;
 
     public List<TrackSummaryResponse> getTracks() {
         return trackPageRepository.findAllByPublishedTrueOrderByDisplayOrderAsc().stream()
@@ -44,6 +47,9 @@ public class TrackService {
                 .map(tpts -> TechStackSummaryResponse.from(tpts.getTechStack()))
                 .toList();
 
-        return TrackDetailResponse.of(trackPage, studyPoints, techStacks);
+        CurriculumResponse curriculum = curriculumQueryService.getPublishedCurriculum(trackPage.getId())
+                .orElse(null);
+
+        return TrackDetailResponse.of(trackPage, studyPoints, techStacks, curriculum);
     }
 }

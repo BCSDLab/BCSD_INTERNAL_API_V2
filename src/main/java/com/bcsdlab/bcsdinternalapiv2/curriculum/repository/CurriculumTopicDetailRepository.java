@@ -8,5 +8,7 @@ public interface CurriculumTopicDetailRepository extends JpaRepository<Curriculu
 
     List<CurriculumTopicDetail> findAllByTopic_IdOrderByDisplayOrderAsc(Long topicId);
 
+    List<CurriculumTopicDetail> findAllByTopic_IdInOrderByDisplayOrderAsc(List<Long> topicIds);
+
     void deleteAllByTopic_Id(Long topicId);
 }

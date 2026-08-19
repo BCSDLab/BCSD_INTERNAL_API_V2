@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CurriculumTopicRepository extends JpaRepository<CurriculumTopic, Long> {
 
     List<CurriculumTopic> findAllByWeek_IdOrderByDisplayOrderAsc(Long weekId);
+
+    List<CurriculumTopic> findAllByWeek_IdInOrderByDisplayOrderAsc(List<Long> weekIds);
 }
