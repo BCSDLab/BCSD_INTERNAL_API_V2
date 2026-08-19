@@ -3,10 +3,12 @@ package com.bcsdlab.bcsdinternalapiv2.track.controller;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.SlugChangeRequest;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.StudyPointsReplaceRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageSummaryResponse;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.StudyPointResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.service.AdminTrackPageService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -82,5 +84,12 @@ public class AdminTrackPageController implements AdminTrackPageApi {
     public ResponseEntity<Void> deleteTrackPage(@PathVariable Long id) {
         adminTrackPageService.deleteTrackPage(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PutMapping("/{id}/study-points")
+    public List<StudyPointResponse> replaceStudyPoints(@PathVariable Long id,
+                                                        @Valid @RequestBody StudyPointsReplaceRequest request) {
+        return adminTrackPageService.replaceStudyPoints(id, request);
     }
 }
