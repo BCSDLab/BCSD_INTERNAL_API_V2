@@ -1,9 +1,10 @@
 package com.bcsdlab.bcsdinternalapiv2.curriculum.controller;
 
-import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.CurriculumUpdateRequest;
-import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumSummaryResponse;
-import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumTreeResponse;
-import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.TopicRequest;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.WeekRequest;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.CurriculumTopicResponse;
+import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.CurriculumWeekResponse;
+import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,28 +17,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@Tag(name = "관리자 - 커리큘럼 세트 API")
+@Tag(name = "관리자 - 커리큘럼 주차 API")
 @SecurityRequirement(name = "JWT")
-public interface AdminCurriculumApi {
+public interface AdminWeekApi {
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "주차 > 토픽 > 세부항목 3단 트리 전체 조회")
-    AdminCurriculumTreeResponse getTree(@PathVariable Long id);
-
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200"),
-            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
-            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
-            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
-    })
-    @Operation(summary = "커리큘럼 세트 이름 수정")
-    AdminCurriculumSummaryResponse updateCurriculum(@PathVariable Long id,
-                                                     @RequestBody @Valid CurriculumUpdateRequest request);
+    @Operation(summary = "주차 라벨 수정")
+    CurriculumWeekResponse updateWeek(@PathVariable Long id, @RequestBody @Valid WeekRequest request);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -45,15 +37,24 @@ public interface AdminCurriculumApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "커리큘럼 세트 삭제", description = "soft delete — 하위 주차·토픽·세부항목은 cascade로 물리 삭제된다.")
-    ResponseEntity<Void> deleteCurriculum(@PathVariable Long id);
+    @Operation(summary = "주차 삭제", description = "하위 토픽·세부항목이 cascade로 함께 삭제된다(AC-2.3).")
+    ResponseEntity<Void> deleteWeek(@PathVariable Long id);
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "201"),
             @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "공개/숨김", description = "공개로 지정하면 같은 트랙의 기존 공개 세트가 자동으로 비공개된다(AC-2.1).")
-    ResponseEntity<Void> publish(@PathVariable Long id, @RequestBody @Valid PublishRequest request);
+    @Operation(summary = "토픽 추가")
+    ResponseEntity<CurriculumTopicResponse> createTopic(@PathVariable Long id, @RequestBody @Valid TopicRequest request);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "토픽 순서 변경", description = "번호(1,2,3…)는 배열 순서로 자동 재부여된다(AC-2.6).")
+    ResponseEntity<Void> reorderTopics(@PathVariable Long id, @RequestBody @Valid OrderRequest request);
 }

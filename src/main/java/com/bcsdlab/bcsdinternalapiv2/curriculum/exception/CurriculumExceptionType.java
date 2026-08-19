@@ -6,6 +6,9 @@ import org.springframework.http.HttpStatus;
 public enum CurriculumExceptionType implements BcsdExceptionType {
 
     CURRICULUM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 커리큘럼입니다."),
+    WEEK_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 주차입니다."),
+    TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 토픽입니다."),
+    WEEK_RANGE_INVALID(HttpStatus.BAD_REQUEST, "주차 범위가 올바르지 않습니다."),
     ;
 
     private final HttpStatus status;
