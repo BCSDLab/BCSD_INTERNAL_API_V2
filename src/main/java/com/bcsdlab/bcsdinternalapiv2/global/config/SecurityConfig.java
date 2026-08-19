@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/login", "/v1/auth/reissue", "/v1/auth/logout")
                         .permitAll()
                         .requestMatchers("/v1/auth/password/**").permitAll()
+                        .requestMatchers("/v1/tracks/**").permitAll()
                         .requestMatchers("/v1/members/me/initial-setup")
                         .hasAnyAuthority("SCOPE_PRE_ACTIVATION", "SCOPE_FULL")
                         .requestMatchers("/v1/admin/**").access(AuthorizationManagers.allOf(
