@@ -1,12 +1,14 @@
 package com.bcsdlab.bcsdinternalapiv2.track.service;
 
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.StudyPointResponse;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TechStackSummaryResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TrackDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TrackSummaryResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageTechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackStudyPointRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ public class TrackService {
 
     private final TrackPageRepository trackPageRepository;
     private final TrackStudyPointRepository trackStudyPointRepository;
+    private final TrackPageTechStackRepository trackPageTechStackRepository;
 
     public List<TrackSummaryResponse> getTracks() {
         return trackPageRepository.findAllByPublishedTrueOrderByDisplayOrderAsc().stream()
@@ -36,6 +39,11 @@ public class TrackService {
                 .map(StudyPointResponse::from)
                 .toList();
 
-        return TrackDetailResponse.of(trackPage, studyPoints);
+        List<TechStackSummaryResponse> techStacks = trackPageTechStackRepository
+                .findAllByTrackPageIdOrderByDisplayOrderAsc(trackPage.getId()).stream()
+                .map(tpts -> TechStackSummaryResponse.from(tpts.getTechStack()))
+                .toList();
+
+        return TrackDetailResponse.of(trackPage, studyPoints, techStacks);
     }
 }
