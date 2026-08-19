@@ -16,8 +16,9 @@ import com.bcsdlab.bcsdinternalapiv2.global.util.TokenHasher;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Track;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import jakarta.servlet.http.Cookie;
 import java.time.Instant;
 import java.util.List;
@@ -62,8 +63,13 @@ class PasswordResetIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private TrackMaster backend;
+
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private TrackMasterRepository trackMasterRepository;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
@@ -82,6 +88,7 @@ class PasswordResetIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        backend = trackMasterRepository.findByCode("BACKEND").orElseThrow();
         refreshTokenRepository.deleteAll();
         passwordResetTokenRepository.deleteAll();
         memberRepository.deleteAll();
@@ -93,7 +100,7 @@ class PasswordResetIntegrationTest {
                 .studentNumber("20236666")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("최수진")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
@@ -169,7 +176,7 @@ class PasswordResetIntegrationTest {
                 .studentNumber("20235555")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("오세훈")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")

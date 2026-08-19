@@ -24,7 +24,7 @@ public record LoginResponse(
                     member.getId(),
                     member.getName(),
                     member.getStudentNumber(),
-                    member.getTrack().name(),
+                    member.getTrack().getCode(),
                     member.getGeneration(),
                     member.getMemberType().name(),
                     member.getUniversity()

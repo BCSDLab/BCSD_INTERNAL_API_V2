@@ -1,13 +1,17 @@
 package com.bcsdlab.bcsdinternalapiv2.member.model;
 
 import com.bcsdlab.bcsdinternalapiv2.global.BaseTimeEntity;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -38,9 +42,9 @@ public class Member extends BaseTimeEntity {
     @Column(name = "name", nullable = false, updatable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "track", nullable = false, updatable = false)
-    private Track track;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "track_id", nullable = false, updatable = false)
+    private TrackMaster track;
 
     @Column(name = "generation", nullable = false, updatable = false)
     private String generation;
@@ -85,7 +89,7 @@ public class Member extends BaseTimeEntity {
     private Instant welcomeMailSentAt;
 
     @Builder
-    private Member(String studentNumber, String password, String name, Track track, String generation,
+    private Member(String studentNumber, String password, String name, TrackMaster track, String generation,
                    MemberType memberType, String university, String email, String phoneNumber, String githubId,
                    MemberStatus status, MemberRole role, Instant passwordChangedAt) {
         this.studentNumber = studentNumber;
