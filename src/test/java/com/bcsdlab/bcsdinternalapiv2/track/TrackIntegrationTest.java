@@ -76,7 +76,6 @@ class TrackIntegrationTest extends IntegrationTestSupport {
                 .slug("frontend")
                 .displayName("Frontend")
                 .tagline("사용자 인터페이스를 구축합니다.")
-                .heroImageUrl("https://image.bcsdlab.com/hero.png")
                 .displayOrder(0)
                 .published(true)
                 .build());
@@ -85,8 +84,7 @@ class TrackIntegrationTest extends IntegrationTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.slug").value("frontend"))
                 .andExpect(jsonPath("$.name").value("Frontend"))
-                .andExpect(jsonPath("$.tagline").value("사용자 인터페이스를 구축합니다."))
-                .andExpect(jsonPath("$.heroImageUrl").value("https://image.bcsdlab.com/hero.png"));
+                .andExpect(jsonPath("$.tagline").value("사용자 인터페이스를 구축합니다."));
     }
 
     @Test

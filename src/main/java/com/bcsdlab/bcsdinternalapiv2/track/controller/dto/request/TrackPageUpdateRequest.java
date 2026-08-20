@@ -10,10 +10,6 @@ public record TrackPageUpdateRequest(
 
         @NotBlank
         @Size(max = 120)
-        String tagline,
-
-        String heroImageUrl,
-        String ogImageUrl,
-        String seoDescription
+        String tagline
 ) {
 }

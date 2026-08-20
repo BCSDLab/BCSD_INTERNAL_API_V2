@@ -104,6 +104,32 @@ class AdminTrackIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("한글 트랙명도 유효한 slug를 얻는다 — 두 개를 연달아 만들어도 충돌하지 않는다")
+    void 한글_트랙명도_slug가_생긴다() throws Exception {
+        // 파생 결과가 비면 트랙 코드로 떨어진다(BACKEND → backend).
+        mockMvc.perform(post("/v1/admin/track-pages")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(trackPageCreateBody(backend.getId(), "백엔드")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.slug").value("backend"))
+                .andExpect(jsonPath("$.displayName").value("백엔드"));
+
+        // 예전에는 둘 다 빈 slug가 되어 uq_track_page_slug에 걸려 409였다.
+        mockMvc.perform(post("/v1/admin/track-pages")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(trackPageCreateBody(frontend.getId(), "프론트엔드")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.slug").value("frontend"));
+
+        // 공개 API도 그 slug로 찾을 수 있어야 한다(예전엔 빈 slug라 조회가 불가능했다).
+        mockMvc.perform(get("/v1/tracks/backend"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("백엔드"));
+    }
+
+    @Test
     @DisplayName("AC-1.2 중복 slug는 409다")
     void 중복_slug는_409() throws Exception {
         trackPageRepository.save(trackPage(backend, "backend", 0));
