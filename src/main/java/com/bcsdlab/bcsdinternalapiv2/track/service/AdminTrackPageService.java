@@ -83,7 +83,13 @@ public class AdminTrackPageService {
             throw new TrackException(TrackExceptionType.TRACK_PAGE_ALREADY_EXISTS);
         }
 
-        String slug = SlugGenerator.from(request.displayName());
+        // 한글 트랙명("백엔드")은 파생 결과가 비어 slug NOT NULL·uq_track_page_slug와
+        // 충돌한다. 트랙 코드(BACKEND) → track-{id} 순으로 떨어뜨려 생성이 실패하지 않게
+        // 한다. track.code에는 패턴 검증이 없어 코드도 한글일 수 있으므로 마지막 후보는
+        // 항상 영숫자인 track-{id}로 둔다(uq_track_page_track이 트랙당 1개를 보장하므로
+        // 이 값도 유일하다). 마음에 안 드는 주소는 PATCH …/slug로 바꾼다.
+        String slug = SlugGenerator.fromOrFallback(
+                request.displayName(), track.getCode(), "track-" + track.getId());
         if (trackPageRepository.existsBySlug(slug)) {
             throw new TrackException(TrackExceptionType.TRACK_PAGE_SLUG_DUPLICATED);
         }
@@ -93,9 +99,6 @@ public class AdminTrackPageService {
                 .slug(slug)
                 .displayName(request.displayName())
                 .tagline(request.tagline())
-                .heroImageUrl(request.heroImageUrl())
-                .ogImageUrl(request.ogImageUrl())
-                .seoDescription(request.seoDescription())
                 .displayOrder((int) trackPageRepository.count())
                 .published(true)
                 .build();
@@ -106,8 +109,7 @@ public class AdminTrackPageService {
     @Transactional
     public AdminTrackPageDetailResponse updateTrackPage(Long id, TrackPageUpdateRequest request) {
         TrackPage trackPage = findTrackPageOrThrow(id);
-        trackPage.updateHeader(request.displayName(), request.tagline(), request.heroImageUrl(),
-                request.ogImageUrl(), request.seoDescription());
+        trackPage.updateHeader(request.displayName(), request.tagline());
         return AdminTrackPageDetailResponse.from(trackPage);
     }
 
