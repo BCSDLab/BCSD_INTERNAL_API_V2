@@ -88,6 +88,11 @@ public class Member extends BaseTimeEntity {
     @Column(name = "welcome_mail_sent_at")
     private Instant welcomeMailSentAt;
 
+    // 홈페이지 "함께 할 멤버들"에만 쓴다(T-18). 쓰기 경로를 만들지 않는다(INV-13) —
+    // 명부 관리 책임은 auth/member 담당자에게 그대로 있다.
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
     @Builder
     private Member(String studentNumber, String password, String name, TrackMaster track, String generation,
                    MemberType memberType, String university, String email, String phoneNumber, String githubId,
