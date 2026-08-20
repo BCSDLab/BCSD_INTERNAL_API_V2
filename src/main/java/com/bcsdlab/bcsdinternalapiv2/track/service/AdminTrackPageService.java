@@ -10,6 +10,7 @@ import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TechStacksRepl
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageDetailResponse;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageMemberResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageSummaryResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.StudyPointResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TechStackResponse;
@@ -22,6 +23,7 @@ import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPageTechStack;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackStudyPoint;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageMemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageTechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackStudyPointRepository;
@@ -46,6 +48,7 @@ public class AdminTrackPageService {
     private final TrackStudyPointRepository trackStudyPointRepository;
     private final TechStackRepository techStackRepository;
     private final TrackPageTechStackRepository trackPageTechStackRepository;
+    private final TrackPageMemberRepository trackPageMemberRepository;
 
     public List<AdminTrackPageSummaryResponse> getTrackPages() {
         return trackPageRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -54,7 +57,22 @@ public class AdminTrackPageService {
     }
 
     public AdminTrackPageDetailResponse getTrackPage(Long id) {
-        return AdminTrackPageDetailResponse.from(findTrackPageOrThrow(id));
+        TrackPage trackPage = findTrackPageOrThrow(id);
+
+        List<StudyPointResponse> studyPoints = trackStudyPointRepository
+                .findAllByTrackPage_IdOrderByDisplayOrderAsc(id).stream()
+                .map(StudyPointResponse::from)
+                .toList();
+        List<TechStackResponse> techStacks = trackPageTechStackRepository
+                .findAllByTrackPageIdOrderByDisplayOrderAsc(id).stream()
+                .map(tpts -> TechStackResponse.from(tpts.getTechStack()))
+                .toList();
+        List<AdminTrackPageMemberResponse> members = trackPageMemberRepository
+                .findAllByTrackPage_IdOrderByDisplayOrderAsc(id).stream()
+                .map(AdminTrackPageMemberResponse::from)
+                .toList();
+
+        return AdminTrackPageDetailResponse.of(trackPage, studyPoints, techStacks, members);
     }
 
     @Transactional
