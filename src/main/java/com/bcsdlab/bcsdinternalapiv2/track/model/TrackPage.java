@@ -47,15 +47,6 @@ public class TrackPage extends SoftDeletableEntity {
     @Column(name = "tagline", nullable = false)
     private String tagline;
 
-    @Column(name = "hero_image_url")
-    private String heroImageUrl;
-
-    @Column(name = "og_image_url")
-    private String ogImageUrl;
-
-    @Column(name = "seo_description")
-    private String seoDescription;
-
     @Column(name = "display_order", nullable = false)
     private int displayOrder;
 
@@ -63,26 +54,19 @@ public class TrackPage extends SoftDeletableEntity {
     private boolean published;
 
     @Builder
-    private TrackPage(TrackMaster track, String slug, String displayName, String tagline, String heroImageUrl,
-                       String ogImageUrl, String seoDescription, int displayOrder, boolean published) {
+    private TrackPage(TrackMaster track, String slug, String displayName, String tagline, int displayOrder,
+                       boolean published) {
         this.track = track;
         this.slug = slug;
         this.displayName = displayName;
         this.tagline = tagline;
-        this.heroImageUrl = heroImageUrl;
-        this.ogImageUrl = ogImageUrl;
-        this.seoDescription = seoDescription;
         this.displayOrder = displayOrder;
         this.published = published;
     }
 
-    public void updateHeader(String displayName, String tagline, String heroImageUrl, String ogImageUrl,
-                              String seoDescription) {
+    public void updateHeader(String displayName, String tagline) {
         this.displayName = displayName;
         this.tagline = tagline;
-        this.heroImageUrl = heroImageUrl;
-        this.ogImageUrl = ogImageUrl;
-        this.seoDescription = seoDescription;
     }
 
     public void changeSlug(String slug) {

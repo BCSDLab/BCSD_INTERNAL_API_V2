@@ -16,6 +16,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +42,9 @@ class AdminTrackIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private TrackPageRepository trackPageRepository;
+
+    @Autowired
+    private TechStackRepository techStackRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -100,6 +104,32 @@ class AdminTrackIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("한글 트랙명도 유효한 slug를 얻는다 — 두 개를 연달아 만들어도 충돌하지 않는다")
+    void 한글_트랙명도_slug가_생긴다() throws Exception {
+        // 파생 결과가 비면 트랙 코드로 떨어진다(BACKEND → backend).
+        mockMvc.perform(post("/v1/admin/track-pages")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(trackPageCreateBody(backend.getId(), "백엔드")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.slug").value("backend"))
+                .andExpect(jsonPath("$.displayName").value("백엔드"));
+
+        // 예전에는 둘 다 빈 slug가 되어 uq_track_page_slug에 걸려 409였다.
+        mockMvc.perform(post("/v1/admin/track-pages")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(trackPageCreateBody(frontend.getId(), "프론트엔드")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.slug").value("frontend"));
+
+        // 공개 API도 그 slug로 찾을 수 있어야 한다(예전엔 빈 slug라 조회가 불가능했다).
+        mockMvc.perform(get("/v1/tracks/backend"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("백엔드"));
+    }
+
+    @Test
     @DisplayName("AC-1.2 중복 slug는 409다")
     void 중복_slug는_409() throws Exception {
         trackPageRepository.save(trackPage(backend, "backend", 0));
@@ -143,6 +173,46 @@ class AdminTrackIntegrationTest extends IntegrationTestSupport {
         mockMvc.perform(get("/v1/tracks"))
                 .andExpect(jsonPath("$[0].slug").value("backend"))
                 .andExpect(jsonPath("$[1].slug").value("frontend"));
+    }
+
+    @Test
+    @DisplayName("편집 화면 조회는 헤더와 함께 studyPoints·techStacks·members를 반환한다")
+    void 편집_화면_조회는_studyPoints_techStacks_members를_포함한다() throws Exception {
+        TrackPage trackPage = trackPageRepository.save(trackPage(backend, "backend", 0));
+
+        mockMvc.perform(put("/v1/admin/track-pages/" + trackPage.getId() + "/study-points")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"studyPoints\":[{\"title\":\"A\",\"description\":\"a\"}]}"))
+                .andExpect(status().isOk());
+
+        String techStackBody = mockMvc.perform(post("/v1/admin/tech-stacks")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Spring\",\"iconUrl\":\"https://image.bcsdlab.com/spring.png\"}"))
+                .andReturn().getResponse().getContentAsString();
+        long techStackId = objectMapper.readTree(techStackBody).get("id").asLong();
+        mockMvc.perform(put("/v1/admin/track-pages/" + trackPage.getId() + "/tech-stacks")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"techStackIds\":[%d]}".formatted(techStackId)))
+                .andExpect(status().isOk());
+
+        Member candidate = memberRepository.save(newMember("20233333", "candidate@bcsd.club"));
+        mockMvc.perform(post("/v1/admin/track-pages/" + trackPage.getId() + "/members")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"memberIds\":[%d]}".formatted(candidate.getId())))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/v1/admin/track-pages/" + trackPage.getId())
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.studyPoints[0].title").value("A"))
+                .andExpect(jsonPath("$.techStacks[0].name").value("Spring"))
+                .andExpect(jsonPath("$.members[0].name").value(candidate.getName()));
+
+        techStackRepository.deleteById(techStackId);
     }
 
     @Test
