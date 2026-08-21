@@ -10,8 +10,9 @@ import com.bcsdlab.bcsdinternalapiv2.auth.repository.RefreshTokenRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Track;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import jakarta.servlet.http.Cookie;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,8 +54,13 @@ class RefreshTokenIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private TrackMaster backend;
+
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private TrackMasterRepository trackMasterRepository;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
@@ -64,6 +70,7 @@ class RefreshTokenIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        backend = trackMasterRepository.findByCode("BACKEND").orElseThrow();
         refreshTokenRepository.deleteAll();
         memberRepository.deleteAll();
     }
@@ -74,7 +81,7 @@ class RefreshTokenIntegrationTest {
                 .studentNumber("20237777")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("이민수")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
@@ -129,7 +136,7 @@ class RefreshTokenIntegrationTest {
                 .studentNumber("20238888")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("박영희")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
@@ -186,7 +193,7 @@ class RefreshTokenIntegrationTest {
                 .studentNumber("20239999")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("김철수")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
