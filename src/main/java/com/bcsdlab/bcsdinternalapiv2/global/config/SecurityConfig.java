@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/v1/auth/password/**").permitAll()
                         .requestMatchers("/v1/tracks/**").permitAll()
+                        .requestMatchers("/v1/activity-categories/**").permitAll()
                         .requestMatchers("/v1/members/me/initial-setup")
                         .hasAnyAuthority("SCOPE_PRE_ACTIVATION", "SCOPE_FULL")
                         .requestMatchers("/v1/admin/**").access(AuthorizationManagers.allOf(
