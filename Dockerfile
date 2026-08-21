@@ -1,11 +1,15 @@
 FROM gradle:8-jdk21 AS builder
 WORKDIR /app
+COPY build.gradle.kts settings.gradle.kts ./
+RUN gradle dependencies --no-daemon || true
 COPY . .
 RUN gradle bootJar --no-daemon -x test
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+RUN addgroup -S app && adduser -S app -G app
 COPY --from=builder /app/build/libs/*.jar app.jar
+USER app
 EXPOSE 8081
 # 컨테이너 한도(256m) 안에서 힙+비힙 전체를 예측 가능하게 묶는다.
 # -Xmx256m은 힙 혼자 한도를 다 먹을 수 있어 메타스페이스/코드캐시/스택이 넘칠 때
