@@ -75,4 +75,25 @@ public class TrackPage extends SoftDeletableEntity {
         this.displayOrder = displayOrder;
         this.published = published;
     }
+
+    public void updateHeader(String displayName, String tagline, String heroImageUrl, String ogImageUrl,
+                              String seoDescription) {
+        this.displayName = displayName;
+        this.tagline = tagline;
+        this.heroImageUrl = heroImageUrl;
+        this.ogImageUrl = ogImageUrl;
+        this.seoDescription = seoDescription;
+    }
+
+    public void changeSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public void updatePublished(boolean published) {
+        this.published = published;
+    }
+
+    public void updateDisplayOrder(int displayOrder) {
+        this.displayOrder = displayOrder;
+    }
 }

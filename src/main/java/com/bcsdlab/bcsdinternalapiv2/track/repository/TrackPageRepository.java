@@ -9,5 +9,11 @@ public interface TrackPageRepository extends JpaRepository<TrackPage, Long> {
 
     List<TrackPage> findAllByPublishedTrueOrderByDisplayOrderAsc();
 
+    List<TrackPage> findAllByOrderByDisplayOrderAsc();
+
     Optional<TrackPage> findBySlugAndPublishedTrue(String slug);
+
+    boolean existsBySlug(String slug);
+
+    boolean existsByTrack_Id(Long trackId);
 }
