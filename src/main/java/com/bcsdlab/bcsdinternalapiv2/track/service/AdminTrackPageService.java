@@ -4,18 +4,24 @@ import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.SlugChangeRequest;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.StudyPointRequest;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.StudyPointsReplaceRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageSummaryResponse;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.StudyPointResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackStudyPoint;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackStudyPointRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.util.SlugGenerator;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,6 +36,7 @@ public class AdminTrackPageService {
 
     private final TrackPageRepository trackPageRepository;
     private final TrackMasterRepository trackMasterRepository;
+    private final TrackStudyPointRepository trackStudyPointRepository;
 
     public List<AdminTrackPageSummaryResponse> getTrackPages() {
         return trackPageRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -106,6 +113,26 @@ public class AdminTrackPageService {
     @Transactional
     public void deleteTrackPage(Long id) {
         findTrackPageOrThrow(id).delete(Instant.now());
+    }
+
+    @Transactional
+    public List<StudyPointResponse> replaceStudyPoints(Long id, StudyPointsReplaceRequest request) {
+        TrackPage trackPage = findTrackPageOrThrow(id);
+        trackStudyPointRepository.deleteAllByTrackPage_Id(id);
+
+        List<StudyPointRequest> items = request.studyPoints();
+        List<TrackStudyPoint> saved = new ArrayList<>(items.size());
+        for (int i = 0; i < items.size(); i++) {
+            StudyPointRequest item = items.get(i);
+            saved.add(trackStudyPointRepository.save(TrackStudyPoint.builder()
+                    .trackPage(trackPage)
+                    .title(item.title())
+                    .description(item.description())
+                    .iconImageUrl(item.iconImageUrl())
+                    .displayOrder(i)
+                    .build()));
+        }
+        return saved.stream().map(StudyPointResponse::from).toList();
     }
 
     private TrackPage findTrackPageOrThrow(Long id) {
