@@ -6,22 +6,29 @@ import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.SlugChangeRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.StudyPointRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.StudyPointsReplaceRequest;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TechStacksReplaceRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageSummaryResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.StudyPointResponse;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TechStackResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TechStack;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPageTechStack;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackStudyPoint;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageTechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackStudyPointRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.util.SlugGenerator;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +44,8 @@ public class AdminTrackPageService {
     private final TrackPageRepository trackPageRepository;
     private final TrackMasterRepository trackMasterRepository;
     private final TrackStudyPointRepository trackStudyPointRepository;
+    private final TechStackRepository techStackRepository;
+    private final TrackPageTechStackRepository trackPageTechStackRepository;
 
     public List<AdminTrackPageSummaryResponse> getTrackPages() {
         return trackPageRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -133,6 +142,27 @@ public class AdminTrackPageService {
                     .build()));
         }
         return saved.stream().map(StudyPointResponse::from).toList();
+    }
+
+    @Transactional
+    public List<TechStackResponse> replaceTechStacks(Long id, TechStacksReplaceRequest request) {
+        TrackPage trackPage = findTrackPageOrThrow(id);
+        List<Long> techStackIds = request.techStackIds();
+
+        Map<Long, TechStack> byId = techStackRepository.findAllById(techStackIds).stream()
+                .collect(Collectors.toMap(TechStack::getId, techStack -> techStack));
+        if (byId.size() != new HashSet<>(techStackIds).size()) {
+            throw new TrackException(TrackExceptionType.TECH_STACK_NOT_FOUND);
+        }
+
+        trackPageTechStackRepository.deleteAllByTrackPage_Id(id);
+
+        List<TrackPageTechStack> saved = new ArrayList<>(techStackIds.size());
+        for (int i = 0; i < techStackIds.size(); i++) {
+            saved.add(trackPageTechStackRepository.save(
+                    new TrackPageTechStack(trackPage, byId.get(techStackIds.get(i)), i)));
+        }
+        return saved.stream().map(tpts -> TechStackResponse.from(tpts.getTechStack())).toList();
     }
 
     private TrackPage findTrackPageOrThrow(Long id) {

@@ -6,9 +6,11 @@ import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.SlugChangeRequ
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.StudyPointsReplaceRequest;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TechStacksReplaceRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.AdminTrackPageSummaryResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.StudyPointResponse;
+import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TechStackResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -111,4 +113,15 @@ public interface AdminTrackPageApi {
     @Operation(summary = "WHAT WE STUDY 카드 전체 교체", description = "최대 4개(INV-14). 배열 순서가 display_order다.")
     List<StudyPointResponse> replaceStudyPoints(@PathVariable Long id,
                                                  @RequestBody @Valid StudyPointsReplaceRequest request);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "기술스택 전체 교체", description = "배열 순서가 display_order다.")
+    List<TechStackResponse> replaceTechStacks(@PathVariable Long id,
+                                               @RequestBody @Valid TechStacksReplaceRequest request);
 }
