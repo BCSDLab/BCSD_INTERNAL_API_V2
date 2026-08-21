@@ -34,7 +34,9 @@ public interface AdminCurriculumSetApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "커리큘럼 세트 생성", description = "생성 직후에는 비공개다.")
+    @Operation(summary = "커리큘럼 세트 생성",
+            description = "생성 직후에는 항상 비공개다. sourceCurriculumId를 주면 다른 세트(다른 트랙도 가능)를 "
+                    + "트리 전체까지 복제한다(AC-2.8).")
     ResponseEntity<AdminCurriculumSummaryResponse> createCurriculum(@PathVariable Long trackPageId,
                                                                      @RequestBody @Valid CurriculumCreateRequest request);
 }
