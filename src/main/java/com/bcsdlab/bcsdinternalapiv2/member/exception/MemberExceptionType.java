@@ -11,6 +11,7 @@ public enum MemberExceptionType implements BcsdExceptionType {
     STUDENT_NUMBER_DUPLICATED(HttpStatus.CONFLICT, "이미 등록된 학번입니다."),
     INVALID_PHONE(HttpStatus.BAD_REQUEST, "올바른 전화번호 형식이 아닙니다."),
     INVALID_GITHUB_ID(HttpStatus.BAD_REQUEST, "올바른 깃허브 아이디가 아닙니다."),
+    INVALID_PHOTO(HttpStatus.BAD_REQUEST, "올바른 사진 파일이 아닙니다."),
     ;
 
     private final HttpStatus status;

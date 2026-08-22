@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -39,22 +40,41 @@ public class Member extends BaseTimeEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "name", nullable = false, updatable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "track_id", nullable = false, updatable = false)
+    @JoinColumn(name = "track_id", nullable = false)
     private TrackMaster track;
 
-    @Column(name = "generation", nullable = false, updatable = false)
+    @Column(name = "generation", nullable = false)
     private String generation;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "member_type", nullable = false, updatable = false)
+    @Column(name = "member_type", nullable = false)
     private MemberType memberType;
 
-    @Column(name = "university", nullable = false, updatable = false)
+    @Column(name = "university", nullable = false)
     private String university;
+
+    @Column(name = "department", nullable = false)
+    private String department;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "academic_status", nullable = false)
+    private AcademicStatus academicStatus;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean clubActive;
+
+    @Column(name = "position")
+    private String position;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
+    @Column(name = "dues_required", nullable = false)
+    private boolean duesRequired;
 
     @Column(name = "email", nullable = false)
     private String email;
@@ -95,7 +115,9 @@ public class Member extends BaseTimeEntity {
 
     @Builder
     private Member(String studentNumber, String password, String name, TrackMaster track, String generation,
-                   MemberType memberType, String university, String email, String phoneNumber, String githubId,
+                   MemberType memberType, String university, String department, AcademicStatus academicStatus,
+                   Boolean clubActive, String position, LocalDate birthDate, Boolean duesRequired,
+                   String email, String phoneNumber, String githubId, String profileImageUrl,
                    MemberStatus status, MemberRole role, Instant passwordChangedAt) {
         this.studentNumber = studentNumber;
         this.password = password;
@@ -104,9 +126,16 @@ public class Member extends BaseTimeEntity {
         this.generation = generation;
         this.memberType = memberType;
         this.university = university;
+        this.department = department != null ? department : "";
+        this.academicStatus = academicStatus != null ? academicStatus : AcademicStatus.ENROLLED;
+        this.clubActive = clubActive != null ? clubActive : true;
+        this.position = position;
+        this.birthDate = birthDate;
+        this.duesRequired = duesRequired != null ? duesRequired : false;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.githubId = githubId;
+        this.profileImageUrl = profileImageUrl;
         this.status = status != null ? status : MemberStatus.PENDING_SETUP;
         this.role = role != null ? role : MemberRole.MEMBER;
         this.loginFailCount = 0;
@@ -167,6 +196,47 @@ public class Member extends BaseTimeEntity {
         this.password = encodedPassword;
         this.passwordChangedAt = truncateToMillis(now);
         this.welcomeMailSentAt = null;
+    }
+
+    public void changeAcademicStatus(AcademicStatus academicStatus) {
+        this.academicStatus = academicStatus;
+    }
+
+    public void changeClubActive(boolean clubActive) {
+        this.clubActive = clubActive;
+    }
+
+    public void updateProfile(String name, TrackMaster track, String generation, MemberType memberType,
+                               String university, String department, String position, LocalDate birthDate,
+                               boolean duesRequired, String email, String phoneNumber, String githubId) {
+        this.name = name;
+        this.track = track;
+        this.generation = generation;
+        this.memberType = memberType;
+        this.university = university;
+        this.department = department;
+        this.position = position;
+        this.birthDate = birthDate;
+        this.duesRequired = duesRequired;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.githubId = githubId;
+    }
+
+    public void changeRole(MemberRole role) {
+        this.role = role;
+    }
+
+    public void withdraw() {
+        this.status = MemberStatus.WITHDRAWN;
+    }
+
+    public void restore() {
+        this.status = MemberStatus.ACTIVE;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     private static Instant truncateToMillis(Instant instant) {
