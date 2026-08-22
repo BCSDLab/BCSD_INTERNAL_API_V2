@@ -21,6 +21,7 @@ import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageMemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,6 +76,15 @@ class AdminTrackPageMemberIntegrationTest extends IntegrationTestSupport {
 
         alice = memberRepository.save(newMember("20240001", "alice@bcsd.club"));
         bob = memberRepository.save(newMember("20240002", "bob@bcsd.club"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        // track_page_member·refresh_token이 member를 참조하므로, 다음에 실행될 다른 테스트
+        // 클래스의 memberRepository.deleteAll()이 FK 위반으로 막히지 않도록 여기서 먼저 정리한다.
+        trackPageRepository.deleteAll();
+        refreshTokenRepository.deleteAll();
+        memberRepository.deleteAll();
     }
 
     @Test

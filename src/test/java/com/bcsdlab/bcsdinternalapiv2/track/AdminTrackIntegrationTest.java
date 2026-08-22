@@ -20,6 +20,7 @@ import com.bcsdlab.bcsdinternalapiv2.track.repository.TechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,15 @@ class AdminTrackIntegrationTest extends IntegrationTestSupport {
 
         memberRepository.save(newMember("20232222", "member@bcsd.club"));
         memberToken = login("20232222");
+    }
+
+    @AfterEach
+    void tearDown() {
+        // track_page_member·refresh_token이 member를 참조하므로, 다음에 실행될 다른 테스트
+        // 클래스의 memberRepository.deleteAll()이 FK 위반으로 막히지 않도록 여기서 먼저 정리한다.
+        trackPageRepository.deleteAll();
+        refreshTokenRepository.deleteAll();
+        memberRepository.deleteAll();
     }
 
     @Test
@@ -189,7 +199,7 @@ class AdminTrackIntegrationTest extends IntegrationTestSupport {
         String techStackBody = mockMvc.perform(post("/v1/admin/tech-stacks")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Spring\",\"iconUrl\":\"https://image.bcsdlab.com/spring.png\"}"))
+                        .content("{\"name\":\"TestStack\",\"iconUrl\":\"https://image.bcsdlab.com/test-stack.png\"}"))
                 .andReturn().getResponse().getContentAsString();
         long techStackId = objectMapper.readTree(techStackBody).get("id").asLong();
         mockMvc.perform(put("/v1/admin/track-pages/" + trackPage.getId() + "/tech-stacks")
@@ -209,7 +219,7 @@ class AdminTrackIntegrationTest extends IntegrationTestSupport {
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.studyPoints[0].title").value("A"))
-                .andExpect(jsonPath("$.techStacks[0].name").value("Spring"))
+                .andExpect(jsonPath("$.techStacks[0].name").value("TestStack"))
                 .andExpect(jsonPath("$.members[0].name").value(candidate.getName()));
 
         techStackRepository.deleteById(techStackId);
