@@ -95,7 +95,8 @@ class AdminMemberWelcomeMailIntegrationTest {
     void 관리자가_회원을_생성하면_환영_메일_발송_시각이_기록된다() throws Exception {
         String createBody = """
                 {"name":"신입생","studentNumber":"20239999","track":"BACKEND","memberType":"REGULAR",
-                 "generation":"24-하","university":"OO대학교","email":"new-member@bcsd.club"}
+                 "generation":"24-하","university":"OO대학교","department":"컴퓨터공학과",
+                 "email":"new-member@bcsd.club"}
                 """;
 
         String responseBody = mockMvc.perform(post("/v1/admin/members")
