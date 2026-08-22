@@ -10,5 +10,6 @@ public enum Track {
     DESIGN,
     DEVOPS,
     PS,
-    GAME
+    GAME,
+    SECURITY
 }

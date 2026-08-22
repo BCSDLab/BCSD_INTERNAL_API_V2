@@ -88,7 +88,8 @@ class AdminMemberIntegrationTest {
 
         String createBody = """
                 {"name":"신입생","studentNumber":"20239998","track":"BACKEND","memberType":"REGULAR",
-                 "generation":"24-하","university":"OO대학교","email":"promotion-target@bcsd.club"}
+                 "generation":"24-하","university":"OO대학교","department":"컴퓨터공학과",
+                 "email":"promotion-target@bcsd.club"}
                 """;
 
         mockMvc.perform(post("/v1/admin/members")
@@ -111,7 +112,8 @@ class AdminMemberIntegrationTest {
 
         String secondCreateBody = """
                 {"name":"신입생2","studentNumber":"20239997","track":"BACKEND","memberType":"REGULAR",
-                 "generation":"24-하","university":"OO대학교","email":"promotion-target-2@bcsd.club"}
+                 "generation":"24-하","university":"OO대학교","department":"컴퓨터공학과",
+                 "email":"promotion-target-2@bcsd.club"}
                 """;
 
         mockMvc.perform(post("/v1/admin/members")
