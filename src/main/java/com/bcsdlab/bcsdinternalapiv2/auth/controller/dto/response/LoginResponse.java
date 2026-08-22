@@ -17,7 +17,8 @@ public record LoginResponse(
             String track,
             String generation,
             String memberType,
-            String university
+            String university,
+            String role
     ) {
         public static MemberSummary from(Member member) {
             return new MemberSummary(
@@ -27,7 +28,8 @@ public record LoginResponse(
                     member.getTrack().getCode(),
                     member.getGeneration(),
                     member.getMemberType().name(),
-                    member.getUniversity()
+                    member.getUniversity(),
+                    member.getRole().name()
             );
         }
     }
