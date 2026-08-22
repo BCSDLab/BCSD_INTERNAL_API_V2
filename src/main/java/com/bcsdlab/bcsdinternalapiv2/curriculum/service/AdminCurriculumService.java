@@ -8,6 +8,7 @@ import com.bcsdlab.bcsdinternalapiv2.curriculum.exception.CurriculumExceptionTyp
 import com.bcsdlab.bcsdinternalapiv2.curriculum.model.Curriculum;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
+import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
@@ -26,6 +27,7 @@ public class AdminCurriculumService {
     private final CurriculumRepository curriculumRepository;
     private final TrackPageRepository trackPageRepository;
     private final AdminCurriculumTreeService adminCurriculumTreeService;
+    private final ContentChangedPublisher contentChangedPublisher;
 
     public List<AdminCurriculumSummaryResponse> getCurriculums(Long trackPageId) {
         return curriculumRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId).stream()
@@ -84,6 +86,7 @@ public class AdminCurriculumService {
             curriculumRepository.unpublishOthers(curriculum.getTrackPage().getId(), id);
         }
         curriculum.updatePublished(request.isPublished());
+        contentChangedPublisher.trackChanged(curriculum.getTrackPage().getSlug());
     }
 
     private Curriculum findOrThrow(Long id) {

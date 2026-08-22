@@ -73,5 +73,7 @@ jobs:
               -e AWS_S3_BUCKET='${{ secrets.AWS_S3_BUCKET }}' \
               -e AWS_S3_REGION='${{ secrets.AWS_S3_REGION }}' \
               -e CORS_ALLOWED_ORIGINS='${{ secrets.CORS_ALLOWED_ORIGINS }}' \
+              -e HOMEPAGE_REVALIDATE_URL='${{ secrets.HOMEPAGE_REVALIDATE_URL }}' \
+              -e HOMEPAGE_REVALIDATE_SECRET='${{ secrets.HOMEPAGE_REVALIDATE_SECRET }}' \
               --memory=300m \
               ghcr.io/bcsdlab/bcsd-internal-api:latest

@@ -16,6 +16,7 @@ import com.bcsdlab.bcsdinternalapiv2.activity.repository.ActivityRepository;
 import com.bcsdlab.bcsdinternalapiv2.activity.util.ActivityContentSanitizer;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
+import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class AdminActivityService {
     private final ActivityRepository activityRepository;
     private final ActivityImageRepository activityImageRepository;
     private final ActivityCategoryRepository activityCategoryRepository;
+    private final ContentChangedPublisher contentChangedPublisher;
 
     public Page<AdminActivitySummaryResponse> getActivities(Long categoryId, Integer year, Boolean published,
                                                               Pageable pageable) {
@@ -78,6 +80,7 @@ public class AdminActivityService {
                 .displayOrder(displayOrder)
                 .published(true)
                 .build());
+        contentChangedPublisher.activityChanged(category.getSlug(), activity.getId());
         return AdminActivityDetailResponse.of(activity, List.of());
     }
 
@@ -86,17 +89,22 @@ public class AdminActivityService {
         Activity activity = findOrThrow(id);
         activity.updateContent(request.year(), request.month(), request.title(), request.summary(),
                 ActivityContentSanitizer.sanitize(request.content()), request.externalUrl());
+        contentChangedPublisher.activityChanged(activity.getCategory().getSlug(), activity.getId());
         return AdminActivityDetailResponse.of(activity, imageUrls(id));
     }
 
     @Transactional
     public void deleteActivity(Long id) {
-        findOrThrow(id).delete(Instant.now());
+        Activity activity = findOrThrow(id);
+        activity.delete(Instant.now());
+        contentChangedPublisher.activityChanged(activity.getCategory().getSlug(), activity.getId());
     }
 
     @Transactional
     public void publish(Long id, PublishRequest request) {
-        findOrThrow(id).updatePublished(request.isPublished());
+        Activity activity = findOrThrow(id);
+        activity.updatePublished(request.isPublished());
+        contentChangedPublisher.activityChanged(activity.getCategory().getSlug(), activity.getId());
     }
 
     @Transactional
@@ -108,6 +116,9 @@ public class AdminActivityService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((id, order) -> byId.get(id).updateDisplayOrder(order));
+        if (!activities.isEmpty()) {
+            contentChangedPublisher.publish(List.of("activity:" + activities.get(0).getCategory().getSlug()));
+        }
     }
 
     @Transactional
@@ -124,6 +135,7 @@ public class AdminActivityService {
                     .displayOrder(i)
                     .build()));
         }
+        contentChangedPublisher.activityChanged(activity.getCategory().getSlug(), activity.getId());
         return saved.stream().map(ActivityImage::getImageUrl).toList();
     }
 

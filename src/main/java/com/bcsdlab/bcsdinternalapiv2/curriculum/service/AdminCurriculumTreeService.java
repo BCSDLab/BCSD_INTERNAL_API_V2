@@ -19,6 +19,7 @@ import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumTopicDetail
 import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumTopicRepository;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumWeekRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
+import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class AdminCurriculumTreeService {
     private final CurriculumWeekRepository curriculumWeekRepository;
     private final CurriculumTopicRepository curriculumTopicRepository;
     private final CurriculumTopicDetailRepository curriculumTopicDetailRepository;
+    private final ContentChangedPublisher contentChangedPublisher;
 
     public AdminCurriculumTreeResponse getTree(Long curriculumId) {
         Curriculum curriculum = curriculumRepository.findById(curriculumId)
@@ -77,6 +79,7 @@ public class AdminCurriculumTreeService {
                 .weekTo(request.weekTo())
                 .displayOrder(displayOrder)
                 .build());
+        notifyIfPublished(curriculum);
         return CurriculumWeekResponse.from(week);
     }
 
@@ -85,12 +88,15 @@ public class AdminCurriculumTreeService {
         validateRange(request);
         CurriculumWeek week = findWeekOrThrow(weekId);
         week.updateLabel(request.weekFrom(), request.weekTo());
+        notifyIfPublished(week.getCurriculum());
         return CurriculumWeekResponse.from(week);
     }
 
     @Transactional
     public void deleteWeek(Long weekId) {
-        curriculumWeekRepository.delete(findWeekOrThrow(weekId));
+        CurriculumWeek week = findWeekOrThrow(weekId);
+        curriculumWeekRepository.delete(week);
+        notifyIfPublished(week.getCurriculum());
     }
 
     @Transactional
@@ -102,6 +108,9 @@ public class AdminCurriculumTreeService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((id, order) -> byId.get(id).updateDisplayOrder(order));
+        if (!weeks.isEmpty()) {
+            notifyIfPublished(weeks.get(0).getCurriculum());
+        }
     }
 
     @Transactional
@@ -113,6 +122,7 @@ public class AdminCurriculumTreeService {
                 .title(request.title())
                 .displayOrder(displayOrder)
                 .build());
+        notifyIfPublished(week.getCurriculum());
         return CurriculumTopicResponse.from(topic);
     }
 
@@ -120,12 +130,15 @@ public class AdminCurriculumTreeService {
     public CurriculumTopicResponse updateTopic(Long topicId, TopicRequest request) {
         CurriculumTopic topic = findTopicOrThrow(topicId);
         topic.updateTitle(request.title());
+        notifyIfPublished(topic.getWeek().getCurriculum());
         return CurriculumTopicResponse.from(topic);
     }
 
     @Transactional
     public void deleteTopic(Long topicId) {
-        curriculumTopicRepository.delete(findTopicOrThrow(topicId));
+        CurriculumTopic topic = findTopicOrThrow(topicId);
+        curriculumTopicRepository.delete(topic);
+        notifyIfPublished(topic.getWeek().getCurriculum());
     }
 
     @Transactional
@@ -136,6 +149,9 @@ public class AdminCurriculumTreeService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((id, order) -> byId.get(id).updateDisplayOrder(order));
+        if (!topics.isEmpty()) {
+            notifyIfPublished(topics.get(0).getWeek().getCurriculum());
+        }
     }
 
     @Transactional
@@ -152,6 +168,7 @@ public class AdminCurriculumTreeService {
                     .displayOrder(i)
                     .build()));
         }
+        notifyIfPublished(topic.getWeek().getCurriculum());
         return saved.stream().map(CurriculumTopicDetail::getContent).toList();
     }
 
@@ -187,6 +204,13 @@ public class AdminCurriculumTreeService {
                             .build());
                 }
             }
+        }
+    }
+
+    /** 공개 세트 하위 변경만 홈페이지에 영향을 준다(05-api-spec.md §4) — 초안 편집은 조용히 넘어간다. */
+    private void notifyIfPublished(Curriculum curriculum) {
+        if (curriculum.isPublished()) {
+            contentChangedPublisher.trackChanged(curriculum.getTrackPage().getSlug());
         }
     }
 
