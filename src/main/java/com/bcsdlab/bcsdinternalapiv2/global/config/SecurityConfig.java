@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationManagers;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -61,6 +62,8 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/password/**").permitAll()
                         .requestMatchers("/v1/members/me/initial-setup")
                         .hasAnyAuthority("SCOPE_PRE_ACTIVATION", "SCOPE_FULL")
+                        .requestMatchers(HttpMethod.GET, "/v1/reservations/monthly-occupancy", "/v1/reservations/daily")
+                        .permitAll()
                         .requestMatchers("/v1/admin/**").access(AuthorizationManagers.allOf(
                                 AuthorityAuthorizationManager.hasAuthority("SCOPE_FULL"),
                                 AuthorityAuthorizationManager.hasAuthority("ROLE_ADMIN")))
