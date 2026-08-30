@@ -6,5 +6,7 @@ public enum ImagePurpose {
     TECH_ICON,
     ACTIVITY,
     ACTIVITY_CONTENT,
+    GAME,
+    GAME_CONTENT,
     ETC
 }
