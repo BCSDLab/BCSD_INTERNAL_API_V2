@@ -4,6 +4,7 @@ import com.bcsdlab.bcsdinternalapiv2.home.model.MentorSlot;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 
 public record AdminMentorSlotResponse(
+        Long id,
         Long memberId,
         String name,
         String trackName,
@@ -13,7 +14,7 @@ public record AdminMentorSlotResponse(
     public static AdminMentorSlotResponse from(MentorSlot slot) {
         Member member = slot.getMember();
         return new AdminMentorSlotResponse(
-                member.getId(), member.getName(), member.getTrack().getName(),
+                slot.getId(), member.getId(), member.getName(), member.getTrack().getName(),
                 member.getProfileImageUrl(), slot.getDisplayOrder());
     }
 }

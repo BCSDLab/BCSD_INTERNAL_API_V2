@@ -97,8 +97,13 @@ class AdminMentorSlotIntegrationTest extends IntegrationTestSupport {
                         .content("{\"memberId\":%d}".formatted(m2.getId())))
                 .andReturn().getResponse().getContentAsString();
 
-        long slotId1 = mentorSlotRepository.findByMember_Id(m1.getId()).orElseThrow().getId();
-        long slotId2 = mentorSlotRepository.findByMember_Id(m2.getId()).orElseThrow().getId();
+        // 순서 변경은 memberId가 아니라 슬롯 자체의 id로 한다 — 응답에 슬롯 id가 실제로
+        // 노출되는지까지 함께 검증한다(프런트가 순서 변경을 걸 수 있으려면 필수).
+        var slots = objectMapper.readTree(body);
+        long slotId1 = slots.get(0).get("memberId").asLong() == m1.getId() ? slots.get(0).get("id").asLong()
+                : slots.get(1).get("id").asLong();
+        long slotId2 = slots.get(0).get("memberId").asLong() == m2.getId() ? slots.get(0).get("id").asLong()
+                : slots.get(1).get("id").asLong();
 
         mockMvc.perform(patch("/v1/admin/mentor-slots/order")
                         .header("Authorization", "Bearer " + adminToken)
