@@ -35,6 +35,10 @@ public class ContentChangedPublisher {
         publish(List.of("activity:" + categorySlug, "activity:" + activityId));
     }
 
+    public void homeChanged() {
+        publish(List.of("home"));
+    }
+
     public void publish(List<String> tags) {
         eventPublisher.publishEvent(new ContentChangedEvent(tags));
     }
