@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -92,5 +93,21 @@ public class GameRating extends BaseTimeEntity {
         this.descDrugs = descDrugs;
         this.descCrime = descCrime;
         this.descGambling = descGambling;
+    }
+
+    public void update(GameRatingLevel rating, String classificationNumber, LocalDate classificationDate,
+                        String businessName, String developerReportNumber, Set<GameContentDescriptor> descriptors) {
+        this.rating = rating;
+        this.classificationNumber = classificationNumber;
+        this.classificationDate = classificationDate;
+        this.businessName = businessName;
+        this.developerReportNumber = developerReportNumber;
+        this.descSexuality = descriptors.contains(GameContentDescriptor.SEXUALITY);
+        this.descViolence = descriptors.contains(GameContentDescriptor.VIOLENCE);
+        this.descFear = descriptors.contains(GameContentDescriptor.FEAR);
+        this.descLanguage = descriptors.contains(GameContentDescriptor.LANGUAGE);
+        this.descDrugs = descriptors.contains(GameContentDescriptor.DRUGS);
+        this.descCrime = descriptors.contains(GameContentDescriptor.CRIME);
+        this.descGambling = descriptors.contains(GameContentDescriptor.GAMBLING);
     }
 }

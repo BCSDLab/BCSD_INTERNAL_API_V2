@@ -1,10 +1,14 @@
 package com.bcsdlab.bcsdinternalapiv2.game.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameCreateRequest;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameRatingRequest;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameScreenshotsReplaceRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameSlugChangeRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameSummaryResponse;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameRatingResponse;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameScreenshotResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.service.AdminGameService;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
@@ -79,6 +83,26 @@ public class AdminGameController implements AdminGameApi {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         adminGameService.deleteGame(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PutMapping("/{id}/screenshots")
+    public List<GameScreenshotResponse> replaceScreenshots(@PathVariable Long id,
+                                                            @Valid @RequestBody GameScreenshotsReplaceRequest request) {
+        return adminGameService.replaceScreenshots(id, request);
+    }
+
+    @Override
+    @PutMapping("/{id}/rating")
+    public GameRatingResponse upsertRating(@PathVariable Long id, @Valid @RequestBody GameRatingRequest request) {
+        return adminGameService.upsertRating(id, request);
+    }
+
+    @Override
+    @DeleteMapping("/{id}/rating")
+    public ResponseEntity<Void> deleteRating(@PathVariable Long id) {
+        adminGameService.deleteRating(id);
         return ResponseEntity.noContent().build();
     }
 }
