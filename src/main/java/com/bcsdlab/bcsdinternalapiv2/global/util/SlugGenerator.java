@@ -1,4 +1,4 @@
-package com.bcsdlab.bcsdinternalapiv2.track.util;
+package com.bcsdlab.bcsdinternalapiv2.global.util;
 
 /**
  * 트랙 표시명에서 URL slug를 파생한다(AC-1.1).
