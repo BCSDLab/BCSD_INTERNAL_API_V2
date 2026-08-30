@@ -82,7 +82,25 @@ class AdminGameScreenshotRatingMemberIntegrationTest extends IntegrationTestSupp
 
         mockMvc.perform(get("/v1/games/neon-drift"))
                 .andExpect(jsonPath("$.screenshots.length()").value(2))
-                .andExpect(jsonPath("$.screenshots[0]").value("https://x/1.png"));
+                .andExpect(jsonPath("$.screenshots[0]").value("https://x/1.png"))
+                .andExpect(jsonPath("$.thumbnailUrl").value("https://x/1.png"));
+    }
+
+    @Test
+    @DisplayName("스크린샷을 빈 배열로 교체하면 썸네일도 사라진다 (활동 사진 INV-12와 같은 규약)")
+    void 스크린샷을_비우면_썸네일도_사라진다() throws Exception {
+        mockMvc.perform(put("/v1/admin/games/" + game.getId() + "/screenshots")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"imageUrls\":[\"https://x/1.png\"]}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/v1/admin/games/" + game.getId() + "/screenshots")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"imageUrls\":[]}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/v1/games/neon-drift")).andExpect(jsonPath("$.thumbnailUrl").doesNotExist());
     }
 
     @Test

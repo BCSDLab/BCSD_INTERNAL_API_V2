@@ -91,6 +91,12 @@ public class Game extends SoftDeletableEntity {
         this.slug = slug;
     }
 
+    /** 별도 업로드 경로를 두지 않는다 — 활동 사진의 INV-12와 같은 규약으로, 스크린샷
+     * 전체 교체(T-38)가 항상 이 값을 첫 번째 스크린샷으로 맞춘다. */
+    public void updateThumbnail(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
     public void updatePublished(boolean published) {
         this.published = published;
     }

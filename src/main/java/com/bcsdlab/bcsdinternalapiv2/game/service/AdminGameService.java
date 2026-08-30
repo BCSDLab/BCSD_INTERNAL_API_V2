@@ -168,6 +168,7 @@ public class AdminGameService {
                     .displayOrder(i)
                     .build()));
         }
+        game.updateThumbnail(imageUrls.isEmpty() ? null : imageUrls.get(0));
         contentChangedPublisher.gameChanged(game.getSlug());
         return saved.stream().map(GameScreenshotResponse::from).toList();
     }
