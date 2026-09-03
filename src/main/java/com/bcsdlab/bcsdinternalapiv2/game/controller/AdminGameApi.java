@@ -1,10 +1,14 @@
 package com.bcsdlab.bcsdinternalapiv2.game.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameCreateRequest;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameRatingRequest;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameScreenshotsReplaceRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameSlugChangeRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameSummaryResponse;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameRatingResponse;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameScreenshotResponse;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -96,4 +100,33 @@ public interface AdminGameApi {
     })
     @Operation(summary = "게임 삭제", description = "soft delete — 데이터는 보존됩니다(AC-9.11).")
     ResponseEntity<Void> deleteGame(@PathVariable Long id);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "스크린샷 전체 교체", description = "배열 순서가 display_order다(AC-9.6).")
+    List<GameScreenshotResponse> replaceScreenshots(@PathVariable Long id,
+                                                     @RequestBody @Valid GameScreenshotsReplaceRequest request);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "등급정보 upsert", description = "contentDescriptors는 7종 고정 키만 허용합니다(INV-21).")
+    GameRatingResponse upsertRating(@PathVariable Long id, @RequestBody @Valid GameRatingRequest request);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "등급정보 삭제", description = "삭제하면 공개 응답의 rating이 null이 됩니다(AC-9.8).")
+    ResponseEntity<Void> deleteRating(@PathVariable Long id);
 }

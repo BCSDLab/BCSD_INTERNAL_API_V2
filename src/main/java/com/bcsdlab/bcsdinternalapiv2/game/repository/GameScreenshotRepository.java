@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface GameScreenshotRepository extends JpaRepository<GameScreenshot, Long> {
 
     List<GameScreenshot> findAllByGame_IdOrderByDisplayOrderAsc(Long gameId);
+
+    void deleteAllByGame_Id(Long gameId);
 }
