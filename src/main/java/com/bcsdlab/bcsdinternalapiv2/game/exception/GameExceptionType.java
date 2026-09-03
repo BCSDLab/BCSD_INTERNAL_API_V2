@@ -7,6 +7,7 @@ public enum GameExceptionType implements BcsdExceptionType {
 
     GAME_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게임입니다."),
     GAME_SLUG_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 주소입니다."),
+    GAME_BUILD_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 빌드입니다."),
     INVALID_CONTENT_DESCRIPTOR(HttpStatus.BAD_REQUEST, "내용정보 항목이 올바르지 않습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 부원입니다."),
     MEMBER_ALREADY_ASSIGNED(HttpStatus.CONFLICT, "이미 이 게임에 배정된 부원입니다."),
