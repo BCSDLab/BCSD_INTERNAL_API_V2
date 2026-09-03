@@ -28,7 +28,7 @@ import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageMemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageTechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackStudyPointRepository;
-import com.bcsdlab.bcsdinternalapiv2.track.util.SlugGenerator;
+import com.bcsdlab.bcsdinternalapiv2.global.util.SlugGenerator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;

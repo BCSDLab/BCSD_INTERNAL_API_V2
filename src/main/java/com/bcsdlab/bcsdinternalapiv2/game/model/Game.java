@@ -78,6 +78,19 @@ public class Game extends SoftDeletableEntity {
         this.published = published;
     }
 
+    public void updateDetails(TrackMaster track, String name, String oneLiner, String teamLabel,
+                               String description) {
+        this.track = track;
+        this.name = name;
+        this.oneLiner = oneLiner;
+        this.teamLabel = teamLabel;
+        this.description = description;
+    }
+
+    public void changeSlug(String slug) {
+        this.slug = slug;
+    }
+
     public void updatePublished(boolean published) {
         this.published = published;
     }
