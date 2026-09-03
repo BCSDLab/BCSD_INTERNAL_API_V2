@@ -47,6 +47,10 @@ public class ContentChangedPublisher {
         publish(List.of("game-list"));
     }
 
+    public void homeChanged() {
+        publish(List.of("home"));
+    }
+
     public void publish(List<String> tags) {
         eventPublisher.publishEvent(new ContentChangedEvent(tags));
     }
