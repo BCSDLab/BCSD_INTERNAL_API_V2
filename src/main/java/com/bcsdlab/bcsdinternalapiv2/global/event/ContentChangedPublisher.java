@@ -35,6 +35,18 @@ public class ContentChangedPublisher {
         publish(List.of("activity:" + categorySlug, "activity:" + activityId));
     }
 
+    public void gameChanged(String slug) {
+        publish(List.of("game:" + slug));
+    }
+
+    public void gameAndListChanged(String slug) {
+        publish(List.of("game-list", "game:" + slug));
+    }
+
+    public void gameListChanged() {
+        publish(List.of("game-list"));
+    }
+
     public void homeChanged() {
         publish(List.of("home"));
     }

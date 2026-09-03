@@ -1,6 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.homepage.service;
 
 import com.bcsdlab.bcsdinternalapiv2.activity.repository.ActivityCategoryRepository;
+import com.bcsdlab.bcsdinternalapiv2.game.repository.GameRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.homepage.controller.dto.response.HomepageSyncResponse;
 import com.bcsdlab.bcsdinternalapiv2.homepage.model.HomepageSyncStatus;
@@ -22,6 +23,7 @@ public class HomepageSyncService {
     private final HomepageSyncStatusRepository statusRepository;
     private final TrackPageRepository trackPageRepository;
     private final ActivityCategoryRepository activityCategoryRepository;
+    private final GameRepository gameRepository;
     private final ContentChangedPublisher publisher;
 
     public HomepageSyncResponse getStatus() {
@@ -36,6 +38,8 @@ public class HomepageSyncService {
         tags.add("activity-category-list");
         activityCategoryRepository.findAllByOrderByDisplayOrderAsc()
                 .forEach(category -> tags.add("activity:" + category.getSlug()));
+        tags.add("game-list");
+        gameRepository.findAllByOrderByDisplayOrderAsc().forEach(game -> tags.add("game:" + game.getSlug()));
         publisher.publish(tags);
     }
 }

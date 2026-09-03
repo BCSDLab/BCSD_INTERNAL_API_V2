@@ -1,4 +1,4 @@
-package com.bcsdlab.bcsdinternalapiv2.track.util;
+package com.bcsdlab.bcsdinternalapiv2.global.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
