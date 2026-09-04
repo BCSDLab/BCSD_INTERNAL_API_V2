@@ -57,6 +57,9 @@ public class GameBuild extends BaseTimeEntity {
     @Column(name = "build_file_url")
     private String buildFileUrl;
 
+    @Column(name = "failure_reason")
+    private String failureReason;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by")
     private Member uploadedBy;
@@ -81,5 +84,19 @@ public class GameBuild extends BaseTimeEntity {
 
     public void updateStatus(GameBuildStatus status) {
         this.status = status;
+    }
+
+    public void applyActive(Integer canvasWidth, Integer canvasHeight, Long storageBytes, String buildFileUrl) {
+        this.status = GameBuildStatus.ACTIVE;
+        this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight;
+        this.storageBytes = storageBytes;
+        this.buildFileUrl = buildFileUrl;
+        this.failureReason = null;
+    }
+
+    public void markFailed(String failureReason) {
+        this.status = GameBuildStatus.FAILED;
+        this.failureReason = failureReason;
     }
 }

@@ -2,6 +2,8 @@ package com.bcsdlab.bcsdinternalapiv2.game.service;
 
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameBuildCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameBuildResponse;
+import com.bcsdlab.bcsdinternalapiv2.game.config.GameBuildProperties;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameBuildUploadTokenResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.exception.GameException;
 import com.bcsdlab.bcsdinternalapiv2.game.exception.GameExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.game.model.Game;
@@ -13,6 +15,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +31,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminGameBuildService {
 
+    private static final Set<GameBuildStatus> TOKEN_ISSUABLE_STATUSES = Set.of(
+            GameBuildStatus.PENDING, GameBuildStatus.FAILED);
+
     private final GameRepository gameRepository;
     private final GameBuildRepository gameBuildRepository;
     private final MemberRepository memberRepository;
+    private final GameBuildProperties gameBuildProperties;
+    private final GameBuildTokenService gameBuildTokenService;
 
     public List<AdminGameBuildResponse> getBuilds(Long gameId) {
         findGameOrThrow(gameId);
@@ -55,16 +63,34 @@ public class AdminGameBuildService {
     }
 
     @Transactional
+    public GameBuildUploadTokenResponse issueUploadToken(Long gameId, Long buildId) {
+        Game game = findGameOrThrow(gameId);
+        GameBuild build = findBuildOrThrow(gameId, buildId);
+        if (!TOKEN_ISSUABLE_STATUSES.contains(build.getStatus())) {
+            throw new GameException(GameExceptionType.GAME_BUILD_INVALID_STATE);
+        }
+
+        GameBuildTokenService.IssuedToken issued = gameBuildTokenService.issue(
+                build.getId(), game.getId(), game.getSlug(), build.getVersion());
+        build.updateStatus(GameBuildStatus.PROCESSING);
+        return new GameBuildUploadTokenResponse(gameBuildProperties.uploadUrl(), issued.token(), issued.expiresAt());
+    }
+
+    @Transactional
     public void deleteBuild(Long gameId, Long buildId) {
         findGameOrThrow(gameId);
-        GameBuild build = gameBuildRepository.findById(buildId)
-                .filter(b -> b.getGame().getId().equals(gameId))
-                .orElseThrow(() -> new GameException(GameExceptionType.GAME_BUILD_NOT_FOUND));
+        GameBuild build = findBuildOrThrow(gameId, buildId);
         gameBuildRepository.delete(build);
     }
 
     private Game findGameOrThrow(Long id) {
         return gameRepository.findById(id)
                 .orElseThrow(() -> new GameException(GameExceptionType.GAME_NOT_FOUND));
+    }
+
+    private GameBuild findBuildOrThrow(Long gameId, Long buildId) {
+        return gameBuildRepository.findById(buildId)
+                .filter(b -> b.getGame().getId().equals(gameId))
+                .orElseThrow(() -> new GameException(GameExceptionType.GAME_BUILD_NOT_FOUND));
     }
 }

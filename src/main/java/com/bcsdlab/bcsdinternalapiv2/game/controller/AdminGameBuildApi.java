@@ -2,6 +2,7 @@ package com.bcsdlab.bcsdinternalapiv2.game.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameBuildCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameBuildResponse;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameBuildUploadTokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -42,4 +43,12 @@ public interface AdminGameBuildApi {
     })
     @Operation(summary = "빌드 메타 삭제")
     ResponseEntity<Void> deleteBuild(Long gameId, Long buildId);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "업로드 토큰 발급", description = "PENDING 또는 FAILED 빌드에만 발급하고, 발급 즉시 status=PROCESSING이 된다(ADR-024).")
+    GameBuildUploadTokenResponse issueUploadToken(Long gameId, Long buildId);
 }
