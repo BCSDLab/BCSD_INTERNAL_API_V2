@@ -9,13 +9,17 @@ import com.bcsdlab.bcsdinternalapiv2.game.model.GameBuild;
 public record GameActiveBuildResponse(
         String version,
         String status,
-        String buildFileUrl
+        String buildFileUrl,
+        Integer canvasWidth,
+        Integer canvasHeight
 ) {
     public static GameActiveBuildResponse from(GameBuild gameBuild) {
         return new GameActiveBuildResponse(
                 gameBuild.getVersion(),
                 gameBuild.getStatus().name(),
-                gameBuild.getBuildFileUrl()
+                gameBuild.getBuildFileUrl(),
+                gameBuild.getCanvasWidth(),
+                gameBuild.getCanvasHeight()
         );
     }
 }
