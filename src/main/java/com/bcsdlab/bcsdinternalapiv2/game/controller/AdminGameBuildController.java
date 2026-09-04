@@ -2,6 +2,7 @@ package com.bcsdlab.bcsdinternalapiv2.game.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameBuildCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameBuildResponse;
+import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameBuildUploadTokenResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.service.AdminGameBuildService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -46,5 +47,11 @@ public class AdminGameBuildController implements AdminGameBuildApi {
     public ResponseEntity<Void> deleteBuild(@PathVariable Long gameId, @PathVariable Long buildId) {
         adminGameBuildService.deleteBuild(gameId, buildId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PostMapping("/{buildId}/upload-token")
+    public GameBuildUploadTokenResponse issueUploadToken(@PathVariable Long gameId, @PathVariable Long buildId) {
+        return adminGameBuildService.issueUploadToken(gameId, buildId);
     }
 }

@@ -11,4 +11,6 @@ public interface GameBuildRepository extends JpaRepository<GameBuild, Long> {
     Optional<GameBuild> findFirstByGame_IdAndStatusOrderByUploadedAtDesc(Long gameId, GameBuildStatus status);
 
     List<GameBuild> findAllByGame_IdOrderByUploadedAtDesc(Long gameId);
+
+    List<GameBuild> findAllByGame_IdAndStatus(Long gameId, GameBuildStatus status);
 }

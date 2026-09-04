@@ -11,6 +11,7 @@ public record AdminGameBuildResponse(
         Integer canvasHeight,
         Long storageBytes,
         String buildFileUrl,
+        String failureReason,
         Instant uploadedAt
 ) {
     public static AdminGameBuildResponse from(GameBuild build) {
@@ -22,6 +23,7 @@ public record AdminGameBuildResponse(
                 build.getCanvasHeight(),
                 build.getStorageBytes(),
                 build.getBuildFileUrl(),
+                build.getFailureReason(),
                 build.getUploadedAt()
         );
     }

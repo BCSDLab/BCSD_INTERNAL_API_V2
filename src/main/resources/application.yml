@@ -54,3 +54,7 @@ app:
   homepage-revalidate:
     url: ${HOMEPAGE_REVALIDATE_URL:http://localhost:3003/api/revalidate}
     secret: ${HOMEPAGE_REVALIDATE_SECRET:local-dev-secret}
+  game-build:
+    upload-url: ${GAME_BUILD_UPLOAD_URL:http://localhost:3003/api/games/builds/upload}
+    secret: ${GAME_BUILD_SECRET:local-dev-secret}
+    token-validity-seconds: 1800
