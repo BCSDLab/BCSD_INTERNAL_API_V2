@@ -169,7 +169,8 @@ public class AdminGameService {
                     .build()));
         }
         game.updateThumbnail(imageUrls.isEmpty() ? null : imageUrls.get(0));
-        contentChangedPublisher.gameChanged(game.getSlug());
+        // 스크린샷 첫 장이 게임 목록의 thumbnailUrl이기도 하므로 목록 캐시도 함께 무효화한다.
+        contentChangedPublisher.gameAndListChanged(game.getSlug());
         return saved.stream().map(GameScreenshotResponse::from).toList();
     }
 
