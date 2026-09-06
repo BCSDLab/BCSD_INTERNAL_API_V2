@@ -145,8 +145,8 @@ class AdminGameBuildIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("AC-9.15 PENDING 빌드에 업로드 토큰을 발급하면 status가 PROCESSING이 되고, 다시 발급하면 409다")
-    void 업로드_토큰_발급은_상태를_PROCESSING으로_바꾸고_재발급은_409() throws Exception {
+    @DisplayName("AC-9.15 PENDING 빌드에 업로드 토큰을 발급하면 status가 PROCESSING이 되고, PROCESSING에도 재발급할 수 있지만 ACTIVE에는 409다")
+    void 업로드_토큰_발급은_상태를_PROCESSING으로_바꾸고_ACTIVE_재발급은_409() throws Exception {
         long buildId = createBuild("1.0.0");
 
         mockMvc.perform(post("/v1/admin/games/" + game.getId() + "/builds/" + buildId + "/upload-token")
@@ -158,6 +158,13 @@ class AdminGameBuildIntegrationTest extends IntegrationTestSupport {
         mockMvc.perform(get("/v1/admin/games/" + game.getId() + "/builds")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(jsonPath("$[0].status").value("PROCESSING"));
+
+        // PROCESSING에서도 재발급 가능 — 홈페이지 서버가 죽거나 웹훅 호출이 실패해도 재시도 경로가 막히지 않는다.
+        mockMvc.perform(post("/v1/admin/games/" + game.getId() + "/builds/" + buildId + "/upload-token")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        activateBuild(buildId, "https://bcsdlab.com/games/neon-drift/index.html");
 
         mockMvc.perform(post("/v1/admin/games/" + game.getId() + "/builds/" + buildId + "/upload-token")
                         .header("Authorization", "Bearer " + adminToken))

@@ -31,8 +31,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminGameBuildService {
 
+    // PROCESSING도 포함한다 — 홈페이지 서버가 죽거나 웹훅 호출 자체가 실패하면 빌드가
+    // PROCESSING에서 영영 못 벗어나 재시도가 막히는 사각지대가 생긴다(재업로드는 멱등하다).
     private static final Set<GameBuildStatus> TOKEN_ISSUABLE_STATUSES = Set.of(
-            GameBuildStatus.PENDING, GameBuildStatus.FAILED);
+            GameBuildStatus.PENDING, GameBuildStatus.PROCESSING, GameBuildStatus.FAILED);
 
     private final GameRepository gameRepository;
     private final GameBuildRepository gameBuildRepository;
