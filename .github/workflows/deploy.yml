@@ -75,5 +75,7 @@ jobs:
               -e CORS_ALLOWED_ORIGINS='${{ secrets.CORS_ALLOWED_ORIGINS }}' \
               -e HOMEPAGE_REVALIDATE_URL='${{ secrets.HOMEPAGE_REVALIDATE_URL }}' \
               -e HOMEPAGE_REVALIDATE_SECRET='${{ secrets.HOMEPAGE_REVALIDATE_SECRET }}' \
+              -e GAME_BUILD_UPLOAD_URL='https://bcsdlab.com/api/games/builds/upload' \
+              -e GAME_BUILD_SECRET='${{ secrets.GAME_BUILD_SECRET }}' \
               --memory=300m \
               ghcr.io/bcsdlab/bcsd-internal-api:latest
