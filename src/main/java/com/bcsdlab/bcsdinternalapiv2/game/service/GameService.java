@@ -5,6 +5,7 @@ import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameDetailResp
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameMemberResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameRatingResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameSummaryResponse;
+import com.bcsdlab.bcsdinternalapiv2.game.config.GameBuildProperties;
 import com.bcsdlab.bcsdinternalapiv2.game.exception.GameException;
 import com.bcsdlab.bcsdinternalapiv2.game.exception.GameExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.game.model.Game;
@@ -36,6 +37,7 @@ public class GameService {
     private final GameBuildRepository gameBuildRepository;
     private final GameMemberRepository gameMemberRepository;
     private final MemberRepository memberRepository;
+    private final GameBuildProperties gameBuildProperties;
 
     public List<GameSummaryResponse> getGames() {
         return gameRepository.findAllByPublishedTrueOrderByDisplayOrderAsc().stream()
@@ -58,7 +60,7 @@ public class GameService {
 
         GameActiveBuildResponse activeBuild = gameBuildRepository
                 .findFirstByGame_IdAndStatusOrderByUploadedAtDesc(game.getId(), GameBuildStatus.ACTIVE)
-                .map(GameActiveBuildResponse::from)
+                .map(build -> GameActiveBuildResponse.from(build, gameBuildProperties.publicOrigin()))
                 .orElse(null);
 
         List<GameMemberResponse> members = publishedMembers(game.getId());

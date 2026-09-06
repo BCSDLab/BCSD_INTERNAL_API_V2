@@ -45,7 +45,7 @@ public class AdminGameBuildService {
     public List<AdminGameBuildResponse> getBuilds(Long gameId) {
         findGameOrThrow(gameId);
         return gameBuildRepository.findAllByGame_IdOrderByUploadedAtDesc(gameId).stream()
-                .map(AdminGameBuildResponse::from)
+                .map(build -> AdminGameBuildResponse.from(build, gameBuildProperties.publicOrigin()))
                 .toList();
     }
 
@@ -61,7 +61,7 @@ public class AdminGameBuildService {
                 .uploadedBy(uploadedBy)
                 .uploadedAt(Instant.now())
                 .build());
-        return AdminGameBuildResponse.from(build);
+        return AdminGameBuildResponse.from(build, gameBuildProperties.publicOrigin());
     }
 
     @Transactional
