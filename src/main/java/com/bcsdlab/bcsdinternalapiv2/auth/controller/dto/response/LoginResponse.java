@@ -17,17 +17,19 @@ public record LoginResponse(
             String track,
             String generation,
             String memberType,
-            String university
+            String university,
+            String role
     ) {
         public static MemberSummary from(Member member) {
             return new MemberSummary(
                     member.getId(),
                     member.getName(),
                     member.getStudentNumber(),
-                    member.getTrack().name(),
+                    member.getTrack().getCode(),
                     member.getGeneration(),
                     member.getMemberType().name(),
-                    member.getUniversity()
+                    member.getUniversity(),
+                    member.getRole().name()
             );
         }
     }

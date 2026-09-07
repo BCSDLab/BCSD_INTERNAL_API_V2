@@ -12,11 +12,6 @@ ALTER TABLE member
 ALTER TABLE member
     ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE;
 
-ALTER TABLE member DROP CONSTRAINT ck_member_track;
-ALTER TABLE member
-    ADD CONSTRAINT ck_member_track CHECK (track IN
-        ('FRONTEND', 'BACKEND', 'ANDROID', 'IOS', 'PM', 'DATA', 'DESIGN', 'DEVOPS', 'PS', 'GAME', 'SECURITY'));
-
 CREATE INDEX idx_member_academic_status ON member (academic_status);
 CREATE INDEX idx_member_is_active ON member (is_active);
 CREATE INDEX idx_member_generation ON member (generation);

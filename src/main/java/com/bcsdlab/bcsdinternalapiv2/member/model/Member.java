@@ -1,13 +1,17 @@
 package com.bcsdlab.bcsdinternalapiv2.member.model;
 
 import com.bcsdlab.bcsdinternalapiv2.global.BaseTimeEntity;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -39,9 +43,9 @@ public class Member extends BaseTimeEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "track", nullable = false)
-    private Track track;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "track_id", nullable = false)
+    private TrackMaster track;
 
     @Column(name = "generation", nullable = false)
     private String generation;
@@ -71,9 +75,6 @@ public class Member extends BaseTimeEntity {
 
     @Column(name = "dues_required", nullable = false)
     private boolean duesRequired;
-
-    @Column(name = "photo_url")
-    private String photoUrl;
 
     @Column(name = "email", nullable = false)
     private String email;
@@ -107,11 +108,16 @@ public class Member extends BaseTimeEntity {
     @Column(name = "welcome_mail_sent_at")
     private Instant welcomeMailSentAt;
 
+    // 홈페이지 "함께 할 멤버들"에만 쓴다(T-18). 쓰기 경로를 만들지 않는다(INV-13) —
+    // 명부 관리 책임은 auth/member 담당자에게 그대로 있다.
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
     @Builder
-    private Member(String studentNumber, String password, String name, Track track, String generation,
+    private Member(String studentNumber, String password, String name, TrackMaster track, String generation,
                    MemberType memberType, String university, String department, AcademicStatus academicStatus,
                    Boolean clubActive, String position, LocalDate birthDate, Boolean duesRequired,
-                   String email, String phoneNumber, String githubId,
+                   String email, String phoneNumber, String githubId, String profileImageUrl,
                    MemberStatus status, MemberRole role, Instant passwordChangedAt) {
         this.studentNumber = studentNumber;
         this.password = password;
@@ -129,6 +135,7 @@ public class Member extends BaseTimeEntity {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.githubId = githubId;
+        this.profileImageUrl = profileImageUrl;
         this.status = status != null ? status : MemberStatus.PENDING_SETUP;
         this.role = role != null ? role : MemberRole.MEMBER;
         this.loginFailCount = 0;
@@ -185,6 +192,12 @@ public class Member extends BaseTimeEntity {
         this.lockedUntil = null;
     }
 
+    public void reissueTemporaryPassword(String encodedPassword, Instant now) {
+        this.password = encodedPassword;
+        this.passwordChangedAt = truncateToMillis(now);
+        this.welcomeMailSentAt = null;
+    }
+
     public void changeAcademicStatus(AcademicStatus academicStatus) {
         this.academicStatus = academicStatus;
     }
@@ -193,7 +206,7 @@ public class Member extends BaseTimeEntity {
         this.clubActive = clubActive;
     }
 
-    public void updateProfile(String name, Track track, String generation, MemberType memberType,
+    public void updateProfile(String name, TrackMaster track, String generation, MemberType memberType,
                                String university, String department, String position, LocalDate birthDate,
                                boolean duesRequired, String email, String phoneNumber, String githubId) {
         this.name = name;
@@ -222,14 +235,8 @@ public class Member extends BaseTimeEntity {
         this.status = MemberStatus.ACTIVE;
     }
 
-    public void updatePhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
-
-    public void reissueTemporaryPassword(String encodedPassword, Instant now) {
-        this.password = encodedPassword;
-        this.passwordChangedAt = truncateToMillis(now);
-        this.welcomeMailSentAt = null;
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     private static Instant truncateToMillis(Instant instant) {

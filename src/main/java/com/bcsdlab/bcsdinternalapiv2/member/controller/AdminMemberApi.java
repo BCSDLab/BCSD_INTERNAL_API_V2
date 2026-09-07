@@ -77,7 +77,7 @@ public interface AdminMemberApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "학적 상태 변경", description = "회원의 학적 상태(재학/휴학/군휴학/졸업)를 변경합니다.")
+    @Operation(summary = "학적 상태 변경", description = "회원의 학적 상태(재학/휴학/군휴학/현장실습/졸업)를 변경합니다.")
     @SecurityRequirement(name = "JWT")
     @PatchMapping("/{memberId}/academic-status")
     ResponseEntity<Void> updateAcademicStatus(@PathVariable Long memberId,

@@ -14,6 +14,10 @@ import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberSpecification;
 import com.bcsdlab.bcsdinternalapiv2.member.util.GithubIdNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.util.PhoneNumberNormalizer;
+import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
+import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberDirectoryService {
 
     private final MemberRepository memberRepository;
+    private final TrackMasterRepository trackMasterRepository;
     private final PhotoStorageService photoStorageService;
 
     @Transactional(readOnly = true)
@@ -73,8 +78,10 @@ public class MemberDirectoryService {
         String normalizedPhone = isBlank(request.phoneNumber()) ? null
                 : PhoneNumberNormalizer.normalize(request.phoneNumber());
         String normalizedGithubId = GithubIdNormalizer.normalize(request.githubId());
+        TrackMaster track = trackMasterRepository.findByCode(request.track().name())
+                .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_NOT_FOUND));
 
-        member.updateProfile(request.name(), request.track(), request.generation(), request.memberType(),
+        member.updateProfile(request.name(), track, request.generation(), request.memberType(),
                 request.university(), request.department(), request.position(), request.birthDate(),
                 request.duesRequired(), normalizedEmail, normalizedPhone, normalizedGithubId);
     }
@@ -109,7 +116,7 @@ public class MemberDirectoryService {
     public void updatePhotoUrl(Long memberId, String photoUrl) {
         Member member = memberRepository.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new MemberException(MemberExceptionType.MEMBER_NOT_FOUND));
-        member.updatePhotoUrl(photoUrl);
+        member.updateProfileImageUrl(photoUrl);
     }
 
     private boolean isBlank(String value) {
@@ -121,19 +128,25 @@ public class MemberDirectoryService {
         long active = memberRepository.countByClubActive(true);
         long inactive = total - active;
 
-        Map<String, Long> byAcademicStatus = groupCount(memberRepository.countGroupByAcademicStatus());
-        Map<String, Long> byTrack = groupCount(memberRepository.countGroupByTrack());
-        Map<String, Long> byMemberType = groupCount(memberRepository.countGroupByMemberType());
+        Map<String, Long> byAcademicStatus = groupCountEnum(memberRepository.countGroupByAcademicStatus());
+        Map<String, Long> byTrack = groupCountString(memberRepository.countGroupByTrack());
+        Map<String, Long> byMemberType = groupCountEnum(memberRepository.countGroupByMemberType());
 
         return new MemberDirectoryResponse.Counts(total, active, inactive, byAcademicStatus, byTrack, byMemberType);
     }
 
-    private Map<String, Long> groupCount(List<Object[]> rows) {
+    private Map<String, Long> groupCountEnum(List<Object[]> rows) {
         Map<String, Long> result = new LinkedHashMap<>();
         for (Object[] row : rows) {
-            String key = ((Enum<?>) row[0]).name();
-            Long value = (Long) row[1];
-            result.put(key, value);
+            result.put(((Enum<?>) row[0]).name(), (Long) row[1]);
+        }
+        return result;
+    }
+
+    private Map<String, Long> groupCountString(List<Object[]> rows) {
+        Map<String, Long> result = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            result.put((String) row[0], (Long) row[1]);
         }
         return result;
     }

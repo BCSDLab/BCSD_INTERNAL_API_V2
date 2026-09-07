@@ -13,21 +13,23 @@ public record MemberResponse(
         String email,
         String phoneNumber,
         String githubId,
-        String status
+        String status,
+        String role
 ) {
     public static MemberResponse from(Member member) {
         return new MemberResponse(
                 member.getId(),
                 member.getName(),
                 member.getStudentNumber(),
-                member.getTrack().name(),
+                member.getTrack().getCode(),
                 member.getGeneration(),
                 member.getMemberType().name(),
                 member.getUniversity(),
                 member.getEmail(),
                 member.getPhoneNumber(),
                 member.getGithubId(),
-                member.getStatus().name()
+                member.getStatus().name(),
+                member.getRole().name()
         );
     }
 }

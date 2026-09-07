@@ -28,7 +28,7 @@ public record MemberSummaryResponse(
                 member.getId(),
                 member.getName(),
                 member.getGeneration(),
-                member.getTrack().name(),
+                member.getTrack().getCode(),
                 member.getMemberType().name(),
                 member.getAcademicStatus().name(),
                 member.getUniversity(),
@@ -40,7 +40,7 @@ public record MemberSummaryResponse(
                 member.getEmail(),
                 member.getPhoneNumber(),
                 member.getGithubId(),
-                member.getPhotoUrl(),
+                member.getProfileImageUrl(),
                 member.getRole().name(),
                 member.isClubActive()
         );

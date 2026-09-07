@@ -35,11 +35,14 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder(12);
     }
 
+    // 인터널 프론트가 access token은 Authorization 헤더로, refresh token은 httpOnly
+    // 쿠키로 주고받는다(credentials: 'include') — Allow-Origin에 "*"를 쓸 수 없고
+    // 명시적 origin + allowCredentials(true)가 필요하다.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(corsProperties.allowedOrigins());
-        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
@@ -60,6 +63,11 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/login", "/v1/auth/reissue", "/v1/auth/logout")
                         .permitAll()
                         .requestMatchers("/v1/auth/password/**").permitAll()
+                        .requestMatchers("/v1/tracks/**").permitAll()
+                        .requestMatchers("/v1/activity-categories/**").permitAll()
+                        .requestMatchers("/v1/activities/**").permitAll()
+                        .requestMatchers("/v1/games/**").permitAll()
+                        .requestMatchers("/v1/home/**").permitAll()
                         .requestMatchers("/v1/members/me/initial-setup")
                         .hasAnyAuthority("SCOPE_PRE_ACTIVATION", "SCOPE_FULL")
                         .requestMatchers(HttpMethod.GET, "/v1/reservations/monthly-occupancy", "/v1/reservations/daily")

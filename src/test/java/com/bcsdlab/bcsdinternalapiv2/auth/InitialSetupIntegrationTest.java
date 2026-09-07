@@ -10,8 +10,9 @@ import com.bcsdlab.bcsdinternalapiv2.auth.model.RefreshToken;
 import com.bcsdlab.bcsdinternalapiv2.auth.repository.RefreshTokenRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Track;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -54,8 +55,13 @@ class InitialSetupIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private TrackMaster backend;
+
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private TrackMasterRepository trackMasterRepository;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
@@ -67,13 +73,14 @@ class InitialSetupIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        backend = trackMasterRepository.findByCode("BACKEND").orElseThrow();
         refreshTokenRepository.deleteAll();
         memberRepository.deleteAll();
         Member member = Member.builder()
                 .studentNumber("20231234")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("홍길동")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")

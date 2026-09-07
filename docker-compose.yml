@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bcsd-internal-api-v2-postgres
+    restart: unless-stopped
+    ports:
+      # 로컬에 이미 5432를 쓰는 Postgres가 있다면(Postgres.app, brew services 등)
+      # COMPOSE_POSTGRES_PORT=5433 docker compose up -d 로 띄우고 .env의 DB_PORT를 맞춘다.
+      - "${COMPOSE_POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: bcsd_internal_api_v2
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - bcsd-internal-api-v2-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bcsd_internal_api_v2"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  bcsd-internal-api-v2-pgdata:

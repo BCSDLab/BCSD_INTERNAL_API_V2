@@ -5,10 +5,10 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Track;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.reservation.repository.ReservationGroupRepository;
 import com.bcsdlab.bcsdinternalapiv2.reservation.repository.ReservationRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +61,9 @@ abstract class ReservationIntegrationTestSupport {
     protected ReservationGroupRepository reservationGroupRepository;
 
     @Autowired
+    protected TrackMasterRepository trackMasterRepository;
+
+    @Autowired
     protected PasswordEncoder passwordEncoder;
 
     @MockitoBean
@@ -81,7 +84,7 @@ abstract class ReservationIntegrationTestSupport {
                 .studentNumber(studentNumber)
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("예약테스트" + studentNumber)
-                .track(Track.BACKEND)
+                .track(trackMasterRepository.findByCode("BACKEND").orElseThrow())
                 .generation("16")
                 .memberType(MemberType.REGULAR)
                 .university("한국기술교육대학교")

@@ -48,7 +48,7 @@ public interface MemberRepository extends JpaRepository<Member, Long>, JpaSpecif
     @Query("select m.academicStatus, count(m) from Member m group by m.academicStatus")
     List<Object[]> countGroupByAcademicStatus();
 
-    @Query("select m.track, count(m) from Member m group by m.track")
+    @Query("select m.track.code, count(m) from Member m group by m.track.code")
     List<Object[]> countGroupByTrack();
 
     @Query("select m.memberType, count(m) from Member m group by m.memberType")

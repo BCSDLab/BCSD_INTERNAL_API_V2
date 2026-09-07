@@ -36,8 +36,11 @@ public final class MemberSpecification {
     }
 
     public static Specification<Member> hasTrackIn(List<Track> tracks) {
-        return (tracks == null || tracks.isEmpty()) ? null
-                : (root, query, cb) -> root.get("track").in(tracks);
+        if (tracks == null || tracks.isEmpty()) {
+            return null;
+        }
+        List<String> codes = tracks.stream().map(Track::name).toList();
+        return (root, query, cb) -> root.get("track").get("code").in(codes);
     }
 
     public static Specification<Member> hasMemberTypeIn(List<MemberType> memberTypes) {

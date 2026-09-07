@@ -9,8 +9,9 @@ import com.bcsdlab.bcsdinternalapiv2.auth.repository.RefreshTokenRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Track;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +53,13 @@ class LoginIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private TrackMaster backend;
+
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private TrackMasterRepository trackMasterRepository;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
@@ -63,13 +69,14 @@ class LoginIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        backend = trackMasterRepository.findByCode("BACKEND").orElseThrow();
         refreshTokenRepository.deleteAll();
         memberRepository.deleteAll();
         Member member = Member.builder()
                 .studentNumber("20231234")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("홍길동")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
@@ -165,7 +172,7 @@ class LoginIntegrationTest {
                 .studentNumber("20236543")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("정하늘")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
@@ -213,7 +220,7 @@ class LoginIntegrationTest {
                 .studentNumber("20235432")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("서지훈")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
@@ -257,7 +264,7 @@ class LoginIntegrationTest {
                 .studentNumber("20230000")
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("잠긴계정")
-                .track(Track.BACKEND)
+                .track(backend)
                 .generation("24-하")
                 .memberType(MemberType.REGULAR)
                 .university("OO대학교")
