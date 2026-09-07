@@ -23,7 +23,6 @@ import com.bcsdlab.bcsdinternalapiv2.game.repository.GameRepository;
 import com.bcsdlab.bcsdinternalapiv2.game.repository.GameScreenshotRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.global.util.SlugGenerator;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
@@ -56,7 +55,6 @@ public class AdminGameService {
     private final GameRatingRepository gameRatingRepository;
     private final GameMemberRepository gameMemberRepository;
     private final TrackMasterRepository trackMasterRepository;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public List<AdminGameSummaryResponse> getGames() {
         return gameRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -102,7 +100,6 @@ public class AdminGameService {
                 .build();
 
         Game saved = gameRepository.save(game);
-        contentChangedPublisher.gameAndListChanged(saved.getSlug());
         return AdminGameDetailResponse.from(saved);
     }
 
@@ -113,7 +110,6 @@ public class AdminGameService {
 
         game.updateDetails(track, request.name(), request.oneLiner(), request.teamLabel(),
                 ActivityContentSanitizer.sanitize(request.description()));
-        contentChangedPublisher.gameChanged(game.getSlug());
         return AdminGameDetailResponse.from(game);
     }
 
@@ -124,9 +120,7 @@ public class AdminGameService {
             throw new GameException(GameExceptionType.GAME_SLUG_DUPLICATED);
         }
 
-        String oldSlug = game.getSlug();
         game.changeSlug(request.slug());
-        contentChangedPublisher.publish(List.of("game-list", "game:" + oldSlug, "game:" + request.slug()));
         return AdminGameDetailResponse.from(game);
     }
 
@@ -134,7 +128,6 @@ public class AdminGameService {
     public void publish(Long id, PublishRequest request) {
         Game game = findGameOrThrow(id);
         game.updatePublished(request.isPublished());
-        contentChangedPublisher.gameAndListChanged(game.getSlug());
     }
 
     @Transactional
@@ -144,14 +137,12 @@ public class AdminGameService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((gameId, order) -> byId.get(gameId).updateDisplayOrder(order));
-        contentChangedPublisher.gameListChanged();
     }
 
     @Transactional
     public void deleteGame(Long id) {
         Game game = findGameOrThrow(id);
         game.delete(Instant.now());
-        contentChangedPublisher.gameAndListChanged(game.getSlug());
     }
 
     @Transactional
@@ -170,7 +161,6 @@ public class AdminGameService {
         }
         game.updateThumbnail(imageUrls.isEmpty() ? null : imageUrls.get(0));
         // 스크린샷 첫 장이 게임 목록의 thumbnailUrl이기도 하므로 목록 캐시도 함께 무효화한다.
-        contentChangedPublisher.gameAndListChanged(game.getSlug());
         return saved.stream().map(GameScreenshotResponse::from).toList();
     }
 
@@ -184,7 +174,6 @@ public class AdminGameService {
                         GameRating.builder().game(game).rating(request.rating()).build()));
         rating.update(request.rating(), request.classificationNumber(), request.classificationDate(),
                 request.businessName(), request.developerReportNumber(), descriptors);
-        contentChangedPublisher.gameChanged(game.getSlug());
         return GameRatingResponse.from(rating);
     }
 
@@ -192,7 +181,6 @@ public class AdminGameService {
     public void deleteRating(Long id) {
         Game game = findGameOrThrow(id);
         gameRatingRepository.findByGame_Id(id).ifPresent(gameRatingRepository::delete);
-        contentChangedPublisher.gameChanged(game.getSlug());
     }
 
     private Set<GameContentDescriptor> parseDescriptors(List<String> keys) {

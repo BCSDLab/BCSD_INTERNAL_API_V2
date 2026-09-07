@@ -10,7 +10,6 @@ import com.bcsdlab.bcsdinternalapiv2.activity.repository.ActivityCategoryReposit
 import com.bcsdlab.bcsdinternalapiv2.activity.repository.ActivityRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import java.time.Instant;
 import java.util.List;
@@ -27,7 +26,6 @@ public class AdminActivityCategoryService {
 
     private final ActivityCategoryRepository activityCategoryRepository;
     private final ActivityRepository activityRepository;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public List<AdminActivityCategoryResponse> getCategories() {
         return activityCategoryRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -50,7 +48,6 @@ public class AdminActivityCategoryService {
                 .displayOrder(displayOrder)
                 .published(true)
                 .build());
-        contentChangedPublisher.activityCategoryChanged(category.getSlug());
         return AdminActivityCategoryResponse.from(category);
     }
 
@@ -58,7 +55,6 @@ public class AdminActivityCategoryService {
     public AdminActivityCategoryResponse updateCategory(Long id, ActivityCategoryUpdateRequest request) {
         ActivityCategory category = findOrThrow(id);
         category.updateHeader(request.name(), request.headline(), request.heroImageUrl());
-        contentChangedPublisher.activityCategoryChanged(category.getSlug());
         return AdminActivityCategoryResponse.from(category);
     }
 
@@ -71,14 +67,12 @@ public class AdminActivityCategoryService {
         }
         ActivityCategory category = findOrThrow(id);
         category.delete(Instant.now());
-        contentChangedPublisher.activityCategoryChanged(category.getSlug());
     }
 
     @Transactional
     public void publish(Long id, PublishRequest request) {
         ActivityCategory category = findOrThrow(id);
         category.updatePublished(request.isPublished());
-        contentChangedPublisher.activityCategoryChanged(category.getSlug());
     }
 
     @Transactional
@@ -89,7 +83,6 @@ public class AdminActivityCategoryService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((id, order) -> byId.get(id).updateDisplayOrder(order));
-        contentChangedPublisher.publish(List.of("activity-category-list"));
     }
 
     private ActivityCategory findOrThrow(Long id) {

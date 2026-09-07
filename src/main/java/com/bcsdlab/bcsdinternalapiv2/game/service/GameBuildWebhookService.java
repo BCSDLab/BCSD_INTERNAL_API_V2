@@ -7,7 +7,6 @@ import com.bcsdlab.bcsdinternalapiv2.game.exception.GameExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.game.model.GameBuild;
 import com.bcsdlab.bcsdinternalapiv2.game.model.GameBuildStatus;
 import com.bcsdlab.bcsdinternalapiv2.game.repository.GameBuildRepository;
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +22,6 @@ public class GameBuildWebhookService {
 
     private final GameBuildRepository gameBuildRepository;
     private final GameBuildProperties gameBuildProperties;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public void applyResult(Long buildId, String secretHeader, GameBuildWebhookRequest request) {
         if (!gameBuildProperties.secret().equals(secretHeader)) {
@@ -48,7 +46,5 @@ public class GameBuildWebhookService {
         gameBuildRepository.findAllByGame_IdAndStatus(gameId, GameBuildStatus.ACTIVE).stream()
                 .filter(other -> !other.getId().equals(build.getId()))
                 .forEach(other -> other.updateStatus(GameBuildStatus.ARCHIVED));
-
-        contentChangedPublisher.gameChanged(build.getGame().getSlug());
     }
 }

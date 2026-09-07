@@ -2,7 +2,6 @@ package com.bcsdlab.bcsdinternalapiv2.track.service;
 
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.SlugChangeRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.StudyPointRequest;
@@ -50,7 +49,6 @@ public class AdminTrackPageService {
     private final TechStackRepository techStackRepository;
     private final TrackPageTechStackRepository trackPageTechStackRepository;
     private final TrackPageMemberRepository trackPageMemberRepository;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public List<AdminTrackPageSummaryResponse> getTrackPages() {
         return trackPageRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -106,7 +104,6 @@ public class AdminTrackPageService {
                 .build();
 
         TrackPage saved = trackPageRepository.save(trackPage);
-        contentChangedPublisher.trackAndListChanged(saved.getSlug());
         return AdminTrackPageDetailResponse.from(saved);
     }
 
@@ -114,7 +111,6 @@ public class AdminTrackPageService {
     public AdminTrackPageDetailResponse updateTrackPage(Long id, TrackPageUpdateRequest request) {
         TrackPage trackPage = findTrackPageOrThrow(id);
         trackPage.updateHeader(request.displayName(), request.tagline());
-        contentChangedPublisher.trackChanged(trackPage.getSlug());
         return AdminTrackPageDetailResponse.from(trackPage);
     }
 
@@ -125,9 +121,7 @@ public class AdminTrackPageService {
             throw new TrackException(TrackExceptionType.TRACK_PAGE_SLUG_DUPLICATED);
         }
 
-        String oldSlug = trackPage.getSlug();
         trackPage.changeSlug(request.slug());
-        contentChangedPublisher.publish(List.of("track-list", "track:" + oldSlug, "track:" + request.slug()));
         return AdminTrackPageDetailResponse.from(trackPage);
     }
 
@@ -135,7 +129,6 @@ public class AdminTrackPageService {
     public void publish(Long id, PublishRequest request) {
         TrackPage trackPage = findTrackPageOrThrow(id);
         trackPage.updatePublished(request.isPublished());
-        contentChangedPublisher.trackAndListChanged(trackPage.getSlug());
     }
 
     @Transactional
@@ -146,14 +139,12 @@ public class AdminTrackPageService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((trackPageId, order) -> byId.get(trackPageId).updateDisplayOrder(order));
-        contentChangedPublisher.trackListChanged();
     }
 
     @Transactional
     public void deleteTrackPage(Long id) {
         TrackPage trackPage = findTrackPageOrThrow(id);
         trackPage.delete(Instant.now());
-        contentChangedPublisher.trackAndListChanged(trackPage.getSlug());
     }
 
     @Transactional
@@ -173,7 +164,6 @@ public class AdminTrackPageService {
                     .displayOrder(i)
                     .build()));
         }
-        contentChangedPublisher.trackChanged(trackPage.getSlug());
         return saved.stream().map(StudyPointResponse::from).toList();
     }
 
@@ -195,7 +185,6 @@ public class AdminTrackPageService {
             saved.add(trackPageTechStackRepository.save(
                     new TrackPageTechStack(trackPage, byId.get(techStackIds.get(i)), i)));
         }
-        contentChangedPublisher.trackChanged(trackPage.getSlug());
         return saved.stream().map(tpts -> TechStackResponse.from(tpts.getTechStack())).toList();
     }
 

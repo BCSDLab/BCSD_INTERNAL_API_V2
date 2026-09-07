@@ -1,7 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.track.service;
 
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
@@ -35,7 +34,6 @@ public class AdminTrackPageMemberService {
     private final TrackPageRepository trackPageRepository;
     private final TrackPageMemberRepository trackPageMemberRepository;
     private final MemberRepository memberRepository;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public List<AdminTrackPageMemberResponse> getMembers(Long trackPageId) {
         findTrackPageOrThrow(trackPageId);
@@ -72,7 +70,6 @@ public class AdminTrackPageMemberService {
                     .visible(true)
                     .build());
         }
-        contentChangedPublisher.trackChanged(trackPage.getSlug());
         return getMembers(trackPageId);
     }
 
@@ -83,7 +80,6 @@ public class AdminTrackPageMemberService {
                 .findByTrackPage_IdAndMember_Id(trackPageId, memberId)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_PAGE_MEMBER_NOT_FOUND));
         trackPageMemberRepository.delete(assignment);
-        contentChangedPublisher.trackChanged(trackPage.getSlug());
     }
 
     @Transactional
@@ -93,7 +89,6 @@ public class AdminTrackPageMemberService {
                 .findByTrackPage_IdAndMember_Id(trackPageId, memberId)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_PAGE_MEMBER_NOT_FOUND));
         assignment.updateVisible(request.isVisible());
-        contentChangedPublisher.trackChanged(trackPage.getSlug());
     }
 
     @Transactional
@@ -106,7 +101,6 @@ public class AdminTrackPageMemberService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((id, order) -> byId.get(id).updateDisplayOrder(order));
-        contentChangedPublisher.trackChanged(trackPage.getSlug());
     }
 
     private TrackPage findTrackPageOrThrow(Long id) {
