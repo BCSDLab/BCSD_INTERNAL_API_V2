@@ -1,7 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.home.service;
 
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.request.MentorSlotCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.response.AdminMentorSlotResponse;
@@ -30,7 +29,6 @@ public class AdminMentorSlotService {
 
     private final MentorSlotRepository mentorSlotRepository;
     private final MemberRepository memberRepository;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public List<AdminMentorSlotResponse> getSlots() {
         return mentorSlotRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -48,7 +46,6 @@ public class AdminMentorSlotService {
 
         int nextOrder = (int) mentorSlotRepository.count();
         mentorSlotRepository.save(MentorSlot.builder().member(member).displayOrder(nextOrder).build());
-        contentChangedPublisher.homeChanged();
         return getSlots();
     }
 
@@ -57,7 +54,6 @@ public class AdminMentorSlotService {
         MentorSlot slot = mentorSlotRepository.findByMember_Id(memberId)
                 .orElseThrow(() -> new HomeException(HomeExceptionType.MENTOR_SLOT_NOT_FOUND));
         mentorSlotRepository.delete(slot);
-        contentChangedPublisher.homeChanged();
     }
 
     @Transactional
@@ -67,6 +63,5 @@ public class AdminMentorSlotService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((id, order) -> byId.get(id).updateDisplayOrder(order));
-        contentChangedPublisher.homeChanged();
     }
 }

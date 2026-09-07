@@ -2,7 +2,6 @@ package com.bcsdlab.bcsdinternalapiv2.home.service;
 
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.request.QnaCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.request.QnaUpdateRequest;
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminQnaService {
 
     private final QnaItemRepository qnaItemRepository;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public List<AdminQnaResponse> getQnaItems() {
         return qnaItemRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -40,7 +38,6 @@ public class AdminQnaService {
                 .displayOrder((int) qnaItemRepository.count())
                 .published(true)
                 .build());
-        contentChangedPublisher.homeChanged();
         return AdminQnaResponse.from(saved);
     }
 
@@ -48,7 +45,6 @@ public class AdminQnaService {
     public AdminQnaResponse updateQnaItem(Long id, QnaUpdateRequest request) {
         QnaItem item = findOrThrow(id);
         item.update(request.question(), request.answer());
-        contentChangedPublisher.homeChanged();
         return AdminQnaResponse.from(item);
     }
 
@@ -56,14 +52,12 @@ public class AdminQnaService {
     public void deleteQnaItem(Long id) {
         QnaItem item = findOrThrow(id);
         qnaItemRepository.delete(item);
-        contentChangedPublisher.homeChanged();
     }
 
     @Transactional
     public void publish(Long id, PublishRequest request) {
         QnaItem item = findOrThrow(id);
         item.updatePublished(request.isPublished());
-        contentChangedPublisher.homeChanged();
     }
 
     @Transactional
@@ -73,7 +67,6 @@ public class AdminQnaService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((id, order) -> byId.get(id).updateDisplayOrder(order));
-        contentChangedPublisher.homeChanged();
     }
 
     private QnaItem findOrThrow(Long id) {

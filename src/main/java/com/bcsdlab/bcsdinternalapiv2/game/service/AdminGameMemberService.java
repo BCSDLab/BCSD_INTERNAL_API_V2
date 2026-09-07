@@ -9,7 +9,6 @@ import com.bcsdlab.bcsdinternalapiv2.game.model.GameMember;
 import com.bcsdlab.bcsdinternalapiv2.game.repository.GameMemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.game.repository.GameRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
@@ -35,7 +34,6 @@ public class AdminGameMemberService {
     private final GameRepository gameRepository;
     private final GameMemberRepository gameMemberRepository;
     private final MemberRepository memberRepository;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public List<AdminGameMemberResponse> getMembers(Long gameId) {
         findGameOrThrow(gameId);
@@ -71,7 +69,6 @@ public class AdminGameMemberService {
                     .displayOrder(nextOrder++)
                     .build());
         }
-        contentChangedPublisher.gameChanged(game.getSlug());
         return getMembers(gameId);
     }
 
@@ -81,7 +78,6 @@ public class AdminGameMemberService {
         GameMember assignment = gameMemberRepository.findByGame_IdAndMember_Id(gameId, memberId)
                 .orElseThrow(() -> new GameException(GameExceptionType.GAME_MEMBER_NOT_FOUND));
         gameMemberRepository.delete(assignment);
-        contentChangedPublisher.gameChanged(game.getSlug());
     }
 
     @Transactional
@@ -93,7 +89,6 @@ public class AdminGameMemberService {
 
         Map<Long, Integer> newOrders = DisplayOrders.reassign(request.ids(), byId.keySet());
         newOrders.forEach((id, order) -> byId.get(id).updateDisplayOrder(order));
-        contentChangedPublisher.gameChanged(game.getSlug());
     }
 
     private Game findGameOrThrow(Long id) {

@@ -1,6 +1,5 @@
 package com.bcsdlab.bcsdinternalapiv2.home.service;
 
-import com.bcsdlab.bcsdinternalapiv2.global.event.ContentChangedPublisher;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.request.RecruitLinkUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.response.AdminRecruitLinkResponse;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.response.RecruitLinkHistoryResponse;
@@ -29,7 +28,6 @@ public class AdminRecruitLinkService {
     private final RecruitLinkRepository recruitLinkRepository;
     private final RecruitLinkHistoryRepository recruitLinkHistoryRepository;
     private final MemberRepository memberRepository;
-    private final ContentChangedPublisher contentChangedPublisher;
 
     public AdminRecruitLinkResponse getCurrent() {
         return recruitLinkRepository.findById(RecruitLink.SINGLETON_ID)
@@ -62,7 +60,6 @@ public class AdminRecruitLinkService {
                 .changedAt(now)
                 .build());
 
-        contentChangedPublisher.homeChanged();
         return AdminRecruitLinkResponse.from(saved);
     }
 }
