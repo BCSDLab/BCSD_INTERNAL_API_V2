@@ -2,6 +2,8 @@ package com.bcsdlab.bcsdinternalapiv2.member.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.auth.controller.dto.response.LoginResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.InitialSetupRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberContactUpdateRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PasswordChangeRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +47,22 @@ public class MemberController implements MemberApi {
                                                                HttpServletResponse servletResponse) {
         return ResponseEntity.ok(memberService.completeInitialSetup(
                 memberId(jwt), passwordVersion(jwt), request, servletRequest, servletResponse));
+    }
+
+    @Override
+    @PatchMapping
+    public ResponseEntity<Void> updateContact(@AuthenticationPrincipal Jwt jwt,
+                                               @Valid @RequestBody MemberContactUpdateRequest request) {
+        memberService.updateContact(memberId(jwt), request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PatchMapping("/password")
+    public ResponseEntity<Void> changePassword(@AuthenticationPrincipal Jwt jwt,
+                                                @Valid @RequestBody PasswordChangeRequest request) {
+        memberService.changePassword(memberId(jwt), request);
+        return ResponseEntity.noContent().build();
     }
 
     private Long memberId(Jwt jwt) {

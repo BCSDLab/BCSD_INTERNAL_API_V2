@@ -15,6 +15,7 @@ public enum AuthExceptionType implements BcsdExceptionType {
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "로그인이 만료되었습니다. 다시 로그인해 주세요."),
     REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "보안상의 이유로 로그아웃되었습니다. 다시 로그인해 주세요."),
     PASSWORD_CONFIRM_MISMATCH(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+    CURRENT_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "현재 비밀번호가 올바르지 않습니다."),
     RESET_TOKEN_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 링크입니다."),
     RESET_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "만료된 링크입니다. 다시 요청해 주세요."),
     RESET_TOKEN_ALREADY_USED(HttpStatus.BAD_REQUEST, "이미 사용된 링크입니다."),

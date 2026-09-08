@@ -185,6 +185,17 @@ public class Member extends BaseTimeEntity {
         this.status = MemberStatus.ACTIVE;
     }
 
+    public void updateContact(String phoneNumber, String email, String githubId) {
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.githubId = githubId;
+    }
+
+    public void changePassword(String encodedPassword, Instant now) {
+        this.password = encodedPassword;
+        this.passwordChangedAt = truncateToMillis(now);
+    }
+
     public void resetPassword(String encodedPassword, Instant now) {
         this.password = encodedPassword;
         this.passwordChangedAt = truncateToMillis(now);
