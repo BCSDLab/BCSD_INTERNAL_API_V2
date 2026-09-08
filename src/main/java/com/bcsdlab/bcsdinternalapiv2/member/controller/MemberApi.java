@@ -2,6 +2,8 @@ package com.bcsdlab.bcsdinternalapiv2.member.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.auth.controller.dto.response.LoginResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.InitialSetupRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberContactUpdateRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PasswordChangeRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -58,5 +61,32 @@ public interface MemberApi {
             @RequestBody @Valid InitialSetupRequest request,
             @Parameter(hidden = true) HttpServletRequest servletRequest,
             @Parameter(hidden = true) HttpServletResponse servletResponse
+    );
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "내 정보 수정", description = "연락처(전화번호/이메일/깃허브 아이디)를 수정합니다.")
+    @SecurityRequirement(name = "JWT")
+    @PatchMapping
+    ResponseEntity<Void> updateContact(
+            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid MemberContactUpdateRequest request
+    );
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "비밀번호 변경", description = "현재 비밀번호를 확인한 뒤 비밀번호를 변경합니다.")
+    @SecurityRequirement(name = "JWT")
+    @PatchMapping("/password")
+    ResponseEntity<Void> changePassword(
+            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid PasswordChangeRequest request
     );
 }
