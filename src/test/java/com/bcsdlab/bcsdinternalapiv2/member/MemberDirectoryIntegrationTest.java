@@ -290,7 +290,7 @@ class MemberDirectoryIntegrationTest {
                         .content("""
                                 {"name":"수정후이름","track":"FRONTEND","memberType":"MENTOR",
                                  "generation":"24-하","university":"한국기술교육대학교","department":"전자공학부",
-                                 "position":"회장","birthDate":"2000-01-01","duesRequired":true,
+                                 "positionCodes":["PRESIDENT","BACKEND_LEAD"],"birthDate":"2000-01-01","duesRequired":true,
                                  "email":"updated-%s@bcsd.club","phoneNumber":"010-9999-9999","githubId":"updated-id"}
                                 """.formatted(target.getId())))
                 .andExpect(status().isNoContent());
@@ -300,10 +300,29 @@ class MemberDirectoryIntegrationTest {
         assertThat(updated.getTrack().getId()).isEqualTo(frontend.getId());
         assertThat(updated.getMemberType()).isEqualTo(MemberType.MENTOR);
         assertThat(updated.getDepartment()).isEqualTo("전자공학부");
-        assertThat(updated.getPosition()).isEqualTo("회장");
         assertThat(updated.isDuesRequired()).isTrue();
         assertThat(updated.getPhoneNumber()).isEqualTo("01099999999");
         assertThat(updated.getGithubId()).isEqualTo("updated-id");
+
+        mockMvc.perform(get("/v1/admin/members")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("keyword", "20240101"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.members[0].positionCodes").isArray())
+                .andExpect(jsonPath("$.members[0].positionCodes",
+                        org.hamcrest.Matchers.containsInAnyOrder("PRESIDENT", "BACKEND_LEAD")));
+    }
+
+    @Test
+    void 직책_목록을_조회할_수_있다() throws Exception {
+        String memberToken = createMemberAndLogin("20230013");
+
+        mockMvc.perform(get("/v1/positions")
+                        .header("Authorization", "Bearer " + memberToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.code=='PRESIDENT')].name").value("회장"))
+                .andExpect(jsonPath("$[?(@.code=='BACKEND_LEAD')]").exists())
+                .andExpect(jsonPath("$[?(@.code=='PS_LEAD')]").doesNotExist());
     }
 
     @Test

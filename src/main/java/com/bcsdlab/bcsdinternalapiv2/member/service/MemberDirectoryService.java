@@ -10,8 +10,10 @@ import com.bcsdlab.bcsdinternalapiv2.member.exception.MemberExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.member.model.AcademicStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Position;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberSpecification;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.PositionRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.util.GithubIdNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.util.PhoneNumberNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
@@ -22,6 +24,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +38,7 @@ public class MemberDirectoryService {
 
     private final MemberRepository memberRepository;
     private final TrackMasterRepository trackMasterRepository;
+    private final PositionRepository positionRepository;
     private final PhotoStorageService photoStorageService;
 
     @Transactional(readOnly = true)
@@ -80,9 +84,13 @@ public class MemberDirectoryService {
         String normalizedGithubId = GithubIdNormalizer.normalize(request.githubId());
         TrackMaster track = trackMasterRepository.findByCode(request.track().name())
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_NOT_FOUND));
+        List<Position> positions = positionRepository.findAllByCodeIn(request.positionCodes());
+        if (positions.size() != Set.copyOf(request.positionCodes()).size()) {
+            throw new MemberException(MemberExceptionType.POSITION_NOT_FOUND);
+        }
 
         member.updateProfile(request.name(), track, request.generation(), request.memberType(),
-                request.university(), request.department(), request.position(), request.birthDate(),
+                request.university(), request.department(), positions, request.birthDate(),
                 request.duesRequired(), normalizedEmail, normalizedPhone, normalizedGithubId);
     }
 

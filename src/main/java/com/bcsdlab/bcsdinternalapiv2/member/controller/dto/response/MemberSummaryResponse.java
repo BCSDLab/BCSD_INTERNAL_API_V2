@@ -1,7 +1,10 @@
 package com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response;
 
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Position;
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
 
 public record MemberSummaryResponse(
         Long id,
@@ -12,7 +15,7 @@ public record MemberSummaryResponse(
         String academicStatus,
         String university,
         String department,
-        String position,
+        List<String> positionCodes,
         LocalDate birthDate,
         boolean duesRequired,
         String studentNumber,
@@ -33,7 +36,10 @@ public record MemberSummaryResponse(
                 member.getAcademicStatus().name(),
                 member.getUniversity(),
                 member.getDepartment(),
-                member.getPosition(),
+                member.getPositions().stream()
+                        .map(Position::getCode)
+                        .sorted(Comparator.naturalOrder())
+                        .toList(),
                 member.getBirthDate(),
                 member.isDuesRequired(),
                 member.getStudentNumber(),

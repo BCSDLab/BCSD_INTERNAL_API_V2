@@ -12,6 +12,7 @@ public enum MemberExceptionType implements BcsdExceptionType {
     INVALID_PHONE(HttpStatus.BAD_REQUEST, "올바른 전화번호 형식이 아닙니다."),
     INVALID_GITHUB_ID(HttpStatus.BAD_REQUEST, "올바른 깃허브 아이디가 아닙니다."),
     INVALID_PHOTO(HttpStatus.BAD_REQUEST, "올바른 사진 파일이 아닙니다."),
+    POSITION_NOT_FOUND(HttpStatus.BAD_REQUEST, "존재하지 않는 직책입니다."),
     ;
 
     private final HttpStatus status;

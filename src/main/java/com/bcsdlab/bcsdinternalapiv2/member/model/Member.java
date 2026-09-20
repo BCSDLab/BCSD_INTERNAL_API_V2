@@ -11,11 +11,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -67,8 +72,11 @@ public class Member extends BaseTimeEntity {
     @Column(name = "is_active", nullable = false)
     private boolean clubActive;
 
-    @Column(name = "position")
-    private String position;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "member_position",
+            joinColumns = @JoinColumn(name = "member_id"),
+            inverseJoinColumns = @JoinColumn(name = "position_id"))
+    private Set<Position> positions = new LinkedHashSet<>();
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
@@ -116,7 +124,7 @@ public class Member extends BaseTimeEntity {
     @Builder
     private Member(String studentNumber, String password, String name, TrackMaster track, String generation,
                    MemberType memberType, String university, String department, AcademicStatus academicStatus,
-                   Boolean clubActive, String position, LocalDate birthDate, Boolean duesRequired,
+                   Boolean clubActive, Collection<Position> positions, LocalDate birthDate, Boolean duesRequired,
                    String email, String phoneNumber, String githubId, String profileImageUrl,
                    MemberStatus status, MemberRole role, Instant passwordChangedAt) {
         this.studentNumber = studentNumber;
@@ -129,7 +137,9 @@ public class Member extends BaseTimeEntity {
         this.department = department != null ? department : "";
         this.academicStatus = academicStatus != null ? academicStatus : AcademicStatus.ENROLLED;
         this.clubActive = clubActive != null ? clubActive : true;
-        this.position = position;
+        if (positions != null) {
+            this.positions.addAll(positions);
+        }
         this.birthDate = birthDate;
         this.duesRequired = duesRequired != null ? duesRequired : false;
         this.email = email;
@@ -218,15 +228,19 @@ public class Member extends BaseTimeEntity {
     }
 
     public void updateProfile(String name, TrackMaster track, String generation, MemberType memberType,
-                               String university, String department, String position, LocalDate birthDate,
-                               boolean duesRequired, String email, String phoneNumber, String githubId) {
+                               String university, String department, Collection<Position> positions,
+                               LocalDate birthDate, boolean duesRequired, String email, String phoneNumber,
+                               String githubId) {
         this.name = name;
         this.track = track;
         this.generation = generation;
         this.memberType = memberType;
         this.university = university;
         this.department = department;
-        this.position = position;
+        this.positions.clear();
+        if (positions != null) {
+            this.positions.addAll(positions);
+        }
         this.birthDate = birthDate;
         this.duesRequired = duesRequired;
         this.email = email;
