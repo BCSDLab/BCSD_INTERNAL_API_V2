@@ -16,6 +16,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoUrlResp
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackProfileSyncResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.service.AdminMemberService;
 import com.bcsdlab.bcsdinternalapiv2.member.service.MemberDirectoryService;
+import com.bcsdlab.bcsdinternalapiv2.member.service.SlackProfileSyncService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +40,7 @@ public class AdminMemberController implements AdminMemberApi {
 
     private final AdminMemberService adminMemberService;
     private final MemberDirectoryService memberDirectoryService;
+    private final SlackProfileSyncService slackProfileSyncService;
 
     @Override
     @PostMapping
@@ -125,6 +127,6 @@ public class AdminMemberController implements AdminMemberApi {
     @Override
     @PostMapping("/photo/slack-sync")
     public ResponseEntity<SlackProfileSyncResponse> syncAllPhotosFromSlack() {
-        return ResponseEntity.ok(memberDirectoryService.syncAllProfileImagesFromSlack());
+        return ResponseEntity.ok(slackProfileSyncService.syncAll());
     }
 }

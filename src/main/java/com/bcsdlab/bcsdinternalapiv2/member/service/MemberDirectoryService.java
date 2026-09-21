@@ -5,14 +5,12 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberDirecto
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresignedUrlRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
-import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackProfileSyncResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.client.SlackClient;
 import com.bcsdlab.bcsdinternalapiv2.member.exception.MemberException;
 import com.bcsdlab.bcsdinternalapiv2.member.exception.MemberExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.member.model.AcademicStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
-import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Position;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberSpecification;
@@ -29,14 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberDirectoryService {
@@ -141,22 +137,6 @@ public class MemberDirectoryService {
                 .orElseThrow(() -> new MemberException(MemberExceptionType.SLACK_PROFILE_NOT_FOUND));
         member.updateProfileImageUrl(imageUrl);
         return imageUrl;
-    }
-
-    public SlackProfileSyncResponse syncAllProfileImagesFromSlack() {
-        List<Member> members = memberRepository.findAllByStatus(MemberStatus.ACTIVE);
-        int updated = 0;
-        int failed = 0;
-        for (Member member : members) {
-            try {
-                syncProfileImageFromSlack(member.getId());
-                updated++;
-            } catch (RuntimeException e) {
-                failed++;
-                log.warn("SLACK_PROFILE_SYNC_FAILED: memberId={}", member.getId(), e);
-            }
-        }
-        return new SlackProfileSyncResponse(members.size(), updated, failed);
     }
 
     private boolean isBlank(String value) {
