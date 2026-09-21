@@ -14,7 +14,8 @@ public record MemberResponse(
         String phoneNumber,
         String githubId,
         String status,
-        String role
+        String role,
+        String photoUrl
 ) {
     public static MemberResponse from(Member member) {
         return new MemberResponse(
@@ -29,7 +30,8 @@ public record MemberResponse(
                 member.getPhoneNumber(),
                 member.getGithubId(),
                 member.getStatus().name(),
-                member.getRole().name()
+                member.getRole().name(),
+                member.getProfileImageUrl()
         );
     }
 }

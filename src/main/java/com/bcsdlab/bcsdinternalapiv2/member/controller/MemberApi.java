@@ -4,7 +4,10 @@ import com.bcsdlab.bcsdinternalapiv2.auth.controller.dto.response.LoginResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.InitialSetupRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberContactUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PasswordChangeRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresignedUrlRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoUrlUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -88,5 +91,31 @@ public interface MemberApi {
     ResponseEntity<Void> changePassword(
             @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid PasswordChangeRequest request
+    );
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "내 프로필 사진 업로드 URL 발급", description = "S3에 직접 PUT할 presigned URL을 발급합니다.")
+    @SecurityRequirement(name = "JWT")
+    @PostMapping("/photo/presigned-url")
+    ResponseEntity<PhotoPresignedUrlResponse> issuePhotoPresignedUrl(
+            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid PhotoPresignedUrlRequest request
+    );
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "내 프로필 사진 등록", description = "S3에 직접 PUT을 마친 뒤, 그 결과 publicUrl을 내 프로필에 저장합니다.")
+    @SecurityRequirement(name = "JWT")
+    @PatchMapping("/photo")
+    ResponseEntity<Void> updatePhotoUrl(
+            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid PhotoUrlUpdateRequest request
     );
 }

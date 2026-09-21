@@ -4,7 +4,10 @@ import com.bcsdlab.bcsdinternalapiv2.auth.controller.dto.response.LoginResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.InitialSetupRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberContactUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PasswordChangeRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresignedUrlRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoUrlUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -62,6 +65,21 @@ public class MemberController implements MemberApi {
     public ResponseEntity<Void> changePassword(@AuthenticationPrincipal Jwt jwt,
                                                 @Valid @RequestBody PasswordChangeRequest request) {
         memberService.changePassword(memberId(jwt), request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PostMapping("/photo/presigned-url")
+    public ResponseEntity<PhotoPresignedUrlResponse> issuePhotoPresignedUrl(
+            @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody PhotoPresignedUrlRequest request) {
+        return ResponseEntity.ok(memberService.issuePhotoPresignedUrl(memberId(jwt), request));
+    }
+
+    @Override
+    @PatchMapping("/photo")
+    public ResponseEntity<Void> updatePhotoUrl(@AuthenticationPrincipal Jwt jwt,
+                                                @Valid @RequestBody PhotoUrlUpdateRequest request) {
+        memberService.updatePhotoUrl(memberId(jwt), request.photoUrl());
         return ResponseEntity.noContent().build();
     }
 

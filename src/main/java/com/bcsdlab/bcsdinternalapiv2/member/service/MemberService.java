@@ -14,7 +14,9 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.InitialSetupRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberContactUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PasswordChangeRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresignedUrlRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +34,7 @@ public class MemberService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final PhotoStorageService photoStorageService;
 
     @Transactional(readOnly = true)
     public MemberResponse getMe(Long memberId) {
@@ -116,6 +119,18 @@ public class MemberService {
 
         refreshTokenRepository.findAllByMemberIdAndRevokedAtIsNull(memberId)
                 .forEach(refreshToken -> refreshToken.revoke(now));
+    }
+
+    @Transactional(readOnly = true)
+    public PhotoPresignedUrlResponse issuePhotoPresignedUrl(Long memberId, PhotoPresignedUrlRequest request) {
+        return photoStorageService.issuePresignedUrl(memberId, request);
+    }
+
+    @Transactional
+    public void updatePhotoUrl(Long memberId, String photoUrl) {
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new AuthException(AuthExceptionType.UNAUTHORIZED));
+        member.updateProfileImageUrl(photoUrl);
     }
 
     private Member getMemberOrThrow(Long memberId) {
