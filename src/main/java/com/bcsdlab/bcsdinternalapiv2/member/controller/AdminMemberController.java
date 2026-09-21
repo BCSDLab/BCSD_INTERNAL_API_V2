@@ -12,6 +12,8 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.WithdrawalUpd
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberCreateResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoUrlResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackProfileSyncResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.service.AdminMemberService;
 import com.bcsdlab.bcsdinternalapiv2.member.service.MemberDirectoryService;
 import jakarta.validation.Valid;
@@ -112,5 +114,17 @@ public class AdminMemberController implements AdminMemberApi {
                                                 @Valid @RequestBody PhotoUrlUpdateRequest request) {
         memberDirectoryService.updatePhotoUrl(memberId, request.photoUrl());
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PostMapping("/{memberId}/photo/slack-sync")
+    public ResponseEntity<PhotoUrlResponse> syncPhotoFromSlack(@PathVariable Long memberId) {
+        return ResponseEntity.ok(new PhotoUrlResponse(memberDirectoryService.syncProfileImageFromSlack(memberId)));
+    }
+
+    @Override
+    @PostMapping("/photo/slack-sync")
+    public ResponseEntity<SlackProfileSyncResponse> syncAllPhotosFromSlack() {
+        return ResponseEntity.ok(memberDirectoryService.syncAllProfileImagesFromSlack());
     }
 }

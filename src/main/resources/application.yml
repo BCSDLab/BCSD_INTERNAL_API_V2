@@ -56,3 +56,5 @@ app:
     secret: ${GAME_BUILD_SECRET:local-dev-secret}
     token-validity-seconds: 1800
     public-origin: ${GAME_BUILD_PUBLIC_ORIGIN:https://bcsdlab.com}
+  slack:
+    bot-token: ${SLACK_BOT_TOKEN:}

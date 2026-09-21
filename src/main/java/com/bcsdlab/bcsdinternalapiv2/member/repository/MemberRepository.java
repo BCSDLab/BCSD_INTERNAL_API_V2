@@ -2,6 +2,7 @@ package com.bcsdlab.bcsdinternalapiv2.member.repository;
 
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
+import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,8 @@ public interface MemberRepository extends JpaRepository<Member, Long>, JpaSpecif
     boolean existsByStudentNumber(String studentNumber);
 
     boolean existsByEmailAndIdNot(String email, Long id);
+
+    List<Member> findAllByStatus(MemberStatus status);
 
     @Transactional
     @Lock(LockModeType.PESSIMISTIC_WRITE)

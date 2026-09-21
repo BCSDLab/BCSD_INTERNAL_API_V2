@@ -76,5 +76,6 @@ jobs:
               -e GAME_BUILD_UPLOAD_URL='https://bcsdlab.com/api/games/builds/upload' \
               -e GAME_BUILD_SECRET='${{ secrets.GAME_BUILD_SECRET }}' \
               -e GAME_BUILD_PUBLIC_ORIGIN='https://bcsdlab.com' \
+              -e SLACK_BOT_TOKEN='${{ secrets.SLACK_BOT_TOKEN }}' \
               --memory=300m \
               ghcr.io/bcsdlab/bcsd-internal-api:latest

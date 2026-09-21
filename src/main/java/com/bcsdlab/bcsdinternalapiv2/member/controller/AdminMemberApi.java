@@ -12,6 +12,8 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.WithdrawalUpd
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberCreateResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoUrlResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackProfileSyncResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -160,4 +162,29 @@ public interface AdminMemberApi {
     @SecurityRequirement(name = "JWT")
     @PatchMapping("/{memberId}/photo")
     ResponseEntity<Void> updatePhotoUrl(@PathVariable Long memberId, @RequestBody @Valid PhotoUrlUpdateRequest request);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "502", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "Slack 프로필 사진 동기화", description = "회원 이메일로 Slack 워크스페이스 프로필을 조회하여 "
+            + "프로필 이미지를 회원 프로필에 동기화합니다.")
+    @SecurityRequirement(name = "JWT")
+    @PostMapping("/{memberId}/photo/slack-sync")
+    ResponseEntity<PhotoUrlResponse> syncPhotoFromSlack(@PathVariable Long memberId);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "전체 회원 Slack 프로필 사진 동기화", description = "활동 중인(ACTIVE) 전체 회원을 대상으로 "
+            + "Slack 프로필 동기화를 즉시 실행합니다. 매주 일요일 00:05(KST)에 자동 실행되는 배치와 동일한 로직입니다. "
+            + "회원 개별 실패는 전체 실행을 막지 않으며, 결과에 성공/실패 건수가 집계되어 반환됩니다.")
+    @SecurityRequirement(name = "JWT")
+    @PostMapping("/photo/slack-sync")
+    ResponseEntity<SlackProfileSyncResponse> syncAllPhotosFromSlack();
 }

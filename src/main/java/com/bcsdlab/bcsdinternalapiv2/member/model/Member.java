@@ -116,8 +116,8 @@ public class Member extends BaseTimeEntity {
     @Column(name = "welcome_mail_sent_at")
     private Instant welcomeMailSentAt;
 
-    // 홈페이지 "함께 할 멤버들"에만 쓴다(T-18). 쓰기 경로를 만들지 않는다(INV-13) —
-    // 명부 관리 책임은 auth/member 담당자에게 그대로 있다.
+    // 홈페이지 "함께 할 멤버들"에 노출된다(T-18). 관리자 업로드(S3 presigned URL) 또는
+    // Slack 프로필 동기화를 통해서만 갱신된다 — 두 경로 모두 admin API를 경유한다.
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
