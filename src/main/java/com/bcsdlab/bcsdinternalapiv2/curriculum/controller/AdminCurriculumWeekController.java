@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,15 +27,17 @@ public class AdminCurriculumWeekController implements AdminCurriculumWeekApi {
     @Override
     @PostMapping
     public ResponseEntity<CurriculumWeekResponse> createWeek(@PathVariable Long curriculumId,
-                                                              @Valid @RequestBody WeekRequest request) {
+                                                              @Valid @RequestBody WeekRequest request,
+                                                              @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(adminCurriculumTreeService.createWeek(curriculumId, request));
+                .body(adminCurriculumTreeService.createWeek(curriculumId, request, Long.valueOf(jwt.getSubject())));
     }
 
     @Override
     @PatchMapping("/order")
-    public ResponseEntity<Void> reorderWeeks(@PathVariable Long curriculumId, @Valid @RequestBody OrderRequest request) {
-        adminCurriculumTreeService.reorderWeeks(curriculumId, request);
+    public ResponseEntity<Void> reorderWeeks(@PathVariable Long curriculumId, @Valid @RequestBody OrderRequest request,
+                                              @AuthenticationPrincipal Jwt jwt) {
+        adminCurriculumTreeService.reorderWeeks(curriculumId, request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 }

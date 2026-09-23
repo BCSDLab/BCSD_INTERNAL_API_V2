@@ -20,6 +20,9 @@ import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumTopicReposi
 import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumWeekRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +40,7 @@ public class AdminCurriculumTreeService {
     private final CurriculumWeekRepository curriculumWeekRepository;
     private final CurriculumTopicRepository curriculumTopicRepository;
     private final CurriculumTopicDetailRepository curriculumTopicDetailRepository;
+    private final MemberRepository memberRepository;
 
     public AdminCurriculumTreeResponse getTree(Long curriculumId) {
         Curriculum curriculum = curriculumRepository.findById(curriculumId)
@@ -65,10 +69,11 @@ public class AdminCurriculumTreeService {
     }
 
     @Transactional
-    public CurriculumWeekResponse createWeek(Long curriculumId, WeekRequest request) {
+    public CurriculumWeekResponse createWeek(Long curriculumId, WeekRequest request, Long memberId) {
         validateRange(request);
         Curriculum curriculum = curriculumRepository.findById(curriculumId)
                 .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.CURRICULUM_NOT_FOUND));
+        requireCurriculumAccess(memberId, curriculum.getTrackPage());
 
         int displayOrder = curriculumWeekRepository.findAllByCurriculum_IdOrderByDisplayOrderAsc(curriculumId).size();
         CurriculumWeek week = curriculumWeekRepository.save(CurriculumWeek.builder()
@@ -81,21 +86,26 @@ public class AdminCurriculumTreeService {
     }
 
     @Transactional
-    public CurriculumWeekResponse updateWeek(Long weekId, WeekRequest request) {
+    public CurriculumWeekResponse updateWeek(Long weekId, WeekRequest request, Long memberId) {
         validateRange(request);
         CurriculumWeek week = findWeekOrThrow(weekId);
+        requireCurriculumAccess(memberId, week.getCurriculum().getTrackPage());
         week.updateLabel(request.weekFrom(), request.weekTo());
         return CurriculumWeekResponse.from(week);
     }
 
     @Transactional
-    public void deleteWeek(Long weekId) {
+    public void deleteWeek(Long weekId, Long memberId) {
         CurriculumWeek week = findWeekOrThrow(weekId);
+        requireCurriculumAccess(memberId, week.getCurriculum().getTrackPage());
         curriculumWeekRepository.delete(week);
     }
 
     @Transactional
-    public void reorderWeeks(Long curriculumId, OrderRequest request) {
+    public void reorderWeeks(Long curriculumId, OrderRequest request, Long memberId) {
+        Curriculum curriculum = curriculumRepository.findById(curriculumId)
+                .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.CURRICULUM_NOT_FOUND));
+        requireCurriculumAccess(memberId, curriculum.getTrackPage());
         List<CurriculumWeek> weeks = curriculumWeekRepository
                 .findAllByCurriculum_IdOrderByDisplayOrderAsc(curriculumId);
         Map<Long, CurriculumWeek> byId = weeks.stream()
@@ -106,8 +116,9 @@ public class AdminCurriculumTreeService {
     }
 
     @Transactional
-    public CurriculumTopicResponse createTopic(Long weekId, TopicRequest request) {
+    public CurriculumTopicResponse createTopic(Long weekId, TopicRequest request, Long memberId) {
         CurriculumWeek week = findWeekOrThrow(weekId);
+        requireCurriculumAccess(memberId, week.getCurriculum().getTrackPage());
         int displayOrder = curriculumTopicRepository.findAllByWeek_IdOrderByDisplayOrderAsc(weekId).size();
         CurriculumTopic topic = curriculumTopicRepository.save(CurriculumTopic.builder()
                 .week(week)
@@ -118,20 +129,24 @@ public class AdminCurriculumTreeService {
     }
 
     @Transactional
-    public CurriculumTopicResponse updateTopic(Long topicId, TopicRequest request) {
+    public CurriculumTopicResponse updateTopic(Long topicId, TopicRequest request, Long memberId) {
         CurriculumTopic topic = findTopicOrThrow(topicId);
+        requireCurriculumAccess(memberId, topic.getWeek().getCurriculum().getTrackPage());
         topic.updateTitle(request.title());
         return CurriculumTopicResponse.from(topic);
     }
 
     @Transactional
-    public void deleteTopic(Long topicId) {
+    public void deleteTopic(Long topicId, Long memberId) {
         CurriculumTopic topic = findTopicOrThrow(topicId);
+        requireCurriculumAccess(memberId, topic.getWeek().getCurriculum().getTrackPage());
         curriculumTopicRepository.delete(topic);
     }
 
     @Transactional
-    public void reorderTopics(Long weekId, OrderRequest request) {
+    public void reorderTopics(Long weekId, OrderRequest request, Long memberId) {
+        CurriculumWeek week = findWeekOrThrow(weekId);
+        requireCurriculumAccess(memberId, week.getCurriculum().getTrackPage());
         List<CurriculumTopic> topics = curriculumTopicRepository.findAllByWeek_IdOrderByDisplayOrderAsc(weekId);
         Map<Long, CurriculumTopic> byId = topics.stream()
                 .collect(Collectors.toMap(CurriculumTopic::getId, topic -> topic));
@@ -141,8 +156,9 @@ public class AdminCurriculumTreeService {
     }
 
     @Transactional
-    public List<String> replaceDetails(Long topicId, TopicDetailsReplaceRequest request) {
+    public List<String> replaceDetails(Long topicId, TopicDetailsReplaceRequest request, Long memberId) {
         CurriculumTopic topic = findTopicOrThrow(topicId);
+        requireCurriculumAccess(memberId, topic.getWeek().getCurriculum().getTrackPage());
         curriculumTopicDetailRepository.deleteAllByTopic_Id(topicId);
 
         List<String> contents = request.contents();
@@ -206,5 +222,13 @@ public class AdminCurriculumTreeService {
     private CurriculumTopic findTopicOrThrow(Long topicId) {
         return curriculumTopicRepository.findById(topicId)
                 .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.TOPIC_NOT_FOUND));
+    }
+
+    private void requireCurriculumAccess(Long memberId, TrackPage trackPage) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.MEMBER_NOT_FOUND));
+        if (!member.canManage(trackPage.getTrack())) {
+            throw new CurriculumException(CurriculumExceptionType.CURRICULUM_ACCESS_DENIED);
+        }
     }
 }

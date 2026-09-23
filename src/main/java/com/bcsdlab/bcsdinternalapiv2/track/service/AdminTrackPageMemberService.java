@@ -43,8 +43,10 @@ public class AdminTrackPageMemberService {
     }
 
     @Transactional
-    public List<AdminTrackPageMemberResponse> attachMembers(Long trackPageId, TrackPageMembersAttachRequest request) {
+    public List<AdminTrackPageMemberResponse> attachMembers(Long trackPageId, TrackPageMembersAttachRequest request,
+                                                              Long requesterId) {
         TrackPage trackPage = findTrackPageOrThrow(trackPageId);
+        requireTrackAccess(requesterId, trackPage);
 
         List<Long> memberIds = request.memberIds();
         if (new HashSet<>(memberIds).size() != memberIds.size()) {
@@ -74,8 +76,9 @@ public class AdminTrackPageMemberService {
     }
 
     @Transactional
-    public void detachMember(Long trackPageId, Long memberId) {
+    public void detachMember(Long trackPageId, Long memberId, Long requesterId) {
         TrackPage trackPage = findTrackPageOrThrow(trackPageId);
+        requireTrackAccess(requesterId, trackPage);
         TrackPageMember assignment = trackPageMemberRepository
                 .findByTrackPage_IdAndMember_Id(trackPageId, memberId)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_PAGE_MEMBER_NOT_FOUND));
@@ -83,8 +86,10 @@ public class AdminTrackPageMemberService {
     }
 
     @Transactional
-    public void updateVisibility(Long trackPageId, Long memberId, MemberVisibilityRequest request) {
+    public void updateVisibility(Long trackPageId, Long memberId, MemberVisibilityRequest request,
+                                  Long requesterId) {
         TrackPage trackPage = findTrackPageOrThrow(trackPageId);
+        requireTrackAccess(requesterId, trackPage);
         TrackPageMember assignment = trackPageMemberRepository
                 .findByTrackPage_IdAndMember_Id(trackPageId, memberId)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_PAGE_MEMBER_NOT_FOUND));
@@ -92,8 +97,9 @@ public class AdminTrackPageMemberService {
     }
 
     @Transactional
-    public void reorder(Long trackPageId, OrderRequest request) {
+    public void reorder(Long trackPageId, OrderRequest request, Long requesterId) {
         TrackPage trackPage = findTrackPageOrThrow(trackPageId);
+        requireTrackAccess(requesterId, trackPage);
         List<TrackPageMember> assignments = trackPageMemberRepository
                 .findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId);
         Map<Long, TrackPageMember> byId = assignments.stream()
@@ -106,5 +112,13 @@ public class AdminTrackPageMemberService {
     private TrackPage findTrackPageOrThrow(Long id) {
         return trackPageRepository.findById(id)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_PAGE_NOT_FOUND));
+    }
+
+    private void requireTrackAccess(Long memberId, TrackPage trackPage) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new TrackException(TrackExceptionType.MEMBER_NOT_FOUND));
+        if (!member.canManage(trackPage.getTrack())) {
+            throw new TrackException(TrackExceptionType.TRACK_ACCESS_DENIED);
+        }
     }
 }

@@ -42,7 +42,7 @@ public interface AdminGameBuildApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "빌드 메타 삭제")
-    ResponseEntity<Void> deleteBuild(Long gameId, Long buildId);
+    ResponseEntity<Void> deleteBuild(Long gameId, Long buildId, @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -50,5 +50,5 @@ public interface AdminGameBuildApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "업로드 토큰 발급", description = "PENDING 또는 FAILED 빌드에만 발급하고, 발급 즉시 status=PROCESSING이 된다(ADR-024).")
-    GameBuildUploadTokenResponse issueUploadToken(Long gameId, Long buildId);
+    GameBuildUploadTokenResponse issueUploadToken(Long gameId, Long buildId, @AuthenticationPrincipal Jwt jwt);
 }

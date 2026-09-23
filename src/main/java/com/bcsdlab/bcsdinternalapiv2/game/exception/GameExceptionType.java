@@ -15,6 +15,7 @@ public enum GameExceptionType implements BcsdExceptionType {
     GAME_BUILD_INVALID_STATE(HttpStatus.CONFLICT, "이 상태의 빌드에는 처리할 수 없습니다."),
     GAME_BUILD_WEBHOOK_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "웹훅 시크릿이 올바르지 않습니다."),
     GAME_BUILD_INVALID_WEBHOOK_STATUS(HttpStatus.BAD_REQUEST, "status는 ACTIVE 또는 FAILED만 가능합니다."),
+    GAME_ACCESS_DENIED(HttpStatus.FORBIDDEN, "게임 트랙 담당자만 접근할 수 있습니다."),
     ;
 
     private final HttpStatus status;

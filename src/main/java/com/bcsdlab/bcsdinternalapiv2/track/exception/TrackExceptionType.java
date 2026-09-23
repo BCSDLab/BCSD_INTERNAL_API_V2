@@ -15,6 +15,7 @@ public enum TrackExceptionType implements BcsdExceptionType {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 부원입니다."),
     MEMBER_ALREADY_ASSIGNED(HttpStatus.CONFLICT, "이미 이 트랙에 배정된 부원입니다."),
     TRACK_PAGE_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "이 트랙에 배정되지 않은 부원입니다."),
+    TRACK_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 트랙 담당자만 접근할 수 있습니다."),
     ;
 
     private final HttpStatus status;

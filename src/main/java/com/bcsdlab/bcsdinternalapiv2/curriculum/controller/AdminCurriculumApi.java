@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -37,7 +39,8 @@ public interface AdminCurriculumApi {
     })
     @Operation(summary = "커리큘럼 세트 이름 수정")
     AdminCurriculumSummaryResponse updateCurriculum(@PathVariable Long id,
-                                                     @RequestBody @Valid CurriculumUpdateRequest request);
+                                                     @RequestBody @Valid CurriculumUpdateRequest request,
+                                                     @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -46,7 +49,7 @@ public interface AdminCurriculumApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "커리큘럼 세트 삭제", description = "soft delete — 하위 주차·토픽·세부항목은 cascade로 물리 삭제된다.")
-    ResponseEntity<Void> deleteCurriculum(@PathVariable Long id);
+    ResponseEntity<Void> deleteCurriculum(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -55,5 +58,6 @@ public interface AdminCurriculumApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "공개/숨김", description = "공개로 지정하면 같은 트랙의 기존 공개 세트가 자동으로 비공개된다(AC-2.1).")
-    ResponseEntity<Void> publish(@PathVariable Long id, @RequestBody @Valid PublishRequest request);
+    ResponseEntity<Void> publish(@PathVariable Long id, @RequestBody @Valid PublishRequest request,
+                                  @AuthenticationPrincipal Jwt jwt);
 }

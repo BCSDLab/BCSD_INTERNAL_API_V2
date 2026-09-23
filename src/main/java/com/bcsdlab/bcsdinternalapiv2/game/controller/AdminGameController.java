@@ -17,6 +17,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -48,61 +50,69 @@ public class AdminGameController implements AdminGameApi {
 
     @Override
     @PostMapping
-    public ResponseEntity<AdminGameDetailResponse> createGame(@Valid @RequestBody GameCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(adminGameService.createGame(request));
+    public ResponseEntity<AdminGameDetailResponse> createGame(@Valid @RequestBody GameCreateRequest request,
+                                                                @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(adminGameService.createGame(request, Long.valueOf(jwt.getSubject())));
     }
 
     @Override
     @PutMapping("/{id}")
-    public AdminGameDetailResponse updateGame(@PathVariable Long id, @Valid @RequestBody GameUpdateRequest request) {
-        return adminGameService.updateGame(id, request);
+    public AdminGameDetailResponse updateGame(@PathVariable Long id, @Valid @RequestBody GameUpdateRequest request,
+                                               @AuthenticationPrincipal Jwt jwt) {
+        return adminGameService.updateGame(id, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @PatchMapping("/{id}/slug")
     public AdminGameDetailResponse changeSlug(@PathVariable Long id,
-                                               @Valid @RequestBody GameSlugChangeRequest request) {
-        return adminGameService.changeSlug(id, request);
+                                               @Valid @RequestBody GameSlugChangeRequest request,
+                                               @AuthenticationPrincipal Jwt jwt) {
+        return adminGameService.changeSlug(id, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @PatchMapping("/{id}/publish")
-    public ResponseEntity<Void> publish(@PathVariable Long id, @Valid @RequestBody PublishRequest request) {
-        adminGameService.publish(id, request);
+    public ResponseEntity<Void> publish(@PathVariable Long id, @Valid @RequestBody PublishRequest request,
+                                         @AuthenticationPrincipal Jwt jwt) {
+        adminGameService.publish(id, request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/order")
-    public ResponseEntity<Void> reorder(@Valid @RequestBody OrderRequest request) {
-        adminGameService.reorder(request);
+    public ResponseEntity<Void> reorder(@Valid @RequestBody OrderRequest request,
+                                         @AuthenticationPrincipal Jwt jwt) {
+        adminGameService.reorder(request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
-        adminGameService.deleteGame(id);
+    public ResponseEntity<Void> deleteGame(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        adminGameService.deleteGame(id, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PutMapping("/{id}/screenshots")
     public List<GameScreenshotResponse> replaceScreenshots(@PathVariable Long id,
-                                                            @Valid @RequestBody GameScreenshotsReplaceRequest request) {
-        return adminGameService.replaceScreenshots(id, request);
+                                                            @Valid @RequestBody GameScreenshotsReplaceRequest request,
+                                                            @AuthenticationPrincipal Jwt jwt) {
+        return adminGameService.replaceScreenshots(id, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @PutMapping("/{id}/rating")
-    public GameRatingResponse upsertRating(@PathVariable Long id, @Valid @RequestBody GameRatingRequest request) {
-        return adminGameService.upsertRating(id, request);
+    public GameRatingResponse upsertRating(@PathVariable Long id, @Valid @RequestBody GameRatingRequest request,
+                                            @AuthenticationPrincipal Jwt jwt) {
+        return adminGameService.upsertRating(id, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @DeleteMapping("/{id}/rating")
-    public ResponseEntity<Void> deleteRating(@PathVariable Long id) {
-        adminGameService.deleteRating(id);
+    public ResponseEntity<Void> deleteRating(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        adminGameService.deleteRating(id, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 }

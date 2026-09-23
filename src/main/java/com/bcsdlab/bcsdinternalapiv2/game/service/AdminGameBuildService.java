@@ -13,6 +13,8 @@ import com.bcsdlab.bcsdinternalapiv2.game.repository.GameBuildRepository;
 import com.bcsdlab.bcsdinternalapiv2.game.repository.GameRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -36,9 +38,12 @@ public class AdminGameBuildService {
     private static final Set<GameBuildStatus> TOKEN_ISSUABLE_STATUSES = Set.of(
             GameBuildStatus.PENDING, GameBuildStatus.PROCESSING, GameBuildStatus.FAILED);
 
+    private static final String GAME_TRACK_CODE = "GAME";
+
     private final GameRepository gameRepository;
     private final GameBuildRepository gameBuildRepository;
     private final MemberRepository memberRepository;
+    private final TrackMasterRepository trackMasterRepository;
     private final GameBuildProperties gameBuildProperties;
     private final GameBuildTokenService gameBuildTokenService;
 
@@ -51,6 +56,7 @@ public class AdminGameBuildService {
 
     @Transactional
     public AdminGameBuildResponse createBuild(Long gameId, GameBuildCreateRequest request, Long uploadedByMemberId) {
+        requireGameAccess(uploadedByMemberId);
         Game game = findGameOrThrow(gameId);
         Member uploadedBy = memberRepository.findById(uploadedByMemberId).orElse(null);
 
@@ -65,7 +71,8 @@ public class AdminGameBuildService {
     }
 
     @Transactional
-    public GameBuildUploadTokenResponse issueUploadToken(Long gameId, Long buildId) {
+    public GameBuildUploadTokenResponse issueUploadToken(Long gameId, Long buildId, Long memberId) {
+        requireGameAccess(memberId);
         Game game = findGameOrThrow(gameId);
         GameBuild build = findBuildOrThrow(gameId, buildId);
         if (!TOKEN_ISSUABLE_STATUSES.contains(build.getStatus())) {
@@ -79,7 +86,8 @@ public class AdminGameBuildService {
     }
 
     @Transactional
-    public void deleteBuild(Long gameId, Long buildId) {
+    public void deleteBuild(Long gameId, Long buildId, Long memberId) {
+        requireGameAccess(memberId);
         findGameOrThrow(gameId);
         GameBuild build = findBuildOrThrow(gameId, buildId);
         gameBuildRepository.delete(build);
@@ -94,5 +102,18 @@ public class AdminGameBuildService {
         return gameBuildRepository.findById(buildId)
                 .filter(b -> b.getGame().getId().equals(gameId))
                 .orElseThrow(() -> new GameException(GameExceptionType.GAME_BUILD_NOT_FOUND));
+    }
+
+    private void requireGameAccess(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GameException(GameExceptionType.MEMBER_NOT_FOUND));
+        if (member.isAdmin()) {
+            return;
+        }
+        TrackMaster gameTrack = trackMasterRepository.findByCode(GAME_TRACK_CODE)
+                .orElseThrow(() -> new GameException(GameExceptionType.GAME_ACCESS_DENIED));
+        if (!member.canManage(gameTrack)) {
+            throw new GameException(GameExceptionType.GAME_ACCESS_DENIED);
+        }
     }
 }

@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -33,21 +35,24 @@ public class AdminGameMemberController implements AdminGameMemberApi {
     @Override
     @PostMapping
     public List<AdminGameMemberResponse> attachMembers(@PathVariable Long gameId,
-                                                        @Valid @RequestBody GameMembersAttachRequest request) {
-        return adminGameMemberService.attachMembers(gameId, request);
+                                                        @Valid @RequestBody GameMembersAttachRequest request,
+                                                        @AuthenticationPrincipal Jwt jwt) {
+        return adminGameMemberService.attachMembers(gameId, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> detachMember(@PathVariable Long gameId, @PathVariable Long memberId) {
-        adminGameMemberService.detachMember(gameId, memberId);
+    public ResponseEntity<Void> detachMember(@PathVariable Long gameId, @PathVariable Long memberId,
+                                              @AuthenticationPrincipal Jwt jwt) {
+        adminGameMemberService.detachMember(gameId, memberId, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/order")
-    public ResponseEntity<Void> reorder(@PathVariable Long gameId, @Valid @RequestBody OrderRequest request) {
-        adminGameMemberService.reorder(gameId, request);
+    public ResponseEntity<Void> reorder(@PathVariable Long gameId, @Valid @RequestBody OrderRequest request,
+                                         @AuthenticationPrincipal Jwt jwt) {
+        adminGameMemberService.reorder(gameId, request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 }

@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,20 +26,22 @@ public class AdminTopicController implements AdminTopicApi {
 
     @Override
     @PutMapping("/{id}")
-    public CurriculumTopicResponse updateTopic(@PathVariable Long id, @Valid @RequestBody TopicRequest request) {
-        return adminCurriculumTreeService.updateTopic(id, request);
+    public CurriculumTopicResponse updateTopic(@PathVariable Long id, @Valid @RequestBody TopicRequest request,
+                                                @AuthenticationPrincipal Jwt jwt) {
+        return adminCurriculumTreeService.updateTopic(id, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTopic(@PathVariable Long id) {
-        adminCurriculumTreeService.deleteTopic(id);
+    public ResponseEntity<Void> deleteTopic(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        adminCurriculumTreeService.deleteTopic(id, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PutMapping("/{id}/details")
-    public List<String> replaceDetails(@PathVariable Long id, @Valid @RequestBody TopicDetailsReplaceRequest request) {
-        return adminCurriculumTreeService.replaceDetails(id, request);
+    public List<String> replaceDetails(@PathVariable Long id, @Valid @RequestBody TopicDetailsReplaceRequest request,
+                                        @AuthenticationPrincipal Jwt jwt) {
+        return adminCurriculumTreeService.replaceDetails(id, request, Long.valueOf(jwt.getSubject()));
     }
 }

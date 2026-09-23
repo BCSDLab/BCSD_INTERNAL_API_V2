@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -38,5 +40,6 @@ public interface AdminCurriculumSetApi {
             description = "생성 직후에는 항상 비공개다. sourceCurriculumId를 주면 다른 세트(다른 트랙도 가능)를 "
                     + "트리 전체까지 복제한다(AC-2.8).")
     ResponseEntity<AdminCurriculumSummaryResponse> createCurriculum(@PathVariable Long trackPageId,
-                                                                     @RequestBody @Valid CurriculumCreateRequest request);
+                                                                     @RequestBody @Valid CurriculumCreateRequest request,
+                                                                     @AuthenticationPrincipal Jwt jwt);
 }

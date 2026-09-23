@@ -8,6 +8,8 @@ import com.bcsdlab.bcsdinternalapiv2.curriculum.exception.CurriculumExceptionTyp
 import com.bcsdlab.bcsdinternalapiv2.curriculum.model.Curriculum;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
@@ -26,6 +28,7 @@ public class AdminCurriculumService {
     private final CurriculumRepository curriculumRepository;
     private final TrackPageRepository trackPageRepository;
     private final AdminCurriculumTreeService adminCurriculumTreeService;
+    private final MemberRepository memberRepository;
 
     public List<AdminCurriculumSummaryResponse> getCurriculums(Long trackPageId) {
         return curriculumRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId).stream()
@@ -34,9 +37,11 @@ public class AdminCurriculumService {
     }
 
     @Transactional
-    public AdminCurriculumSummaryResponse createCurriculum(Long trackPageId, CurriculumCreateRequest request) {
+    public AdminCurriculumSummaryResponse createCurriculum(Long trackPageId, CurriculumCreateRequest request,
+                                                             Long memberId) {
         TrackPage trackPage = trackPageRepository.findById(trackPageId)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_PAGE_NOT_FOUND));
+        requireCurriculumAccess(memberId, trackPage);
 
         String name = request.name();
         Curriculum source = null;
@@ -64,20 +69,24 @@ public class AdminCurriculumService {
     }
 
     @Transactional
-    public AdminCurriculumSummaryResponse updateCurriculum(Long id, CurriculumUpdateRequest request) {
+    public AdminCurriculumSummaryResponse updateCurriculum(Long id, CurriculumUpdateRequest request, Long memberId) {
         Curriculum curriculum = findOrThrow(id);
+        requireCurriculumAccess(memberId, curriculum.getTrackPage());
         curriculum.rename(request.name());
         return AdminCurriculumSummaryResponse.from(curriculum);
     }
 
     @Transactional
-    public void deleteCurriculum(Long id) {
-        findOrThrow(id).delete(Instant.now());
+    public void deleteCurriculum(Long id, Long memberId) {
+        Curriculum curriculum = findOrThrow(id);
+        requireCurriculumAccess(memberId, curriculum.getTrackPage());
+        curriculum.delete(Instant.now());
     }
 
     @Transactional
-    public void publish(Long id, PublishRequest request) {
+    public void publish(Long id, PublishRequest request, Long memberId) {
         Curriculum curriculum = findOrThrow(id);
+        requireCurriculumAccess(memberId, curriculum.getTrackPage());
         if (request.isPublished()) {
             // AC-2.1: 벌크 UPDATE로 다른 공개 세트를 먼저 내려야, 뒤이은 dirty-check 반영 시
             // uq_curriculum_published(partial unique index)에 걸리지 않는다.
@@ -89,5 +98,13 @@ public class AdminCurriculumService {
     private Curriculum findOrThrow(Long id) {
         return curriculumRepository.findById(id)
                 .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.CURRICULUM_NOT_FOUND));
+    }
+
+    private void requireCurriculumAccess(Long memberId, TrackPage trackPage) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.MEMBER_NOT_FOUND));
+        if (!member.canManage(trackPage.getTrack())) {
+            throw new CurriculumException(CurriculumExceptionType.CURRICULUM_ACCESS_DENIED);
+        }
     }
 }
