@@ -14,6 +14,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -29,7 +31,8 @@ public interface AdminWeekApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "주차 라벨 수정")
-    CurriculumWeekResponse updateWeek(@PathVariable Long id, @RequestBody @Valid WeekRequest request);
+    CurriculumWeekResponse updateWeek(@PathVariable Long id, @RequestBody @Valid WeekRequest request,
+                                       @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -38,7 +41,7 @@ public interface AdminWeekApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "주차 삭제", description = "하위 토픽·세부항목이 cascade로 함께 삭제된다(AC-2.3).")
-    ResponseEntity<Void> deleteWeek(@PathVariable Long id);
+    ResponseEntity<Void> deleteWeek(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),
@@ -47,7 +50,8 @@ public interface AdminWeekApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "토픽 추가")
-    ResponseEntity<CurriculumTopicResponse> createTopic(@PathVariable Long id, @RequestBody @Valid TopicRequest request);
+    ResponseEntity<CurriculumTopicResponse> createTopic(@PathVariable Long id, @RequestBody @Valid TopicRequest request,
+                                                         @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -56,5 +60,6 @@ public interface AdminWeekApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "토픽 순서 변경", description = "번호(1,2,3…)는 배열 순서로 자동 재부여된다(AC-2.6).")
-    ResponseEntity<Void> reorderTopics(@PathVariable Long id, @RequestBody @Valid OrderRequest request);
+    ResponseEntity<Void> reorderTopics(@PathVariable Long id, @RequestBody @Valid OrderRequest request,
+                                        @AuthenticationPrincipal Jwt jwt);
 }

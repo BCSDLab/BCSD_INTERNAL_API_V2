@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -28,7 +30,8 @@ public interface AdminCurriculumWeekApi {
     })
     @Operation(summary = "주차 추가", description = "weekTo가 없으면 단일 주차, 있으면 범위다. weekTo < weekFrom이면 400(AC-2.5).")
     ResponseEntity<CurriculumWeekResponse> createWeek(@PathVariable Long curriculumId,
-                                                       @RequestBody @Valid WeekRequest request);
+                                                       @RequestBody @Valid WeekRequest request,
+                                                       @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -37,5 +40,6 @@ public interface AdminCurriculumWeekApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "주차 순서 변경")
-    ResponseEntity<Void> reorderWeeks(@PathVariable Long curriculumId, @RequestBody @Valid OrderRequest request);
+    ResponseEntity<Void> reorderWeeks(@PathVariable Long curriculumId, @RequestBody @Valid OrderRequest request,
+                                       @AuthenticationPrincipal Jwt jwt);
 }

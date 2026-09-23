@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @Tag(name = "관리자 - 게임 참여 멤버 API")
 public interface AdminGameMemberApi {
@@ -27,19 +29,20 @@ public interface AdminGameMemberApi {
             @ApiResponse(responseCode = "409", description = "이미 배정된 부원"),
     })
     @Operation(summary = "참여 멤버 배정")
-    List<AdminGameMemberResponse> attachMembers(Long gameId, @Valid GameMembersAttachRequest request);
+    List<AdminGameMemberResponse> attachMembers(Long gameId, @Valid GameMembersAttachRequest request,
+                                                 @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
             @ApiResponse(responseCode = "404", description = "배정되지 않은 부원"),
     })
     @Operation(summary = "배정 해제")
-    ResponseEntity<Void> detachMember(Long gameId, Long memberId);
+    ResponseEntity<Void> detachMember(Long gameId, Long memberId, @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
             @ApiResponse(responseCode = "400", description = "id 집합 불일치(INV-4)"),
     })
     @Operation(summary = "순서 변경")
-    ResponseEntity<Void> reorder(Long gameId, @Valid OrderRequest request);
+    ResponseEntity<Void> reorder(Long gameId, @Valid OrderRequest request, @AuthenticationPrincipal Jwt jwt);
 }

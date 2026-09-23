@@ -8,6 +8,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,8 +33,9 @@ public class AdminCurriculumSetController implements AdminCurriculumSetApi {
     @Override
     @PostMapping
     public ResponseEntity<AdminCurriculumSummaryResponse> createCurriculum(
-            @PathVariable Long trackPageId, @Valid @RequestBody CurriculumCreateRequest request) {
+            @PathVariable Long trackPageId, @Valid @RequestBody CurriculumCreateRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(adminCurriculumService.createCurriculum(trackPageId, request));
+                .body(adminCurriculumService.createCurriculum(trackPageId, request, Long.valueOf(jwt.getSubject())));
     }
 }

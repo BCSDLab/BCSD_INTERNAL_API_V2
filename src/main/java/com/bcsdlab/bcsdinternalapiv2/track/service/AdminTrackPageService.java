@@ -28,6 +28,8 @@ import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageTechStackRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackStudyPointRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.util.SlugGenerator;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -49,6 +51,7 @@ public class AdminTrackPageService {
     private final TechStackRepository techStackRepository;
     private final TrackPageTechStackRepository trackPageTechStackRepository;
     private final TrackPageMemberRepository trackPageMemberRepository;
+    private final MemberRepository memberRepository;
 
     public List<AdminTrackPageSummaryResponse> getTrackPages() {
         return trackPageRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -76,7 +79,8 @@ public class AdminTrackPageService {
     }
 
     @Transactional
-    public AdminTrackPageDetailResponse createTrackPage(TrackPageCreateRequest request) {
+    public AdminTrackPageDetailResponse createTrackPage(TrackPageCreateRequest request, Long memberId) {
+        requireAdmin(memberId);
         TrackMaster track = trackMasterRepository.findById(request.trackId())
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_NOT_FOUND));
         if (trackPageRepository.existsByTrack_Id(track.getId())) {
@@ -108,15 +112,17 @@ public class AdminTrackPageService {
     }
 
     @Transactional
-    public AdminTrackPageDetailResponse updateTrackPage(Long id, TrackPageUpdateRequest request) {
+    public AdminTrackPageDetailResponse updateTrackPage(Long id, TrackPageUpdateRequest request, Long memberId) {
         TrackPage trackPage = findTrackPageOrThrow(id);
+        requireTrackAccess(memberId, trackPage);
         trackPage.updateHeader(request.displayName(), request.tagline());
         return AdminTrackPageDetailResponse.from(trackPage);
     }
 
     @Transactional
-    public AdminTrackPageDetailResponse changeSlug(Long id, SlugChangeRequest request) {
+    public AdminTrackPageDetailResponse changeSlug(Long id, SlugChangeRequest request, Long memberId) {
         TrackPage trackPage = findTrackPageOrThrow(id);
+        requireTrackAccess(memberId, trackPage);
         if (!trackPage.getSlug().equals(request.slug()) && trackPageRepository.existsBySlug(request.slug())) {
             throw new TrackException(TrackExceptionType.TRACK_PAGE_SLUG_DUPLICATED);
         }
@@ -126,13 +132,15 @@ public class AdminTrackPageService {
     }
 
     @Transactional
-    public void publish(Long id, PublishRequest request) {
+    public void publish(Long id, PublishRequest request, Long memberId) {
         TrackPage trackPage = findTrackPageOrThrow(id);
+        requireTrackAccess(memberId, trackPage);
         trackPage.updatePublished(request.isPublished());
     }
 
     @Transactional
-    public void reorder(OrderRequest request) {
+    public void reorder(OrderRequest request, Long memberId) {
+        requireAdmin(memberId);
         List<TrackPage> trackPages = trackPageRepository.findAll();
         Map<Long, TrackPage> byId = trackPages.stream()
                 .collect(Collectors.toMap(TrackPage::getId, trackPage -> trackPage));
@@ -142,14 +150,16 @@ public class AdminTrackPageService {
     }
 
     @Transactional
-    public void deleteTrackPage(Long id) {
+    public void deleteTrackPage(Long id, Long memberId) {
+        requireAdmin(memberId);
         TrackPage trackPage = findTrackPageOrThrow(id);
         trackPage.delete(Instant.now());
     }
 
     @Transactional
-    public List<StudyPointResponse> replaceStudyPoints(Long id, StudyPointsReplaceRequest request) {
+    public List<StudyPointResponse> replaceStudyPoints(Long id, StudyPointsReplaceRequest request, Long memberId) {
         TrackPage trackPage = findTrackPageOrThrow(id);
+        requireTrackAccess(memberId, trackPage);
         trackStudyPointRepository.deleteAllByTrackPage_Id(id);
 
         List<StudyPointRequest> items = request.studyPoints();
@@ -168,8 +178,9 @@ public class AdminTrackPageService {
     }
 
     @Transactional
-    public List<TechStackResponse> replaceTechStacks(Long id, TechStacksReplaceRequest request) {
+    public List<TechStackResponse> replaceTechStacks(Long id, TechStacksReplaceRequest request, Long memberId) {
         TrackPage trackPage = findTrackPageOrThrow(id);
+        requireTrackAccess(memberId, trackPage);
         List<Long> techStackIds = request.techStackIds();
 
         Map<Long, TechStack> byId = techStackRepository.findAllById(techStackIds).stream()
@@ -191,5 +202,24 @@ public class AdminTrackPageService {
     private TrackPage findTrackPageOrThrow(Long id) {
         return trackPageRepository.findById(id)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_PAGE_NOT_FOUND));
+    }
+
+    private Member findMemberOrThrow(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new TrackException(TrackExceptionType.MEMBER_NOT_FOUND));
+    }
+
+    private void requireAdmin(Long memberId) {
+        Member member = findMemberOrThrow(memberId);
+        if (!member.isAdmin()) {
+            throw new TrackException(TrackExceptionType.TRACK_ACCESS_DENIED);
+        }
+    }
+
+    private void requireTrackAccess(Long memberId, TrackPage trackPage) {
+        Member member = findMemberOrThrow(memberId);
+        if (!member.canManage(trackPage.getTrack())) {
+            throw new TrackException(TrackExceptionType.TRACK_ACCESS_DENIED);
+        }
     }
 }

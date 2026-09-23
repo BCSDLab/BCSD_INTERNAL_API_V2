@@ -12,6 +12,8 @@ import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +33,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminGameMemberService {
 
+    private static final String GAME_TRACK_CODE = "GAME";
+
     private final GameRepository gameRepository;
     private final GameMemberRepository gameMemberRepository;
     private final MemberRepository memberRepository;
+    private final TrackMasterRepository trackMasterRepository;
 
     public List<AdminGameMemberResponse> getMembers(Long gameId) {
         findGameOrThrow(gameId);
@@ -43,7 +48,9 @@ public class AdminGameMemberService {
     }
 
     @Transactional
-    public List<AdminGameMemberResponse> attachMembers(Long gameId, GameMembersAttachRequest request) {
+    public List<AdminGameMemberResponse> attachMembers(Long gameId, GameMembersAttachRequest request,
+                                                         Long requesterId) {
+        requireGameAccess(requesterId);
         Game game = findGameOrThrow(gameId);
 
         List<Long> memberIds = request.memberIds();
@@ -73,7 +80,8 @@ public class AdminGameMemberService {
     }
 
     @Transactional
-    public void detachMember(Long gameId, Long memberId) {
+    public void detachMember(Long gameId, Long memberId, Long requesterId) {
+        requireGameAccess(requesterId);
         Game game = findGameOrThrow(gameId);
         GameMember assignment = gameMemberRepository.findByGame_IdAndMember_Id(gameId, memberId)
                 .orElseThrow(() -> new GameException(GameExceptionType.GAME_MEMBER_NOT_FOUND));
@@ -81,7 +89,8 @@ public class AdminGameMemberService {
     }
 
     @Transactional
-    public void reorder(Long gameId, OrderRequest request) {
+    public void reorder(Long gameId, OrderRequest request, Long requesterId) {
+        requireGameAccess(requesterId);
         Game game = findGameOrThrow(gameId);
         List<GameMember> assignments = gameMemberRepository.findAllByGame_IdOrderByDisplayOrderAsc(gameId);
         Map<Long, GameMember> byId = assignments.stream()
@@ -94,5 +103,18 @@ public class AdminGameMemberService {
     private Game findGameOrThrow(Long id) {
         return gameRepository.findById(id)
                 .orElseThrow(() -> new GameException(GameExceptionType.GAME_NOT_FOUND));
+    }
+
+    private void requireGameAccess(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GameException(GameExceptionType.MEMBER_NOT_FOUND));
+        if (member.isAdmin()) {
+            return;
+        }
+        TrackMaster gameTrack = trackMasterRepository.findByCode(GAME_TRACK_CODE)
+                .orElseThrow(() -> new GameException(GameExceptionType.GAME_ACCESS_DENIED));
+        if (!member.canManage(gameTrack)) {
+            throw new GameException(GameExceptionType.GAME_ACCESS_DENIED);
+        }
     }
 }

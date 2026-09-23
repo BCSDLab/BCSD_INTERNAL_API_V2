@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -34,29 +36,33 @@ public class AdminTrackPageMemberController implements AdminTrackPageMemberApi {
     @Override
     @PostMapping
     public List<AdminTrackPageMemberResponse> attachMembers(@PathVariable Long trackPageId,
-                                                              @Valid @RequestBody TrackPageMembersAttachRequest request) {
-        return adminTrackPageMemberService.attachMembers(trackPageId, request);
+                                                              @Valid @RequestBody TrackPageMembersAttachRequest request,
+                                                              @AuthenticationPrincipal Jwt jwt) {
+        return adminTrackPageMemberService.attachMembers(trackPageId, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> detachMember(@PathVariable Long trackPageId, @PathVariable Long memberId) {
-        adminTrackPageMemberService.detachMember(trackPageId, memberId);
+    public ResponseEntity<Void> detachMember(@PathVariable Long trackPageId, @PathVariable Long memberId,
+                                              @AuthenticationPrincipal Jwt jwt) {
+        adminTrackPageMemberService.detachMember(trackPageId, memberId, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/{memberId}/visibility")
     public ResponseEntity<Void> updateVisibility(@PathVariable Long trackPageId, @PathVariable Long memberId,
-                                                  @Valid @RequestBody MemberVisibilityRequest request) {
-        adminTrackPageMemberService.updateVisibility(trackPageId, memberId, request);
+                                                  @Valid @RequestBody MemberVisibilityRequest request,
+                                                  @AuthenticationPrincipal Jwt jwt) {
+        adminTrackPageMemberService.updateVisibility(trackPageId, memberId, request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/order")
-    public ResponseEntity<Void> reorder(@PathVariable Long trackPageId, @Valid @RequestBody OrderRequest request) {
-        adminTrackPageMemberService.reorder(trackPageId, request);
+    public ResponseEntity<Void> reorder(@PathVariable Long trackPageId, @Valid @RequestBody OrderRequest request,
+                                         @AuthenticationPrincipal Jwt jwt) {
+        adminTrackPageMemberService.reorder(trackPageId, request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 }

@@ -44,14 +44,16 @@ public class AdminGameBuildController implements AdminGameBuildApi {
 
     @Override
     @DeleteMapping("/{buildId}")
-    public ResponseEntity<Void> deleteBuild(@PathVariable Long gameId, @PathVariable Long buildId) {
-        adminGameBuildService.deleteBuild(gameId, buildId);
+    public ResponseEntity<Void> deleteBuild(@PathVariable Long gameId, @PathVariable Long buildId,
+                                             @AuthenticationPrincipal Jwt jwt) {
+        adminGameBuildService.deleteBuild(gameId, buildId, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PostMapping("/{buildId}/upload-token")
-    public GameBuildUploadTokenResponse issueUploadToken(@PathVariable Long gameId, @PathVariable Long buildId) {
-        return adminGameBuildService.issueUploadToken(gameId, buildId);
+    public GameBuildUploadTokenResponse issueUploadToken(@PathVariable Long gameId, @PathVariable Long buildId,
+                                                           @AuthenticationPrincipal Jwt jwt) {
+        return adminGameBuildService.issueUploadToken(gameId, buildId, Long.valueOf(jwt.getSubject()));
     }
 }

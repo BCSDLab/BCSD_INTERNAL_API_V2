@@ -21,6 +21,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -53,7 +55,8 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "게임 생성", description = "slug는 name에서 자동 생성됩니다(AC-9.1). 생성 직후는 숨김 상태다.")
-    ResponseEntity<AdminGameDetailResponse> createGame(@RequestBody @Valid GameCreateRequest request);
+    ResponseEntity<AdminGameDetailResponse> createGame(@RequestBody @Valid GameCreateRequest request,
+                                                        @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -62,7 +65,8 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "게임 기본정보·설명 수정", description = "description은 저장 시 jsoup으로 정제됩니다(ADR-008).")
-    AdminGameDetailResponse updateGame(@PathVariable Long id, @RequestBody @Valid GameUpdateRequest request);
+    AdminGameDetailResponse updateGame(@PathVariable Long id, @RequestBody @Valid GameUpdateRequest request,
+                                       @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -72,7 +76,8 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "slug 수동 변경", description = "리다이렉트를 지원하지 않습니다 — 변경 전 URL은 더 이상 유효하지 않습니다.")
-    AdminGameDetailResponse changeSlug(@PathVariable Long id, @RequestBody @Valid GameSlugChangeRequest request);
+    AdminGameDetailResponse changeSlug(@PathVariable Long id, @RequestBody @Valid GameSlugChangeRequest request,
+                                       @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -81,7 +86,8 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "공개/숨김")
-    ResponseEntity<Void> publish(@PathVariable Long id, @RequestBody @Valid PublishRequest request);
+    ResponseEntity<Void> publish(@PathVariable Long id, @RequestBody @Valid PublishRequest request,
+                                  @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -90,7 +96,7 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "랜딩 노출 순서 변경", description = "ids는 전체 게임 id 집합과 정확히 일치해야 합니다(AC-9.5).")
-    ResponseEntity<Void> reorder(@RequestBody @Valid OrderRequest request);
+    ResponseEntity<Void> reorder(@RequestBody @Valid OrderRequest request, @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -99,7 +105,7 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "게임 삭제", description = "soft delete — 데이터는 보존됩니다(AC-9.11).")
-    ResponseEntity<Void> deleteGame(@PathVariable Long id);
+    ResponseEntity<Void> deleteGame(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -109,7 +115,8 @@ public interface AdminGameApi {
     })
     @Operation(summary = "스크린샷 전체 교체", description = "배열 순서가 display_order다(AC-9.6).")
     List<GameScreenshotResponse> replaceScreenshots(@PathVariable Long id,
-                                                     @RequestBody @Valid GameScreenshotsReplaceRequest request);
+                                                     @RequestBody @Valid GameScreenshotsReplaceRequest request,
+                                                     @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -119,7 +126,8 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "등급정보 upsert", description = "contentDescriptors는 7종 고정 키만 허용합니다(INV-21).")
-    GameRatingResponse upsertRating(@PathVariable Long id, @RequestBody @Valid GameRatingRequest request);
+    GameRatingResponse upsertRating(@PathVariable Long id, @RequestBody @Valid GameRatingRequest request,
+                                     @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -128,5 +136,5 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "등급정보 삭제", description = "삭제하면 공개 응답의 rating이 null이 됩니다(AC-9.8).")
-    ResponseEntity<Void> deleteRating(@PathVariable Long id);
+    ResponseEntity<Void> deleteRating(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt);
 }

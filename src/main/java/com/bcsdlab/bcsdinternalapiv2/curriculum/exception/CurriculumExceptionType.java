@@ -10,6 +10,8 @@ public enum CurriculumExceptionType implements BcsdExceptionType {
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 토픽입니다."),
     WEEK_RANGE_INVALID(HttpStatus.BAD_REQUEST, "주차 범위가 올바르지 않습니다."),
     NAME_REQUIRED(HttpStatus.BAD_REQUEST, "세트 이름은 필수입니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 부원입니다."),
+    CURRICULUM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 트랙 담당자만 접근할 수 있습니다."),
     ;
 
     private final HttpStatus status;

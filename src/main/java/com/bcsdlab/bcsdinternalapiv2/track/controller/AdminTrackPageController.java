@@ -17,6 +17,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -49,56 +51,63 @@ public class AdminTrackPageController implements AdminTrackPageApi {
     @Override
     @PostMapping
     public ResponseEntity<AdminTrackPageDetailResponse> createTrackPage(
-            @Valid @RequestBody TrackPageCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(adminTrackPageService.createTrackPage(request));
+            @Valid @RequestBody TrackPageCreateRequest request, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(adminTrackPageService.createTrackPage(request, Long.valueOf(jwt.getSubject())));
     }
 
     @Override
     @PutMapping("/{id}")
     public AdminTrackPageDetailResponse updateTrackPage(@PathVariable Long id,
-                                                         @Valid @RequestBody TrackPageUpdateRequest request) {
-        return adminTrackPageService.updateTrackPage(id, request);
+                                                         @Valid @RequestBody TrackPageUpdateRequest request,
+                                                         @AuthenticationPrincipal Jwt jwt) {
+        return adminTrackPageService.updateTrackPage(id, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @PatchMapping("/{id}/slug")
     public AdminTrackPageDetailResponse changeSlug(@PathVariable Long id,
-                                                    @Valid @RequestBody SlugChangeRequest request) {
-        return adminTrackPageService.changeSlug(id, request);
+                                                    @Valid @RequestBody SlugChangeRequest request,
+                                                    @AuthenticationPrincipal Jwt jwt) {
+        return adminTrackPageService.changeSlug(id, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @PatchMapping("/{id}/publish")
-    public ResponseEntity<Void> publish(@PathVariable Long id, @Valid @RequestBody PublishRequest request) {
-        adminTrackPageService.publish(id, request);
+    public ResponseEntity<Void> publish(@PathVariable Long id, @Valid @RequestBody PublishRequest request,
+                                         @AuthenticationPrincipal Jwt jwt) {
+        adminTrackPageService.publish(id, request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/order")
-    public ResponseEntity<Void> reorder(@Valid @RequestBody OrderRequest request) {
-        adminTrackPageService.reorder(request);
+    public ResponseEntity<Void> reorder(@Valid @RequestBody OrderRequest request,
+                                         @AuthenticationPrincipal Jwt jwt) {
+        adminTrackPageService.reorder(request, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTrackPage(@PathVariable Long id) {
-        adminTrackPageService.deleteTrackPage(id);
+    public ResponseEntity<Void> deleteTrackPage(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        adminTrackPageService.deleteTrackPage(id, Long.valueOf(jwt.getSubject()));
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PutMapping("/{id}/study-points")
     public List<StudyPointResponse> replaceStudyPoints(@PathVariable Long id,
-                                                        @Valid @RequestBody StudyPointsReplaceRequest request) {
-        return adminTrackPageService.replaceStudyPoints(id, request);
+                                                        @Valid @RequestBody StudyPointsReplaceRequest request,
+                                                        @AuthenticationPrincipal Jwt jwt) {
+        return adminTrackPageService.replaceStudyPoints(id, request, Long.valueOf(jwt.getSubject()));
     }
 
     @Override
     @PutMapping("/{id}/tech-stacks")
     public List<TechStackResponse> replaceTechStacks(@PathVariable Long id,
-                                                      @Valid @RequestBody TechStacksReplaceRequest request) {
-        return adminTrackPageService.replaceTechStacks(id, request);
+                                                      @Valid @RequestBody TechStacksReplaceRequest request,
+                                                      @AuthenticationPrincipal Jwt jwt) {
+        return adminTrackPageService.replaceTechStacks(id, request, Long.valueOf(jwt.getSubject()));
     }
 }

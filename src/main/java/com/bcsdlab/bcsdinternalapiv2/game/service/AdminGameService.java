@@ -25,6 +25,8 @@ import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.global.util.SlugGenerator;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
@@ -55,6 +57,9 @@ public class AdminGameService {
     private final GameRatingRepository gameRatingRepository;
     private final GameMemberRepository gameMemberRepository;
     private final TrackMasterRepository trackMasterRepository;
+    private final MemberRepository memberRepository;
+
+    private static final String GAME_TRACK_CODE = "GAME";
 
     public List<AdminGameSummaryResponse> getGames() {
         return gameRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -81,7 +86,8 @@ public class AdminGameService {
     }
 
     @Transactional
-    public AdminGameDetailResponse createGame(GameCreateRequest request) {
+    public AdminGameDetailResponse createGame(GameCreateRequest request, Long memberId) {
+        requireGameAccess(memberId);
         TrackMaster track = findTrackOrNull(request.trackId());
 
         String slug = SlugGenerator.fromOrFallback(request.name(), "game");
@@ -104,7 +110,8 @@ public class AdminGameService {
     }
 
     @Transactional
-    public AdminGameDetailResponse updateGame(Long id, GameUpdateRequest request) {
+    public AdminGameDetailResponse updateGame(Long id, GameUpdateRequest request, Long memberId) {
+        requireGameAccess(memberId);
         Game game = findGameOrThrow(id);
         TrackMaster track = findTrackOrNull(request.trackId());
 
@@ -114,7 +121,8 @@ public class AdminGameService {
     }
 
     @Transactional
-    public AdminGameDetailResponse changeSlug(Long id, GameSlugChangeRequest request) {
+    public AdminGameDetailResponse changeSlug(Long id, GameSlugChangeRequest request, Long memberId) {
+        requireGameAccess(memberId);
         Game game = findGameOrThrow(id);
         if (!game.getSlug().equals(request.slug()) && gameRepository.existsBySlug(request.slug())) {
             throw new GameException(GameExceptionType.GAME_SLUG_DUPLICATED);
@@ -125,13 +133,15 @@ public class AdminGameService {
     }
 
     @Transactional
-    public void publish(Long id, PublishRequest request) {
+    public void publish(Long id, PublishRequest request, Long memberId) {
+        requireGameAccess(memberId);
         Game game = findGameOrThrow(id);
         game.updatePublished(request.isPublished());
     }
 
     @Transactional
-    public void reorder(OrderRequest request) {
+    public void reorder(OrderRequest request, Long memberId) {
+        requireGameAccess(memberId);
         List<Game> games = gameRepository.findAll();
         Map<Long, Game> byId = games.stream().collect(Collectors.toMap(Game::getId, game -> game));
 
@@ -140,13 +150,16 @@ public class AdminGameService {
     }
 
     @Transactional
-    public void deleteGame(Long id) {
+    public void deleteGame(Long id, Long memberId) {
+        requireGameAccess(memberId);
         Game game = findGameOrThrow(id);
         game.delete(Instant.now());
     }
 
     @Transactional
-    public List<GameScreenshotResponse> replaceScreenshots(Long id, GameScreenshotsReplaceRequest request) {
+    public List<GameScreenshotResponse> replaceScreenshots(Long id, GameScreenshotsReplaceRequest request,
+                                                             Long memberId) {
+        requireGameAccess(memberId);
         Game game = findGameOrThrow(id);
         gameScreenshotRepository.deleteAllByGame_Id(id);
 
@@ -165,7 +178,8 @@ public class AdminGameService {
     }
 
     @Transactional
-    public GameRatingResponse upsertRating(Long id, GameRatingRequest request) {
+    public GameRatingResponse upsertRating(Long id, GameRatingRequest request, Long memberId) {
+        requireGameAccess(memberId);
         Game game = findGameOrThrow(id);
         Set<GameContentDescriptor> descriptors = parseDescriptors(request.contentDescriptors());
 
@@ -178,7 +192,8 @@ public class AdminGameService {
     }
 
     @Transactional
-    public void deleteRating(Long id) {
+    public void deleteRating(Long id, Long memberId) {
+        requireGameAccess(memberId);
         Game game = findGameOrThrow(id);
         gameRatingRepository.findByGame_Id(id).ifPresent(gameRatingRepository::delete);
     }
@@ -209,5 +224,18 @@ public class AdminGameService {
         }
         return trackMasterRepository.findById(trackId)
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_NOT_FOUND));
+    }
+
+    private void requireGameAccess(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GameException(GameExceptionType.MEMBER_NOT_FOUND));
+        if (member.isAdmin()) {
+            return;
+        }
+        TrackMaster gameTrack = trackMasterRepository.findByCode(GAME_TRACK_CODE)
+                .orElseThrow(() -> new GameException(GameExceptionType.GAME_ACCESS_DENIED));
+        if (!member.canManage(gameTrack)) {
+            throw new GameException(GameExceptionType.GAME_ACCESS_DENIED);
+        }
     }
 }

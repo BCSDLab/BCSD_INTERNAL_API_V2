@@ -264,6 +264,20 @@ public class Member extends BaseTimeEntity {
         this.profileImageUrl = profileImageUrl;
     }
 
+    public boolean canManage(TrackMaster targetTrack) {
+        if (role == MemberRole.ADMIN) {
+            return true;
+        }
+        if (memberType != MemberType.MENTOR && memberType != MemberType.REGULAR) {
+            return false;
+        }
+        return track != null && targetTrack != null && track.getId().equals(targetTrack.getId());
+    }
+
+    public boolean isAdmin() {
+        return role == MemberRole.ADMIN;
+    }
+
     private static Instant truncateToMillis(Instant instant) {
         return instant != null ? instant.truncatedTo(ChronoUnit.MILLIS) : null;
     }
