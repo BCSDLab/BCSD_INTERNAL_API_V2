@@ -73,8 +73,12 @@ class AdminGameIntegrationTest extends IntegrationTestSupport {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private TrackMaster gameTrack;
+    private TrackMaster frontendTrack;
     private String adminToken;
-    private String memberToken;
+    private String gameRegularToken;
+    private String gameMentorToken;
+    private String gameBeginnerToken;
+    private String otherTrackRegularToken;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -82,13 +86,23 @@ class AdminGameIntegrationTest extends IntegrationTestSupport {
         refreshTokenRepository.deleteAll();
         memberRepository.deleteAll();
         gameTrack = trackMasterRepository.findByCode("GAME").orElseThrow();
+        frontendTrack = trackMasterRepository.findByCode("FRONTEND").orElseThrow();
 
         Member admin = memberRepository.save(newMember("20241111", "admin@bcsd.club"));
         adminToken = login("20241111");
         memberRepository.updateRole(admin.getId(), MemberRole.ADMIN);
 
         memberRepository.save(newMember("20242222", "member@bcsd.club"));
-        memberToken = login("20242222");
+        gameRegularToken = login("20242222");
+
+        memberRepository.save(newMember(gameTrack, MemberType.MENTOR, "20246666", "mentor@bcsd.club"));
+        gameMentorToken = login("20246666");
+
+        memberRepository.save(newMember(gameTrack, MemberType.BEGINNER, "20244444", "beginner@bcsd.club"));
+        gameBeginnerToken = login("20244444");
+
+        memberRepository.save(newMember(frontendTrack, MemberType.REGULAR, "20245555", "other-track@bcsd.club"));
+        otherTrackRegularToken = login("20245555");
     }
 
     @Test
@@ -101,10 +115,40 @@ class AdminGameIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("MEMBER 권한으로 호출하면 403이다")
-    void member_권한으로_호출하면_403() throws Exception {
+    @DisplayName("게임트랙 REGULAR는 게임을 생성할 수 있다")
+    void 게임트랙_REGULAR는_게임을_생성할_수_있다() throws Exception {
         mockMvc.perform(post("/v1/admin/games")
-                        .header("Authorization", "Bearer " + memberToken)
+                        .header("Authorization", "Bearer " + gameRegularToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gameCreateBody("Neon Drift")))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("게임트랙 MENTOR는 게임을 생성할 수 있다")
+    void 게임트랙_MENTOR는_게임을_생성할_수_있다() throws Exception {
+        mockMvc.perform(post("/v1/admin/games")
+                        .header("Authorization", "Bearer " + gameMentorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gameCreateBody("Neon Drift")))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("게임트랙 BEGINNER로 호출하면 403이다")
+    void 게임트랙_BEGINNER로_호출하면_403() throws Exception {
+        mockMvc.perform(post("/v1/admin/games")
+                        .header("Authorization", "Bearer " + gameBeginnerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gameCreateBody("Neon Drift")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("다른 트랙 REGULAR로 호출하면 403이다")
+    void 다른_트랙_REGULAR로_호출하면_403() throws Exception {
+        mockMvc.perform(post("/v1/admin/games")
+                        .header("Authorization", "Bearer " + otherTrackRegularToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(gameCreateBody("Neon Drift")))
                 .andExpect(status().isForbidden());
@@ -232,7 +276,7 @@ class AdminGameIntegrationTest extends IntegrationTestSupport {
         gameRatingRepository.save(GameRating.builder().game(game).rating(GameRatingLevel.ALL).build());
         gameBuildRepository.save(GameBuild.builder().game(game).version("1.0.0").status(GameBuildStatus.ACTIVE)
                 .uploadedAt(Instant.now()).build());
-        Member participant = memberRepository.save(newMember("20243333", "p@bcsd.club"));
+        Member participant = memberRepository.save(newMember("20249999", "p@bcsd.club"));
         gameMemberRepository.save(GameMember.builder().game(game).member(participant).displayOrder(0).build());
 
         gameRepository.deleteById(game.getId());
@@ -244,13 +288,17 @@ class AdminGameIntegrationTest extends IntegrationTestSupport {
     }
 
     private Member newMember(String studentNumber, String email) {
+        return newMember(gameTrack, MemberType.REGULAR, studentNumber, email);
+    }
+
+    private Member newMember(TrackMaster track, MemberType memberType, String studentNumber, String email) {
         return Member.builder()
                 .studentNumber(studentNumber)
                 .password(passwordEncoder.encode(RAW_PASSWORD))
                 .name("테스트")
-                .track(gameTrack)
+                .track(track)
                 .generation("24-하")
-                .memberType(MemberType.REGULAR)
+                .memberType(memberType)
                 .university("OO대학교")
                 .email(email)
                 .status(MemberStatus.ACTIVE)

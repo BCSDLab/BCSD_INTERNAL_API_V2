@@ -73,6 +73,43 @@ class AdminTrackIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("트랙 소속 REGULAR는 자기 트랙 정보를 게시할 수 있다")
+    void 트랙_소속_REGULAR는_자기_트랙_정보를_게시할_수_있다() throws Exception {
+        TrackPage trackPage = trackPageRepository.save(trackPage(backend, "backend", 0));
+
+        mockMvc.perform(patch("/v1/admin/track-pages/" + trackPage.getId() + "/publish")
+                        .header("Authorization", "Bearer " + memberToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"isPublished\":false}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("다른 트랙 REGULAR가 게시를 시도하면 403이다")
+    void 다른_트랙_REGULAR가_게시를_시도하면_403이다() throws Exception {
+        TrackPage trackPage = trackPageRepository.save(trackPage(frontend, "frontend", 0));
+
+        mockMvc.perform(patch("/v1/admin/track-pages/" + trackPage.getId() + "/publish")
+                        .header("Authorization", "Bearer " + memberToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"isPublished\":false}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("트랙 소속 REGULAR라도 전체 트랙 순서변경은 403이다(레지스트리 작업)")
+    void 트랙_소속_REGULAR라도_전체_순서변경은_403이다() throws Exception {
+        TrackPage a = trackPageRepository.save(trackPage(backend, "backend", 0));
+        TrackPage b = trackPageRepository.save(trackPage(frontend, "frontend", 1));
+
+        mockMvc.perform(patch("/v1/admin/track-pages/order")
+                        .header("Authorization", "Bearer " + memberToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ids\":[%d,%d]}".formatted(b.getId(), a.getId())))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("AC-6.1 토큰 없이 호출하면 401이다")
     void 토큰_없이_호출하면_401() throws Exception {
         mockMvc.perform(post("/v1/admin/track-pages")
