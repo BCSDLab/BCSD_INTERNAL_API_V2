@@ -22,6 +22,7 @@ public record MemberSummaryResponse(
         String email,
         String phoneNumber,
         String githubId,
+        String slackId,
         String photoUrl,
         String role,
         boolean active
@@ -46,6 +47,7 @@ public record MemberSummaryResponse(
                 member.getEmail(),
                 member.getPhoneNumber(),
                 member.getGithubId(),
+                member.getSlackId(),
                 member.getProfileImageUrl(),
                 member.getRole().name(),
                 member.isClubActive()

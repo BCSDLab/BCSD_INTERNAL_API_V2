@@ -15,6 +15,7 @@ public enum MemberExceptionType implements BcsdExceptionType {
     POSITION_NOT_FOUND(HttpStatus.BAD_REQUEST, "존재하지 않는 직책입니다."),
     SLACK_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Slack에서 해당 이메일로 등록된 프로필 이미지를 찾을 수 없습니다."),
     SLACK_SYNC_FAILED(HttpStatus.BAD_GATEWAY, "Slack 연동 중 오류가 발생했습니다."),
+    SLACK_ID_DUPLICATED(HttpStatus.CONFLICT, "이미 다른 회원이 사용 중인 Slack ID입니다."),
     ;
 
     private final HttpStatus status;

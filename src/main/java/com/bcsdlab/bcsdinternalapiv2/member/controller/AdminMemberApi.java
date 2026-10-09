@@ -8,11 +8,14 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberDirecto
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresignedUrlRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoUrlUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.RoleUpdateRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.SlackIdLookupRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.SlackIdUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.WithdrawalUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberCreateResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoUrlResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackIdLookupResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackProfileSyncResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,7 +45,8 @@ public interface AdminMemberApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "계정 생성", description = "학번이 로그인 아이디가 되며, 초기 비밀번호는 발급 후 이메일로 안내됩니다.")
+    @Operation(summary = "계정 생성", description = "학번이 로그인 아이디가 되며, 초기 비밀번호는 발급 후 이메일로 안내됩니다. "
+            + "생성 직후 입력한 이메일로 Slack 계정을 조회해 Slack ID를 자동 저장합니다(조회 실패·중복이어도 생성은 성공).")
     @SecurityRequirement(name = "JWT")
     @PostMapping
     ResponseEntity<AdminMemberCreateResponse> createMember(@RequestBody @Valid AdminMemberCreateRequest request);
@@ -187,4 +191,31 @@ public interface AdminMemberApi {
     @SecurityRequirement(name = "JWT")
     @PostMapping("/photo/slack-sync")
     ResponseEntity<SlackProfileSyncResponse> syncAllPhotosFromSlack();
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "Slack ID 수정", description = "회비 Slack 알림 수신자로 쓰는 Slack 회원 ID(U 또는 W로 시작하는 영문 대문자·숫자 9~20자)를 "
+            + "저장합니다. null이면 지웁니다. 다른 회원이 사용 중인 값이면 409이며 메시지에 그 회원 이름이 포함됩니다.")
+    @SecurityRequirement(name = "JWT")
+    @PatchMapping("/{memberId}/slack-id")
+    ResponseEntity<Void> updateSlackId(@PathVariable Long memberId, @RequestBody @Valid SlackIdUpdateRequest request);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "Slack ID 자동 조회", description = "회원 이메일로 Slack 계정을 조회해 찾은 Slack ID를 저장합니다. "
+            + "회원별 결과(SAVED, NOT_FOUND, DUPLICATED, FAILED, MEMBER_NOT_FOUND)를 돌려주며 개별 실패가 전체를 막지 "
+            + "않습니다. 이미 Slack ID가 있는 회원은 조회하지 않고 SAVED로 돌려줍니다. 다른 회원이 쓰는 값은 저장하지 않습니다.")
+    @SecurityRequirement(name = "JWT")
+    @PostMapping("/slack-ids/lookup")
+    ResponseEntity<SlackIdLookupResponse> lookupSlackIds(@RequestBody @Valid SlackIdLookupRequest request);
 }

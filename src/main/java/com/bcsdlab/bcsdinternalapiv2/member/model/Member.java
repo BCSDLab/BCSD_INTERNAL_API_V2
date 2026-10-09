@@ -121,6 +121,10 @@ public class Member extends BaseTimeEntity {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
+    // 회비 Slack 알림 수신자. 관리자 입력 또는 이메일 기반 Slack 조회로만 채워진다(admin API 경유).
+    @Column(name = "slack_id")
+    private String slackId;
+
     @Builder
     private Member(String studentNumber, String password, String name, TrackMaster track, String generation,
                    MemberType memberType, String university, String department, AcademicStatus academicStatus,
@@ -262,6 +266,10 @@ public class Member extends BaseTimeEntity {
 
     public void updateProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+
+    public void updateSlackId(String slackId) {
+        this.slackId = slackId;
     }
 
     public boolean canManage(TrackMaster targetTrack) {
