@@ -112,6 +112,20 @@ class MemberSlackIdIntegrationTest extends IntegrationTestSupport {
         patchSlackId(member.getId(), "\"u0abcdefgh1\"").andExpect(status().isBadRequest());
         patchSlackId(member.getId(), "\"U0ABC\"").andExpect(status().isBadRequest());
         patchSlackId(member.getId(), "\"U0ABC-EFGH1\"").andExpect(status().isBadRequest());
+        patchSlackId(member.getId(), "\"X0ABCDEFGH1\"").andExpect(status().isBadRequest());
+        patchSlackId(member.getId(), "\"U" + "A".repeat(20) + "\"").andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 구형_9자리와_Enterprise_Grid_W_ID도_저장된다() throws Exception {
+        Member legacy = saveMember("20240009", "구형", MemberRole.MEMBER);
+        Member grid = saveMember("20240010", "그리드", MemberRole.MEMBER);
+
+        patchSlackId(legacy.getId(), "\"U024BE7LH\"").andExpect(status().isNoContent());
+        patchSlackId(grid.getId(), "\"W0123ABCDE\"").andExpect(status().isNoContent());
+
+        assertThat(memberRepository.findById(legacy.getId()).orElseThrow().getSlackId()).isEqualTo("U024BE7LH");
+        assertThat(memberRepository.findById(grid.getId()).orElseThrow().getSlackId()).isEqualTo("W0123ABCDE");
     }
 
     @Test

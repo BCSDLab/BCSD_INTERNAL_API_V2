@@ -200,7 +200,7 @@ public interface AdminMemberApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "Slack ID 수정", description = "회비 Slack 알림 수신자로 쓰는 Slack 회원 ID(U로 시작하는 11자리)를 "
+    @Operation(summary = "Slack ID 수정", description = "회비 Slack 알림 수신자로 쓰는 Slack 회원 ID(U 또는 W로 시작하는 영문 대문자·숫자 9~20자)를 "
             + "저장합니다. null이면 지웁니다. 다른 회원이 사용 중인 값이면 409이며 메시지에 그 회원 이름이 포함됩니다.")
     @SecurityRequirement(name = "JWT")
     @PatchMapping("/{memberId}/slack-id")
