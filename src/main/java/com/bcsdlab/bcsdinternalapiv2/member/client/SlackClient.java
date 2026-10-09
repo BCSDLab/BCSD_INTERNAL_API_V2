@@ -16,6 +16,18 @@ public class SlackClient {
     private final RestClient slackRestClient;
 
     public Optional<String> findProfileImageUrlByEmail(String email) {
+        return lookupByEmail(email).map(user -> {
+            SlackLookupByEmailResponse.SlackProfile profile = user.profile();
+            return profile.image512() != null ? profile.image512() : profile.image192();
+        });
+    }
+
+    /** 이메일로 Slack 회원 ID(U…)를 찾는다. 워크스페이스에 없는 이메일이면 empty. */
+    public Optional<String> findSlackIdByEmail(String email) {
+        return lookupByEmail(email).map(SlackLookupByEmailResponse.SlackUser::id);
+    }
+
+    private Optional<SlackLookupByEmailResponse.SlackUser> lookupByEmail(String email) {
         SlackLookupByEmailResponse response = slackRestClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/users.lookupByEmail").queryParam("email", email).build())
                 .retrieve()
@@ -31,9 +43,6 @@ public class SlackClient {
             throw new MemberException(MemberExceptionType.SLACK_SYNC_FAILED
                     .withDetail("slackError=" + response.error()));
         }
-
-        SlackLookupByEmailResponse.SlackProfile profile = response.user().profile();
-        String imageUrl = profile.image512() != null ? profile.image512() : profile.image192();
-        return Optional.ofNullable(imageUrl);
+        return Optional.of(response.user());
     }
 }

@@ -27,6 +27,8 @@ public interface MemberRepository extends JpaRepository<Member, Long>, JpaSpecif
 
     boolean existsByEmailAndIdNot(String email, Long id);
 
+    Optional<Member> findBySlackId(String slackId);
+
     List<Member> findAllByStatus(MemberStatus status);
 
     @Transactional

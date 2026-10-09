@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bcsdlab.bcsdinternalapiv2.member.client.SlackClient;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
@@ -24,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -49,6 +51,10 @@ class AdminMemberWelcomeMailIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    // 부원 추가가 이메일로 Slack ID를 조회한다 — 테스트에서 실제 slack.com을 부르지 않게 막는다.
+    @MockitoBean
+    private SlackClient slackClient;
 
     private TrackMaster backend;
 

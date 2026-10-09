@@ -8,14 +8,18 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberDirecto
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresignedUrlRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoUrlUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.RoleUpdateRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.SlackIdLookupRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.SlackIdUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.WithdrawalUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberCreateResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoUrlResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackIdLookupResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackProfileSyncResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.service.AdminMemberService;
 import com.bcsdlab.bcsdinternalapiv2.member.service.MemberDirectoryService;
+import com.bcsdlab.bcsdinternalapiv2.member.service.MemberSlackIdService;
 import com.bcsdlab.bcsdinternalapiv2.member.service.SlackProfileSyncService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,11 +45,29 @@ public class AdminMemberController implements AdminMemberApi {
     private final AdminMemberService adminMemberService;
     private final MemberDirectoryService memberDirectoryService;
     private final SlackProfileSyncService slackProfileSyncService;
+    private final MemberSlackIdService memberSlackIdService;
 
     @Override
     @PostMapping
     public ResponseEntity<AdminMemberCreateResponse> createMember(@Valid @RequestBody AdminMemberCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(adminMemberService.createMember(request));
+        AdminMemberCreateResponse created = adminMemberService.createMember(request);
+        // 회원 생성 트랜잭션이 커밋된 뒤 이메일로 Slack ID를 찾아 저장한다. 실패해도 생성 응답에는 영향이 없다.
+        memberSlackIdService.lookupAndSaveQuietly(created.id());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @Override
+    @PatchMapping("/{memberId}/slack-id")
+    public ResponseEntity<Void> updateSlackId(@PathVariable Long memberId,
+                                               @Valid @RequestBody SlackIdUpdateRequest request) {
+        memberSlackIdService.updateSlackId(memberId, request.slackId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PostMapping("/slack-ids/lookup")
+    public ResponseEntity<SlackIdLookupResponse> lookupSlackIds(@Valid @RequestBody SlackIdLookupRequest request) {
+        return ResponseEntity.ok(memberSlackIdService.lookupAndSave(request.memberIds()));
     }
 
     @Override
