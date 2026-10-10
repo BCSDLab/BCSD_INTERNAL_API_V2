@@ -45,7 +45,7 @@ public class SemesterService {
         if (!creatable.creatable() || !creatable.next().equals(requested)) {
             throw new LedgerException(LedgerExceptionType.SEMESTER_NOT_CREATABLE);
         }
-        DuesSemester semester = semesterWriter.insertSemester(requested, request.monthlyAmount(), adminId);
+        DuesSemester semester = semesterWriter.insertSemester(requested, request.monthlyAmount().longValueExact(), adminId);
         rosterRepository.insertSnapshot(semester.getId());
         return duesQueryService.getSummary(semester);
     }

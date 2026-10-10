@@ -163,6 +163,10 @@ class DuesSemesterIntegrationTest extends LedgerIntegrationTestSupport {
             createSemester(1999, 2, 10_000).andExpect(status().isBadRequest());
             perform(post("/v1/admin/dues/semesters"), adminToken, "{\"year\":2026,\"term\":2}")
                     .andExpect(status().isBadRequest());
+            perform(post("/v1/admin/dues/semesters"), adminToken, "{\"year\":2026,\"term\":2,\"monthlyAmount\":1.5}")
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("월 회비는 원 단위 정수로 입력하세요."));
+            perform(get("/v1/admin/dues/semesters")).andExpect(jsonPath("$.semesters", hasSize(0)));
         }
 
         @Test
