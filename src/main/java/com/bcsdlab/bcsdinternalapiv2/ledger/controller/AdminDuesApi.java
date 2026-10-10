@@ -1,6 +1,8 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.DuesLinkBulkRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.SemesterCreateRequest;
+import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.DuesLinkBulkResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterCreatableResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterDuesDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterDuesListResponse;
@@ -73,4 +75,21 @@ public interface AdminDuesApi {
     @SecurityRequirement(name = "JWT")
     @GetMapping("/{semesterId}/members")
     ResponseEntity<SemesterDuesDetailResponse> getSemesterMembers(@PathVariable String semesterId);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "회비 일괄 연결", description = "입출금 내역 연결 모달의 일괄 저장입니다(1~1,000건). "
+            + "없는 내역과 이미 연결된 내역은 건너뛰고 세지 않습니다. 명단에 없는 회원(404)이나 납부 비대상 회원(409)이 "
+            + "하나라도 있으면 아무것도 연결하지 않습니다. 연결한 내역의 분류는 회비(DUES)가 됩니다.")
+    @SecurityRequirement(name = "JWT")
+    @PostMapping("/{semesterId}/links")
+    ResponseEntity<DuesLinkBulkResponse> linkEntries(@PathVariable String semesterId,
+                                                     @RequestBody @Valid DuesLinkBulkRequest request,
+                                                     @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
 }

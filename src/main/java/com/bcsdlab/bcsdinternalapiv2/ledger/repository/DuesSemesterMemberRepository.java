@@ -28,6 +28,22 @@ public interface DuesSemesterMemberRepository extends JpaRepository<DuesSemester
     Optional<DuesSemesterMember> findForUpdate(@Param("semesterId") Long semesterId,
                                                @Param("memberId") Long memberId);
 
+    /**
+     * 회비 연결 전에 명단 행을 FOR SHARE로 잠근다. 비대상 전환(FOR UPDATE)과 엇갈리지 않게 하고, 잠근 결과의
+     * applicable을 읽는다. 이 트랜잭션에서 같은 행을 먼저 잠금 없이 읽으면 캐시된 값이 나오므로 첫 조회여야 한다.
+     */
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Query("select r from DuesSemesterMember r where r.id.semesterId = :semesterId and r.id.memberId = :memberId")
+    Optional<DuesSemesterMember> findForShare(@Param("semesterId") Long semesterId,
+                                              @Param("memberId") Long memberId);
+
+    /** 일괄 연결용. 교착을 막으려고 member_id 오름차순으로 잠근다. 명단에 없는 회원은 빠진다. */
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Query("select r from DuesSemesterMember r where r.id.semesterId = :semesterId and r.id.memberId in :memberIds "
+            + "order by r.id.memberId")
+    List<DuesSemesterMember> findAllForShare(@Param("semesterId") Long semesterId,
+                                             @Param("memberIds") Collection<Long> memberIds);
+
     /** 명단에 없는 모든 회원(회원 상태·회비 대상 여부와 무관). */
     @Query("select m from Member m join fetch m.track where not exists ("
             + "select 1 from DuesSemesterMember r where r.id.semesterId = :semesterId and r.id.memberId = m.id)")
