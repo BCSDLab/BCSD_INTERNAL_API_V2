@@ -76,7 +76,7 @@ public class DuesNotificationService {
         if (mentionUsed && context.adminSlackId() == null) {
             throw new LedgerException(LedgerExceptionType.SENDER_SLACK_ID_MISSING);
         }
-        String requestHash = requestHash(request);
+        String requestHash = requestHash(context.semesterId(), request);
 
         if (request.isTestToSelf()) {
             return sendTestToSelf(request, context, requestHash, adminId, deadline);
@@ -184,9 +184,13 @@ public class DuesNotificationService {
         return new DuesNotificationResponse(sent, failed);
     }
 
-    /** 같은 키로 다른 내용을 보내는지 판별한다: type과 (회원 id, 본문 해시)를 회원 id 순으로. 본문 자체는 저장하지 않는다. */
-    static String requestHash(DuesNotificationRequest request) {
-        String source = request.type().name() + "\n" + request.messages().stream()
+    /**
+     * 같은 키로 다른 내용을 보내는지 판별한다: 학기, type, (회원 id, 본문 해시)를 회원 id 순으로. 학기가 빠지면 같은 키·같은
+     * 본문을 다른 학기로 보낼 때 이전 학기 발송의 재시도로 보고 아무것도 보내지 않는다. 본문 자체는 저장하지 않는다.
+     * testToSelf는 넣지 않는다 — 테스트 발송은 요청 키를 쓰지 않아 이 해시로 기존 발송 건과 대조하는 일이 없다.
+     */
+    static String requestHash(Long semesterId, DuesNotificationRequest request) {
+        String source = semesterId + "\n" + request.type().name() + "\n" + request.messages().stream()
                 .sorted(Comparator.comparing(DuesNotificationRequest.Message::memberId))
                 .map(m -> m.memberId() + ":" + sha256(m.message()))
                 .collect(Collectors.joining("\n"));

@@ -239,6 +239,25 @@ class DuesNotificationIntegrationTest extends LedgerIntegrationTestSupport {
     }
 
     @Test
+    void 같은_키와_같은_본문을_다른_학기로_보내면_409이고_이전_학기_결과를_돌려주지_않는다() throws Exception {
+        String key = key();
+        String body = body("PAYMENT", Map.of(alice.getId(), "안내"), false);
+        send(key, body).andExpect(status().isOk()).andExpect(jsonPath("$.sentCount").value(1));
+        clock.setToday(java.time.LocalDate.of(2027, 3, 2));
+        createSemester(2027, 1, 10_000).andExpect(status().isCreated());
+
+        perform(post(URL, "2027-1").header("Idempotency-Key", key), adminToken, body)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("이미 다른 내용으로 보낸 요청 키입니다. 새로 보내려면 다시 시도하세요."));
+        verify(slackClient, times(1)).postDirectMessage(anyString(), anyString());
+
+        // 새 키로 보내면 그 학기로 정상 발송된다.
+        perform(post(URL, "2027-1").header("Idempotency-Key", key()), adminToken, body)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sentCount").value(1));
+    }
+
+    @Test
     void 같은_키가_보내는_중이면_409이고_오래_멈춘_발송은_이어서_보낸다() throws Exception {
         String key = key();
         String body = body("PAYMENT", Map.of(alice.getId(), "안내"), false);
@@ -458,7 +477,7 @@ class DuesNotificationIntegrationTest extends LedgerIntegrationTestSupport {
         var request = objectMapper.readValue(body,
                 com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.DuesNotificationRequest.class);
         Long semesterId = semesterIdOf("2026-2");
-        String hash = (String) invokeRequestHash(request);
+        String hash = (String) invokeRequestHash(semesterId, request);
         jdbcTemplate.update("""
                 INSERT INTO dues_notification_batch (idempotency_key, request_hash, semester_id, type, status,
                                                      requested_by, recipient_count, updated_at)
@@ -470,11 +489,11 @@ class DuesNotificationIntegrationTest extends LedgerIntegrationTestSupport {
                 batchId, alice.getId());
     }
 
-    private static Object invokeRequestHash(Object request) throws Exception {
+    private static Object invokeRequestHash(Long semesterId, Object request) throws Exception {
         var method = com.bcsdlab.bcsdinternalapiv2.ledger.service.DuesNotificationService.class
-                .getDeclaredMethod("requestHash", request.getClass());
+                .getDeclaredMethod("requestHash", Long.class, request.getClass());
         method.setAccessible(true);
-        return method.invoke(null, request);
+        return method.invoke(null, semesterId, request);
     }
 
     private long batchCount() {
