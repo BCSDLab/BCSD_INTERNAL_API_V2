@@ -110,6 +110,9 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
 
     /** 외래 키 순서대로 지운다. 장부·명단·학기 모두 회원을 참조한다. */
     private void clearDuesTables() {
+        jdbcTemplate.update("DELETE FROM dues_exemption");
+        // 시드 15개(V25)는 마이그레이션 데이터라 남긴다.
+        jdbcTemplate.update("DELETE FROM dues_exemption_reason WHERE id > 15");
         jdbcTemplate.update("DELETE FROM ledger_entry_evidence");
         jdbcTemplate.update("DELETE FROM image_asset");
         jdbcTemplate.update("DELETE FROM dues_link");

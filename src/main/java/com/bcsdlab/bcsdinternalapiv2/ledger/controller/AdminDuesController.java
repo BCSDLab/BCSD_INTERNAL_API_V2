@@ -1,8 +1,10 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.DuesLinkBulkRequest;
+import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.ExemptionPreviewRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.SemesterCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.DuesLinkBulkResponse;
+import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ExemptionPreviewResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterCreatableResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterDuesDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterDuesListResponse;
@@ -64,5 +66,12 @@ public class AdminDuesController implements AdminDuesApi {
                                                             @Valid @RequestBody DuesLinkBulkRequest request,
                                                             @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(duesLinkService.linkAll(semesterId, request, Long.valueOf(jwt.getSubject())));
+    }
+
+    @Override
+    @PostMapping("/{semesterId}/exemption-preview")
+    public ResponseEntity<ExemptionPreviewResponse> previewExemption(@PathVariable String semesterId,
+                                                                     @Valid @RequestBody ExemptionPreviewRequest request) {
+        return ResponseEntity.ok(duesQueryService.preview(semesterId, request.toDraft(), request.editingId()));
     }
 }
