@@ -1,17 +1,15 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request;
 
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.LedgerCategory;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.HashSet;
 import java.util.List;
 
 /**
  * 장부 수정. 전체를 교체한다. 금액·시각·입출금 구분은 은행 거래 원본이라 바꿀 수 없다.
- * 상대·내용은 앞뒤 공백을 지운 뒤 검사한다.
+ * 상대·내용은 앞뒤 공백을 지운 뒤 검사한다. 증빙 링크도 보낸 목록이 최종 상태다([]이면 모두 뗀다).
  */
 public record LedgerEntryUpdateRequest(
         @NotBlank(message = "거래 상대를 입력하세요.")
@@ -31,17 +29,11 @@ public record LedgerEntryUpdateRequest(
 
         @NotNull(message = "증빙 목록을 입력하세요.")
         @Size(max = 5, message = "증빙은 최대 5개까지 첨부할 수 있습니다.")
-        List<@NotNull Long> evidenceIds
+        List<@Valid @NotNull(message = "증빙 링크를 입력하세요.") EvidenceLinkRequest> evidenceLinks
 ) {
 
     public LedgerEntryUpdateRequest {
         counterparty = counterparty == null ? null : counterparty.strip();
         description = description == null ? null : description.strip();
-    }
-
-    @Schema(hidden = true)
-    @AssertTrue(message = "같은 증빙이 요청에 두 번 있습니다.")
-    public boolean isEvidenceIdsDistinct() {
-        return evidenceIds == null || new HashSet<>(evidenceIds).size() == evidenceIds.size();
     }
 }

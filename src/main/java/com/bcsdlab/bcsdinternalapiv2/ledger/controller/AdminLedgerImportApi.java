@@ -49,7 +49,7 @@ public interface AdminLedgerImportApi {
     })
     @Operation(summary = "거래내역 반영", description = "미리보기의 모든 거래(1~5,000건)를 장부에 넣습니다. 서버가 rowKey를 다시 계산해 "
             + "다르면 400입니다. 이미 있는 거래는 건너뛰고 skippedDuplicateCount로 셉니다. 전부 반영하거나 전부 롤백합니다. "
-            + "장부 잔액(balance)은 은행 잔액(bankBalance) 그대로입니다.")
+            + "장부 잔액(balance)은 은행 잔액(bankBalance) 그대로입니다. 거래마다 evidenceLinks로 구글 드라이브 링크 0~5개를 붙입니다.")
     @SecurityRequirement(name = "JWT")
     @PostMapping
     ResponseEntity<ImportCommitResponse> commit(@RequestBody @Valid ImportCommitRequest request,
