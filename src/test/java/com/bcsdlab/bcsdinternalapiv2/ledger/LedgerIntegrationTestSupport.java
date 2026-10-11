@@ -13,6 +13,7 @@ import com.bcsdlab.bcsdinternalapiv2.ledger.model.LedgerCategory;
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.LedgerEntry;
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.SemesterKey;
 import com.bcsdlab.bcsdinternalapiv2.ledger.repository.LedgerEntryRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.client.SlackClient;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
@@ -51,7 +52,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
  * memberRepository.deleteAll()이 FK 위반으로 실패한다. 그래서 테스트 앞뒤로 회비 테이블을 비운다.
  */
 @Import(LedgerIntegrationTestSupport.TestClockConfig.class)
-@TestPropertySource(properties = "app.mail.transport=log")
+@TestPropertySource(properties = {"app.mail.transport=log", "app.slack.bot-token=test-token"})
 public abstract class LedgerIntegrationTestSupport extends IntegrationTestSupport {
 
     protected static final String RAW_PASSWORD = "Temp1234";
@@ -84,6 +85,10 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
     @MockitoBean
     protected S3Client s3Client;
 
+    /** Slack에는 실제로 보내지 않는다. */
+    @MockitoBean
+    protected SlackClient slackClient;
+
     protected final ObjectMapper objectMapper = new ObjectMapper();
 
     protected TrackMaster backend;
@@ -110,6 +115,8 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
 
     /** 외래 키 순서대로 지운다. 장부·명단·학기 모두 회원을 참조한다. */
     private void clearDuesTables() {
+        jdbcTemplate.update("DELETE FROM dues_notification_recipient");
+        jdbcTemplate.update("DELETE FROM dues_notification_batch");
         jdbcTemplate.update("DELETE FROM dues_exemption");
         // 시드 15개(V25)는 마이그레이션 데이터라 남긴다.
         jdbcTemplate.update("DELETE FROM dues_exemption_reason WHERE id > 15");
