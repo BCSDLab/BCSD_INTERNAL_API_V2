@@ -29,6 +29,7 @@ public enum LedgerExceptionType implements BcsdExceptionType {
     IMPORT_FILE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "거래내역 파일이 너무 큽니다. 1MB 이하 파일만 올릴 수 있습니다."),
     IMPORT_ROW_KEY_MISMATCH(HttpStatus.BAD_REQUEST, "거래 정보가 미리보기 결과와 다릅니다. 파일을 다시 미리보기 하세요."),
     DUPLICATED_EVIDENCE_IN_REQUEST(HttpStatus.BAD_REQUEST, "같은 증빙이 요청에 두 번 있습니다."),
+    DUPLICATED_ROW_KEY_IN_REQUEST(HttpStatus.BAD_REQUEST, "같은 거래가 요청에 두 번 있습니다. 파일을 다시 미리보기 하세요."),
     ;
 
     private final HttpStatus status;

@@ -69,9 +69,18 @@ public class ImportService {
         return new ImportPreviewResponse(fileName, transactions);
     }
 
+    /**
+     * 요청 안에 같은 거래(rowKey)가 두 번 오면 순서·쓰기 전에 거절한다. 그대로 두면 두 건이 같은 초 묶음에 들어가
+     * 잔액 순서 복원을 흐트러뜨리고, 두 번째 건이 ON CONFLICT로 빠지면서 occurred_seq에 빈칸이 생기고
+     * "이미 있던 거래"로 잘못 세어진다. 미리보기는 같은 rowKey를 두 번 내지 않는다(rowKey에 은행 잔액이 들어간다).
+     */
     public ImportCommitResponse commit(ImportCommitRequest request, Long adminId) {
+        Set<String> rowKeys = new HashSet<>();
         Set<Long> evidenceIds = new HashSet<>();
         for (ImportCommitRequest.Transaction transaction : request.transactions()) {
+            if (!rowKeys.add(transaction.rowKey())) {
+                throw new LedgerException(LedgerExceptionType.DUPLICATED_ROW_KEY_IN_REQUEST);
+            }
             for (Long evidenceId : transaction.evidenceIds()) {
                 if (!evidenceIds.add(evidenceId)) {
                     throw new LedgerException(LedgerExceptionType.DUPLICATED_EVIDENCE_IN_REQUEST);

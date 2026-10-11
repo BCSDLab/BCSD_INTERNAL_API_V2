@@ -180,6 +180,22 @@ class LedgerImportIntegrationTest extends LedgerIntegrationTestSupport {
     }
 
     @Test
+    void 요청_안에_같은_거래가_두_번이면_400이고_아무것도_넣지_않는다() throws Exception {
+        ObjectNode body = commitBody(previewJson(sameSecondFile()));
+        ((ArrayNode) body.get("transactions")).add(body.get("transactions").get(2).deepCopy());
+
+        commit(body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("같은 거래가 요청에 두 번 있습니다. 파일을 다시 미리보기 하세요."));
+        assertThat(entryCount()).isZero();
+
+        // 중복을 뺀 같은 요청은 그대로 반영된다.
+        commit(commitBody(previewJson(sameSecondFile())))
+                .andExpect(jsonPath("$.createdCount").value(4))
+                .andExpect(jsonPath("$.skippedDuplicateCount").value(0));
+    }
+
+    @Test
     void bankBalance가_없으면_400이다() throws Exception {
         ObjectNode body = commitBody(previewJson(sameSecondFile()));
         ((ObjectNode) body.get("transactions").get(0)).remove("bankBalance");
