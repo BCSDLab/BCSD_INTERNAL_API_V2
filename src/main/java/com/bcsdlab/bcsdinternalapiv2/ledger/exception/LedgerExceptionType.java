@@ -30,6 +30,14 @@ public enum LedgerExceptionType implements BcsdExceptionType {
     IMPORT_ROW_KEY_MISMATCH(HttpStatus.BAD_REQUEST, "거래 정보가 미리보기 결과와 다릅니다. 파일을 다시 미리보기 하세요."),
     DUPLICATED_EVIDENCE_IN_REQUEST(HttpStatus.BAD_REQUEST, "같은 증빙이 요청에 두 번 있습니다."),
     DUPLICATED_ROW_KEY_IN_REQUEST(HttpStatus.BAD_REQUEST, "같은 거래가 요청에 두 번 있습니다. 파일을 다시 미리보기 하세요."),
+    DUPLICATED_MEMBER_IN_REQUEST(HttpStatus.BAD_REQUEST, "같은 회원이 요청에 두 번 있습니다."),
+    SENDER_SLACK_ID_MISSING(HttpStatus.BAD_REQUEST,
+            "내 Slack ID가 인명부에 없어 담당자 멘션을 넣을 수 없습니다. 인명부에서 Slack ID를 먼저 저장하세요."),
+    TEST_SENDER_SLACK_ID_MISSING(HttpStatus.BAD_REQUEST,
+            "내 Slack ID가 인명부에 없어 테스트 발송을 할 수 없습니다. 인명부에서 Slack ID를 먼저 저장하세요."),
+    IDEMPOTENCY_KEY_REQUIRED(HttpStatus.BAD_REQUEST, "요청 키(Idempotency-Key)가 없거나 형식이 올바르지 않습니다."),
+    IDEMPOTENCY_KEY_REUSED(HttpStatus.CONFLICT, "이미 다른 내용으로 보낸 요청 키입니다. 새로 보내려면 다시 시도하세요."),
+    NOTIFICATION_IN_PROGRESS(HttpStatus.CONFLICT, "같은 알림을 보내는 중입니다. 잠시 뒤 결과를 확인하세요."),
     ;
 
     private final HttpStatus status;
