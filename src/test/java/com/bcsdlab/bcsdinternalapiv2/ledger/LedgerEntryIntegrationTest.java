@@ -168,11 +168,11 @@ class LedgerEntryIntegrationTest extends LedgerIntegrationTestSupport {
     }
 
     @Test
-    void 증빙_업로드_전이라_증빙을_붙이면_404이고_아무것도_바뀌지_않는다() throws Exception {
+    void 없는_증빙을_붙이면_404이고_아무것도_바뀌지_않는다() throws Exception {
         LedgerEntry entry = deposit(10_000);
 
         patchBody(entry.getId(), "{\"counterparty\":\"바뀐상대\",\"category\":\"EVENT\",\"description\":\"내용\","
-                + "\"note\":\"\",\"evidenceIds\":[1]}")
+                + "\"note\":\"\",\"evidenceIds\":[999999]}")
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("증빙을 찾을 수 없습니다."));
         perform(get(ENTRIES)).andExpect(jsonPath("$.entries[0].counterparty").value("테스트상대"));

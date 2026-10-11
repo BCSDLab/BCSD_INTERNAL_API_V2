@@ -18,6 +18,11 @@ public enum LedgerExceptionType implements BcsdExceptionType {
     ENTRY_ALREADY_LINKED(HttpStatus.CONFLICT, "이미 회비에 연결된 장부 기록입니다. 다시 시도하세요."),
     DUPLICATED_ENTRY_IN_REQUEST(HttpStatus.BAD_REQUEST, "같은 장부 기록이 요청에 두 번 있습니다."),
     EVIDENCE_NOT_FOUND(HttpStatus.NOT_FOUND, "증빙을 찾을 수 없습니다."),
+    EVIDENCE_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "업로드가 끝나지 않았거나 다른 기록에 붙은 증빙입니다."),
+    EVIDENCE_NOT_UPLOADED(HttpStatus.BAD_REQUEST, "증빙 파일이 업로드되지 않았거나 신청한 형식·크기와 다릅니다."),
+    EVIDENCE_VERIFY_FORBIDDEN(HttpStatus.BAD_GATEWAY,
+            "서버에 증빙 업로드를 확인할 권한이 없어 완료하지 못했습니다. 관리자에게 문의하세요."),
+    EVIDENCE_VERIFY_FAILED(HttpStatus.BAD_GATEWAY, "증빙 업로드를 확인하지 못했습니다. 잠시 뒤 다시 시도하세요."),
     ;
 
     private final HttpStatus status;

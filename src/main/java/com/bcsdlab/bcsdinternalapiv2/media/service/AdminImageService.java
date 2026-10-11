@@ -40,40 +40,65 @@ public class AdminImageService {
 
     @Transactional
     public PresignedUrlResponse issuePresignedUrl(PresignedUrlRequest request) {
-        String s3Key = "%s/%s.%s".formatted(
-                request.purpose().name().toLowerCase(), UUID.randomUUID(), extensionOf(request.fileName()));
+        requireLibraryPurpose(request.purpose());
+        return issueUpload(request.purpose(), request.fileName(), request.contentType(), request.byteSize(), null,
+                false);
+    }
+
+    /**
+     * 검증을 마친 값으로 image_asset 행을 만들고 presigned PUT URL을 준다. 다른 도메인(장부 증빙)이 자기 규칙으로
+     * 검증한 뒤 쓰는 내부 메서드다. signContentLength가 true면 크기도 서명해, S3가 다른 크기의 업로드를 거부한다.
+     * presign은 네트워크 호출 없이 로컬에서 서명만 한다.
+     */
+    @Transactional
+    public PresignedUrlResponse issueUpload(ImagePurpose purpose, String fileName, String contentType, long byteSize,
+                                            Long uploadedBy, boolean signContentLength) {
+        String s3Key = "%s/%s.%s".formatted(purpose.name().toLowerCase(), UUID.randomUUID(), extensionOf(fileName));
         String publicUrl = s3Properties.publicBaseUrl() + "/" + s3Key;
 
         ImageAsset image = imageAssetRepository.save(ImageAsset.builder()
                 .s3Key(s3Key)
                 .url(publicUrl)
-                .originalName(request.fileName())
-                .contentType(request.contentType())
-                .byteSize(request.byteSize())
-                .purpose(request.purpose())
+                .originalName(fileName)
+                .contentType(contentType)
+                .byteSize(byteSize)
+                .purpose(purpose)
+                .uploadedBy(uploadedBy)
                 .build());
 
-        String uploadUrl = presignPutUrl(s3Key, request.contentType());
+        String uploadUrl = presignPutUrl(s3Key, contentType, signContentLength ? byteSize : null);
         return new PresignedUrlResponse(image.getId(), uploadUrl, publicUrl);
     }
 
     @Transactional
     public ImageCompleteResponse complete(Long id) {
         ImageAsset image = findOrThrow(id);
+        if (image.getPurpose().isLibraryRestricted()) {
+            // 장부 증빙은 업로드 확인을 거치는 장부 API로만 확정한다.
+            throw new MediaException(MediaExceptionType.IMAGE_NOT_FOUND);
+        }
         image.confirm();
         return new ImageCompleteResponse(image.getUrl());
     }
 
     public Page<ImageAssetResponse> getImages(ImagePurpose purpose, Pageable pageable) {
+        requireLibraryPurpose(purpose);
         return imageAssetRepository.findAllByPurposeAndConfirmedTrueOrderByCreatedAtDesc(purpose, pageable)
                 .map(ImageAssetResponse::from);
     }
 
-    private String presignPutUrl(String s3Key, String contentType) {
+    private void requireLibraryPurpose(ImagePurpose purpose) {
+        if (purpose.isLibraryRestricted()) {
+            throw new MediaException(MediaExceptionType.PURPOSE_NOT_ALLOWED);
+        }
+    }
+
+    private String presignPutUrl(String s3Key, String contentType, Long contentLength) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(s3Properties.bucket())
                 .key(s3Key)
                 .contentType(contentType)
+                .contentLength(contentLength)
                 .build();
         PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(PutObjectPresignRequest.builder()
                 .signatureDuration(UPLOAD_URL_VALIDITY)

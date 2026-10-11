@@ -58,3 +58,8 @@ app:
     public-origin: ${GAME_BUILD_PUBLIC_ORIGIN:https://bcsdlab.com}
   slack:
     bot-token: ${SLACK_BOT_TOKEN:}
+  ledger:
+    evidence:
+      # 증빙 업로드 완료 때 S3 HeadObject로 실제 크기·형식을 확인한다. 운영 IAM에 s3:GetObject 권한이 없으면
+      # false로 끈다(발급 단계의 형식·크기 검증과 presign 서명만 남는다).
+      verify-upload: ${LEDGER_EVIDENCE_VERIFY_UPLOAD:true}

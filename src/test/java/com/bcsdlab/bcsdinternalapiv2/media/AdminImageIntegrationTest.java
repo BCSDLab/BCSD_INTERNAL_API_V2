@@ -3,6 +3,7 @@ package com.bcsdlab.bcsdinternalapiv2.media;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -11,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.bcsdlab.bcsdinternalapiv2.IntegrationTestSupport;
 import com.bcsdlab.bcsdinternalapiv2.auth.repository.RefreshTokenRepository;
+import com.bcsdlab.bcsdinternalapiv2.media.model.ImageAsset;
+import com.bcsdlab.bcsdinternalapiv2.media.model.ImagePurpose;
 import com.bcsdlab.bcsdinternalapiv2.media.repository.ImageAssetRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
@@ -24,6 +27,7 @@ import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -154,5 +158,66 @@ class AdminImageIntegrationTest extends IntegrationTestSupport {
         mockMvc.perform(post("/v1/admin/images/999999/complete")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNotFound());
+    }
+
+    // ---------- 장부 증빙 유형(LEDGER_EVIDENCE)은 이 API에서 거부 ----------
+
+    @Test
+    @DisplayName("장부 증빙 유형으로 업로드 URL을 발급하면 400이고 행을 만들지 않는다")
+    void 장부_증빙_유형_발급은_400() throws Exception {
+        mockMvc.perform(post("/v1/admin/images/presigned-url")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fileName\":\"receipt.png\",\"contentType\":\"image/png\","
+                                + "\"byteSize\":1000,\"purpose\":\"LEDGER_EVIDENCE\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("이 API에서 쓸 수 없는 이미지 유형입니다."));
+        assertThat(imageAssetRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("장부 증빙을 이 API로 complete하면 404이고 확정되지 않는다")
+    void 장부_증빙_complete는_404() throws Exception {
+        ImageAsset evidence = imageAssetRepository.save(ImageAsset.builder()
+                .s3Key("ledger_evidence/test.png")
+                .url("https://image.example.com/ledger_evidence/test.png")
+                .originalName("test.png")
+                .contentType("image/png")
+                .byteSize(1000)
+                .purpose(ImagePurpose.LEDGER_EVIDENCE)
+                .build());
+
+        mockMvc.perform(post("/v1/admin/images/" + evidence.getId() + "/complete")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isNotFound());
+
+        assertThat(imageAssetRepository.findById(evidence.getId()).orElseThrow().isConfirmed()).isFalse();
+    }
+
+    @Test
+    @DisplayName("장부 증빙 유형으로 라이브러리를 조회하면 400이다")
+    void 장부_증빙_라이브러리_조회는_400() throws Exception {
+        mockMvc.perform(get("/v1/admin/images")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .queryParam("purpose", "LEDGER_EVIDENCE"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("기존 유형의 업로드 URL은 예전처럼 크기를 서명하지 않는다")
+    void 기존_유형_presign은_크기를_서명하지_않는다() throws Exception {
+        mockMvc.perform(post("/v1/admin/images/presigned-url")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fileName\":\"hero.png\",\"contentType\":\"image/png\","
+                                + "\"byteSize\":1000,\"purpose\":\"TRACK_HERO\"}"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<PutObjectPresignRequest> captor = ArgumentCaptor.forClass(PutObjectPresignRequest.class);
+        verify(s3Presigner).presignPutObject(captor.capture());
+        assertThat(captor.getValue().putObjectRequest().contentType()).isEqualTo("image/png");
+        assertThat(captor.getValue().putObjectRequest().contentLength()).isNull();
+        assertThat(imageAssetRepository.findAll()).singleElement()
+                .satisfies(image -> assertThat(image.getUploadedBy()).isNull());
     }
 }
