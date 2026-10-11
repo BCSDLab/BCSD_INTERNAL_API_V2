@@ -37,7 +37,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -167,15 +167,15 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
         return objectMapper.readTree(responseBody).get("accessToken").asText();
     }
 
-    protected ResultActions perform(MockHttpServletRequestBuilder request) throws Exception {
+    protected ResultActions perform(AbstractMockHttpServletRequestBuilder<?> request) throws Exception {
         return perform(request, adminToken);
     }
 
-    protected ResultActions perform(MockHttpServletRequestBuilder request, String token) throws Exception {
+    protected ResultActions perform(AbstractMockHttpServletRequestBuilder<?> request, String token) throws Exception {
         return mockMvc.perform(request.header("Authorization", "Bearer " + token));
     }
 
-    protected ResultActions perform(MockHttpServletRequestBuilder request, String token, String jsonBody)
+    protected ResultActions perform(AbstractMockHttpServletRequestBuilder<?> request, String token, String jsonBody)
             throws Exception {
         return perform(request.contentType(MediaType.APPLICATION_JSON).content(jsonBody), token);
     }
