@@ -23,6 +23,8 @@ public enum LedgerExceptionType implements BcsdExceptionType {
     EVIDENCE_VERIFY_FORBIDDEN(HttpStatus.BAD_GATEWAY,
             "서버에 증빙 업로드를 확인할 권한이 없어 완료하지 못했습니다. 관리자에게 문의하세요."),
     EVIDENCE_VERIFY_FAILED(HttpStatus.BAD_GATEWAY, "증빙 업로드를 확인하지 못했습니다. 잠시 뒤 다시 시도하세요."),
+    EXEMPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "면제 기록을 찾을 수 없습니다."),
+    INVALID_EXEMPTION_PERIOD(HttpStatus.BAD_REQUEST, "종료 월은 시작 월보다 빠를 수 없습니다."),
     ;
 
     private final HttpStatus status;

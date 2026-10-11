@@ -1,8 +1,10 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.DuesLinkBulkRequest;
+import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.ExemptionPreviewRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.SemesterCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.DuesLinkBulkResponse;
+import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ExemptionPreviewResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterCreatableResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterDuesDetailResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.SemesterDuesListResponse;
@@ -92,4 +94,19 @@ public interface AdminDuesApi {
     ResponseEntity<DuesLinkBulkResponse> linkEntries(@PathVariable String semesterId,
                                                      @RequestBody @Valid DuesLinkBulkRequest request,
                                                      @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "면제 미리보기", description = "면제를 저장하기 전에 이 학기에서 그 회원의 회비가 어떻게 바뀌는지 "
+            + "before/after로 돌려줍니다. 아무것도 저장하지 않습니다(사유 등록도 하지 않음). editingId가 있으면 그 면제를 "
+            + "이 값으로 바꾼 경우입니다. 검증은 면제 저장과 같고, 회원이 이 학기 명단에 없으면 404입니다.")
+    @SecurityRequirement(name = "JWT")
+    @PostMapping("/{semesterId}/exemption-preview")
+    ResponseEntity<ExemptionPreviewResponse> previewExemption(@PathVariable String semesterId,
+                                                              @RequestBody @Valid ExemptionPreviewRequest request);
 }
