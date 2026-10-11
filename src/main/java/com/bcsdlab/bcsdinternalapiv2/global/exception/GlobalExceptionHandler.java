@@ -10,6 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -48,6 +49,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleJpaException(HttpServletRequest request, Exception e) {
         logRequest(request, e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("제약조건에 위배되는 값입니다."));
+    }
+
+    /** 없는 경로(제거된 API 포함)는 500이 아니라 404다. */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(HttpServletRequest request,
+                                                                        NoResourceFoundException e) {
+        logRequest(request, e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("요청한 API를 찾을 수 없습니다."));
     }
 
     @ExceptionHandler(Exception.class)

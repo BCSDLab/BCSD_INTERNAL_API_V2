@@ -46,7 +46,8 @@ public interface AdminLedgerApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "장부 내역 수정", description = "거래 상대·분류·내용·비고·증빙을 통째로 바꿉니다. 금액·시각·입출금 구분은 바꿀 수 없습니다. "
-            + "분류가 바뀌면 회비 연결이 해제됩니다. evidenceIds는 업로드를 완료한 증빙 0~5개이고, 목록에서 빠진 증빙은 떼어 냅니다.")
+            + "분류가 바뀌면 회비 연결이 해제됩니다. evidenceLinks는 구글 드라이브(https, drive.google.com·docs.google.com) 링크 0~5개이고, "
+            + "보낸 목록이 최종 상태입니다(빠진 링크는 떼고, []이면 모두 뗍니다).")
     @SecurityRequirement(name = "JWT")
     @PatchMapping("/{id}")
     ResponseEntity<LedgerEntryResponse> updateEntry(@PathVariable Long id,

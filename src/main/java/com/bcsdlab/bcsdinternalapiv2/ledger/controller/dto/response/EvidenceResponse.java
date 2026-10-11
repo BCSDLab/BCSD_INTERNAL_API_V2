@@ -1,17 +1,15 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response;
 
-import com.bcsdlab.bcsdinternalapiv2.media.model.ImageAsset;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.LedgerEntryEvidenceLink;
 
-/** 장부 증빙. name은 올릴 때의 파일 이름, url은 공개 CDN 주소다. width·height는 늘 null이다. */
+/** 장부 증빙 링크. label은 없으면 null이다. */
 public record EvidenceResponse(
         Long id,
-        String name,
         String url,
-        Integer width,
-        Integer height
+        String label
 ) {
 
-    public static EvidenceResponse from(ImageAsset asset) {
-        return new EvidenceResponse(asset.getId(), asset.getOriginalName(), asset.getUrl(), null, null);
+    public static EvidenceResponse from(LedgerEntryEvidenceLink link) {
+        return new EvidenceResponse(link.getId(), link.getUrl(), link.getLabel());
     }
 }

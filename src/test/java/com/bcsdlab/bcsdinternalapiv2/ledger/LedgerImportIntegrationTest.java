@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -23,14 +21,13 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
 /** 합성 fixture로 가져오기 미리보기·반영을 확인한다. 실제 거래내역은 쓰지 않는다. */
 class LedgerImportIntegrationTest extends LedgerIntegrationTestSupport {
 
     private static final String PREVIEW = "/v1/admin/ledger/imports/preview";
     private static final String COMMIT = "/v1/admin/ledger/imports";
+    private static final String DRIVE_URL = "https://drive.google.com/file/d/receipt";
     private static final String XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     // ---------- 미리보기 ----------
@@ -248,48 +245,46 @@ class LedgerImportIntegrationTest extends LedgerIntegrationTestSupport {
         commit(zero).andExpect(status().isBadRequest());
     }
 
-    // ---------- 반영 + 증빙 ----------
+    // ---------- 반영 + 증빙 링크 ----------
 
     @Test
-    void 증빙을_붙여_반영하면_새로_넣은_기록에_붙는다() throws Exception {
-        Long evidence = confirmedEvidence();
+    void 증빙_링크를_붙여_반영하면_새로_넣은_기록에_붙는다() throws Exception {
         ObjectNode body = commitBody(previewJson(sameSecondFile()));
-        ((ObjectNode) body.get("transactions").get(2)).putArray("evidenceIds").add(evidence);
+        ArrayNode links = ((ObjectNode) body.get("transactions").get(2)).putArray("evidenceLinks");
+        links.addObject().put("url", " " + DRIVE_URL + " ").put("label", " 영수증 ");
+        links.addObject().put("url", DRIVE_URL + "2");
+        // 다른 거래에는 같은 링크를 붙여도 된다.
+        ((ObjectNode) body.get("transactions").get(0)).putArray("evidenceLinks").addObject().put("url", DRIVE_URL);
 
         commit(body).andExpect(status().isOk());
 
         perform(get("/v1/admin/ledger/entries"))
                 .andExpect(jsonPath("$.entries[1].counterparty").value("가게"))
-                .andExpect(jsonPath("$.entries[1].evidences[0].id").value(evidence.intValue()));
+                .andExpect(jsonPath("$.entries[1].evidences", hasSize(2)))
+                .andExpect(jsonPath("$.entries[1].evidences[0].url").value(DRIVE_URL))
+                .andExpect(jsonPath("$.entries[1].evidences[0].label").value("영수증"))
+                .andExpect(jsonPath("$.entries[1].evidences[1].url").value(DRIVE_URL + "2"))
+                .andExpect(jsonPath("$.entries[1].evidences[1].label").value(nullValue()));
+        assertThat(linkCount()).isEqualTo(3);
     }
 
     @Test
-    void 증빙_규칙을_어기면_전체를_롤백한다() throws Exception {
-        Long confirmed = confirmedEvidence();
-        Long pending = pendingEvidence();
+    void 증빙_링크_규칙을_어기면_전체를_롤백한다() throws Exception {
+        assertCommitWithLinks(List.of("http://drive.google.com/a"), "구글 드라이브 링크만 첨부할 수 있습니다.");
+        assertCommitWithLinks(List.of("https://example.com/a"), "구글 드라이브 링크만 첨부할 수 있습니다.");
+        assertCommitWithLinks(List.of(DRIVE_URL, DRIVE_URL), "같은 증빙 링크가 두 번 있습니다.");
+        assertCommitWithLinks(List.of(DRIVE_URL + 1, DRIVE_URL + 2, DRIVE_URL + 3, DRIVE_URL + 4, DRIVE_URL + 5,
+                DRIVE_URL + 6), "증빙은 최대 5개까지 첨부할 수 있습니다.");
 
-        assertCommitWithEvidence(List.of(999_999L), 404);
-        assertCommitWithEvidence(List.of(pending), 400);
-        assertCommitWithEvidence(List.of(1L, 2L, 3L, 4L, 5L, 6L), 400);
-
-        ObjectNode duplicated = commitBody(previewJson(sameSecondFile()));
-        ((ObjectNode) duplicated.get("transactions").get(0)).putArray("evidenceIds").add(confirmed);
-        ((ObjectNode) duplicated.get("transactions").get(1)).putArray("evidenceIds").add(confirmed);
-        commit(duplicated)
+        ObjectNode missing = commitBody(previewJson(sameSecondFile()));
+        ((ObjectNode) missing.get("transactions").get(0)).remove("evidenceLinks");
+        commit(missing)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("같은 증빙이 요청에 두 번 있습니다."));
-
-        // 이미 다른 기록에 붙은 증빙
-        Long entryId = deposit(1_000).getId();
-        perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .patch("/v1/admin/ledger/entries/{id}", entryId), adminToken,
-                "{\"counterparty\":\"상대\",\"category\":\"ETC\",\"description\":\"내용\",\"note\":\"\","
-                        + "\"evidenceIds\":[%d]}".formatted(confirmed))
-                .andExpect(status().isOk());
-        assertCommitWithEvidence(List.of(confirmed), 400);
+                .andExpect(jsonPath("$.message").value("증빙 목록을 입력하세요."));
 
         assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM ledger_entry WHERE row_key IS NOT NULL",
                 Long.class)).isZero();
+        assertThat(linkCount()).isZero();
     }
 
     // ---------- 권한 ----------
@@ -346,7 +341,7 @@ class LedgerImportIntegrationTest extends LedgerIntegrationTestSupport {
                     .put("bankBalance", t.get("bankBalance").asLong())
                     .put("category", t.get("suggestedCategory").asText())
                     .put("note", "");
-            item.putArray("evidenceIds");
+            item.putArray("evidenceLinks");
         }
         return body;
     }
@@ -355,26 +350,17 @@ class LedgerImportIntegrationTest extends LedgerIntegrationTestSupport {
         return perform(post(COMMIT), adminToken, body.toString());
     }
 
-    private void assertCommitWithEvidence(List<Long> evidenceIds, int expectedStatus) throws Exception {
+    private void assertCommitWithLinks(List<String> urls, String message) throws Exception {
         ObjectNode body = commitBody(previewJson(sameSecondFile()));
-        ArrayNode ids = ((ObjectNode) body.get("transactions").get(0)).putArray("evidenceIds");
-        evidenceIds.forEach(ids::add);
-        commit(body).andExpect(status().is(expectedStatus));
+        ArrayNode links = ((ObjectNode) body.get("transactions").get(0)).putArray("evidenceLinks");
+        urls.forEach(url -> links.addObject().put("url", url));
+        commit(body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(message));
     }
 
-    private Long pendingEvidence() throws Exception {
-        String body = perform(post("/v1/admin/ledger/evidences/presigned-url"), adminToken,
-                "{\"fileName\":\"r.png\",\"contentType\":\"image/png\",\"size\":100}")
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        return objectMapper.readTree(body).get("evidenceId").asLong();
-    }
-
-    private Long confirmedEvidence() throws Exception {
-        Long id = pendingEvidence();
-        when(s3Client.headObject(any(HeadObjectRequest.class)))
-                .thenReturn(HeadObjectResponse.builder().contentLength(100L).contentType("image/png").build());
-        perform(post("/v1/admin/ledger/evidences/{id}/complete", id)).andExpect(status().isOk());
-        return id;
+    private long linkCount() {
+        return jdbcTemplate.queryForObject("SELECT count(*) FROM ledger_entry_evidence_link", Long.class);
     }
 
     private long entryCount() {

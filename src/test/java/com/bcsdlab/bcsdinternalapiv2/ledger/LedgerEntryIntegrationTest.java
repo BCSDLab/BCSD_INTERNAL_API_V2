@@ -152,11 +152,9 @@ class LedgerEntryIntegrationTest extends LedgerIntegrationTestSupport {
         update(entry.getId(), "상대", "ETC", "내용", "가".repeat(501)).andExpect(status().isBadRequest());
         update(entry.getId(), "상대", "DUES_REFUND", "내용", "").andExpect(status().isBadRequest());
         patchBody(entry.getId(), "{\"counterparty\":\"상대\",\"category\":\"ETC\",\"description\":\"내용\","
-                + "\"note\":\"\",\"evidenceIds\":[1,2,3,4,5,6]}").andExpect(status().isBadRequest());
-        patchBody(entry.getId(), "{\"counterparty\":\"상대\",\"category\":\"ETC\",\"description\":\"내용\","
-                + "\"note\":\"\",\"evidenceIds\":[1,1]}")
+                + "\"note\":\"\"}")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("같은 증빙이 요청에 두 번 있습니다."));
+                .andExpect(jsonPath("$.message").value("증빙 목록을 입력하세요."));
     }
 
     @Test
@@ -165,17 +163,6 @@ class LedgerEntryIntegrationTest extends LedgerIntegrationTestSupport {
 
         update(entry.getId(), " " + "가".repeat(100) + " ", "ETC", "가".repeat(200), "가".repeat(500))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void 없는_증빙을_붙이면_404이고_아무것도_바뀌지_않는다() throws Exception {
-        LedgerEntry entry = deposit(10_000);
-
-        patchBody(entry.getId(), "{\"counterparty\":\"바뀐상대\",\"category\":\"EVENT\",\"description\":\"내용\","
-                + "\"note\":\"\",\"evidenceIds\":[999999]}")
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("증빙을 찾을 수 없습니다."));
-        perform(get(ENTRIES)).andExpect(jsonPath("$.entries[0].counterparty").value("테스트상대"));
     }
 
     @Test
@@ -196,7 +183,7 @@ class LedgerEntryIntegrationTest extends LedgerIntegrationTestSupport {
         perform(get(ENTRIES), memberToken).andExpect(status().isForbidden());
         perform(patch(ENTRIES + "/{id}", entry.getId()), memberToken,
                 "{\"counterparty\":\"상대\",\"category\":\"ETC\",\"description\":\"내용\",\"note\":\"\","
-                        + "\"evidenceIds\":[]}")
+                        + "\"evidenceLinks\":[]}")
                 .andExpect(status().isForbidden());
     }
 
@@ -215,7 +202,7 @@ class LedgerEntryIntegrationTest extends LedgerIntegrationTestSupport {
             throws Exception {
         return patchBody(id, objectMapper.writeValueAsString(java.util.Map.of(
                 "counterparty", counterparty, "category", category, "description", description, "note", note,
-                "evidenceIds", java.util.List.of())));
+                "evidenceLinks", java.util.List.of())));
     }
 
     private ResultActions patchBody(Long id, String body) throws Exception {

@@ -1,8 +1,5 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,7 +19,6 @@ import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
@@ -41,8 +37,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 /**
  * 회비·장부 통합 테스트 공통 베이스. 모든 하위 클래스가 같은 설정(고정 Clock)을 써서 Spring 컨텍스트를 하나만
@@ -101,9 +95,6 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
         memberRepository.deleteAll();
         backend = trackMasterRepository.findByCode("BACKEND").orElseThrow();
         clock.setToday(LocalDate.of(2026, 10, 10));
-        PresignedPutObjectRequest presigned = mock(PresignedPutObjectRequest.class);
-        when(presigned.url()).thenReturn(URI.create("https://s3.example.com/upload?X-Amz-Signature=fake").toURL());
-        when(s3Presigner.presignPutObject(any(PutObjectPresignRequest.class))).thenReturn(presigned);
         member("2020000000", "관리자").role(MemberRole.ADMIN).clubActive(false).save();
         adminToken = login("2020000000");
     }
@@ -120,6 +111,7 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
         jdbcTemplate.update("DELETE FROM dues_exemption");
         // 시드 15개(V25)는 마이그레이션 데이터라 남긴다.
         jdbcTemplate.update("DELETE FROM dues_exemption_reason WHERE id > 15");
+        jdbcTemplate.update("DELETE FROM ledger_entry_evidence_link");
         jdbcTemplate.update("DELETE FROM ledger_entry_evidence");
         jdbcTemplate.update("DELETE FROM image_asset");
         jdbcTemplate.update("DELETE FROM dues_link");

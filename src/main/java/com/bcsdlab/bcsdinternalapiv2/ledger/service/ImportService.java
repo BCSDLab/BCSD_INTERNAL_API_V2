@@ -76,16 +76,11 @@ public class ImportService {
      */
     public ImportCommitResponse commit(ImportCommitRequest request, Long adminId) {
         Set<String> rowKeys = new HashSet<>();
-        Set<Long> evidenceIds = new HashSet<>();
         for (ImportCommitRequest.Transaction transaction : request.transactions()) {
             if (!rowKeys.add(transaction.rowKey())) {
                 throw new LedgerException(LedgerExceptionType.DUPLICATED_ROW_KEY_IN_REQUEST);
             }
-            for (Long evidenceId : transaction.evidenceIds()) {
-                if (!evidenceIds.add(evidenceId)) {
-                    throw new LedgerException(LedgerExceptionType.DUPLICATED_EVIDENCE_IN_REQUEST);
-                }
-            }
+            EvidenceLinkWriter.requireAttachable(transaction.evidenceLinks(), List.of());
         }
         List<ImportWriter.Row> rows = request.transactions().stream().map(ImportService::verify).toList();
         List<Sequenced<ImportWriter.Row>> sequenced = ImportSequencer.sequence(rows, row -> new Movement(

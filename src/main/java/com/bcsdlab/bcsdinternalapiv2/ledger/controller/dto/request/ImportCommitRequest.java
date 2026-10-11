@@ -57,7 +57,7 @@ public record ImportCommitRequest(
 
             @NotNull(message = "증빙 목록을 입력하세요.")
             @Size(max = 5, message = "증빙은 최대 5개까지 첨부할 수 있습니다.")
-            List<@NotNull Long> evidenceIds
+            List<@Valid @NotNull(message = "증빙 링크를 입력하세요.") EvidenceLinkRequest> evidenceLinks
     ) {
     }
 }
