@@ -5,6 +5,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.bcsdlab.bcsdinternalapiv2.IntegrationTestSupport;
 import com.bcsdlab.bcsdinternalapiv2.auth.repository.RefreshTokenRepository;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.EntryType;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.LedgerCategory;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.LedgerEntry;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.SemesterKey;
+import com.bcsdlab.bcsdinternalapiv2.ledger.repository.LedgerEntryRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
@@ -14,6 +19,7 @@ import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +65,9 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
     @Autowired
     protected MutableClock clock;
 
+    @Autowired
+    protected LedgerEntryRepository ledgerEntryRepository;
+
     protected final ObjectMapper objectMapper = new ObjectMapper();
 
     protected TrackMaster backend;
@@ -80,9 +89,41 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
         clearDuesTables();
     }
 
+    /** 외래 키 순서대로 지운다. 장부·명단·학기 모두 회원을 참조한다. */
     private void clearDuesTables() {
+        jdbcTemplate.update("DELETE FROM dues_link");
+        jdbcTemplate.update("DELETE FROM ledger_entry");
         jdbcTemplate.update("DELETE FROM dues_semester_member");
         jdbcTemplate.update("DELETE FROM dues_semester");
+    }
+
+    protected LedgerEntry deposit(long amount) {
+        return entry(EntryType.DEPOSIT, LedgerCategory.ETC, amount, LocalDateTime.of(2026, 11, 16, 9, 10));
+    }
+
+    protected LedgerEntry withdrawal(long amount) {
+        return entry(EntryType.WITHDRAWAL, LedgerCategory.ETC, amount, LocalDateTime.of(2026, 11, 16, 9, 10));
+    }
+
+    /** 장부 내역은 가져오기(PR5)로만 생기므로 테스트는 저장소로 직접 넣는다. */
+    protected LedgerEntry entry(EntryType type, LedgerCategory category, long amount, LocalDateTime occurredAt) {
+        return ledgerEntryRepository.save(LedgerEntry.builder()
+                .occurredAt(occurredAt)
+                .type(type)
+                .category(category)
+                .counterparty("테스트상대")
+                .description("테스트 거래")
+                .note("")
+                .amount(amount)
+                .bankBalance(1_000_000)
+                .sourceFileName("test.xlsx")
+                .build());
+    }
+
+    protected Long semesterIdOf(String semesterId) {
+        SemesterKey key = SemesterKey.parse(semesterId);
+        return jdbcTemplate.queryForObject("SELECT id FROM dues_semester WHERE year = ? AND term = ?", Long.class,
+                key.year(), key.term());
     }
 
     protected MemberFixture member(String studentNumber, String name) {

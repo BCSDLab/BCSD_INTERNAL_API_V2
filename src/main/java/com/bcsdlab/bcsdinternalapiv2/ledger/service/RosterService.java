@@ -11,6 +11,7 @@ import com.bcsdlab.bcsdinternalapiv2.ledger.exception.LedgerExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.DuesSemester;
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.DuesSemesterMember;
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.DuesSemesterMemberId;
+import com.bcsdlab.bcsdinternalapiv2.ledger.repository.DuesLinkRepository;
 import com.bcsdlab.bcsdinternalapiv2.ledger.repository.DuesSemesterMemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
@@ -32,6 +33,7 @@ public class RosterService {
     private final DuesSemesterWriter semesterWriter;
     private final DuesSemesterMemberRepository rosterRepository;
     private final MemberRepository memberRepository;
+    private final DuesLinkRepository linkRepository;
 
     @Transactional(readOnly = true)
     public SemesterRosterResponse getRoster(String semesterId) {
@@ -68,14 +70,17 @@ public class RosterService {
     }
 
     /**
-     * 납부 대상 여부 정정. 명단 행을 FOR UPDATE로 잠근다. 연결이 있는데 비대상으로 바꾸면 409인 검사는
-     * 회비 연결(dues_link)이 생기는 PR2에서 이 잠금 아래에 더한다.
+     * 납부 대상 여부 정정. 연결이 있는 회원은 비대상으로 바꿀 수 없다(409). 명단 행을 FOR UPDATE로 잠근 뒤
+     * 연결을 새로 세므로, 같은 행을 FOR SHARE로 잠그는 연결 작업과 엇갈리지 않는다.
      */
     @Transactional
     public RosterMemberResponse update(String semesterId, Long memberId, RosterUpdateRequest request) {
         DuesSemester semester = semesterReader.get(semesterId);
         DuesSemesterMember row = rosterRepository.findForUpdate(semester.getId(), memberId)
                 .orElseThrow(() -> new LedgerException(LedgerExceptionType.NOT_ROSTER_MEMBER));
+        if (!request.applicable() && linkRepository.existsBySemesterIdAndMemberId(semester.getId(), memberId)) {
+            throw new LedgerException(LedgerExceptionType.ROSTER_MEMBER_HAS_LINKS);
+        }
         row.updateApplicable(request.applicable());
         return RosterMemberResponse.from(row);
     }
