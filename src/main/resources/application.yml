@@ -21,6 +21,12 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  # multipart를 받는 API는 장부 거래내역 가져오기뿐이다(실제 파일 최대 27KB). 넘으면 413.
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 2MB
+
 server:
   port: ${SERVER_PORT:8080}
 

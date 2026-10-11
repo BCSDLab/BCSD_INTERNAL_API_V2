@@ -25,6 +25,11 @@ public enum LedgerExceptionType implements BcsdExceptionType {
     EVIDENCE_VERIFY_FAILED(HttpStatus.BAD_GATEWAY, "증빙 업로드를 확인하지 못했습니다. 잠시 뒤 다시 시도하세요."),
     EXEMPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "면제 기록을 찾을 수 없습니다."),
     INVALID_EXEMPTION_PERIOD(HttpStatus.BAD_REQUEST, "종료 월은 시작 월보다 빠를 수 없습니다."),
+    IMPORT_FILE_INVALID(HttpStatus.BAD_REQUEST, "신한은행 거래내역 파일을 읽을 수 없습니다."),
+    IMPORT_FILE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "거래내역 파일이 너무 큽니다. 1MB 이하 파일만 올릴 수 있습니다."),
+    IMPORT_ROW_KEY_MISMATCH(HttpStatus.BAD_REQUEST, "거래 정보가 미리보기 결과와 다릅니다. 파일을 다시 미리보기 하세요."),
+    DUPLICATED_EVIDENCE_IN_REQUEST(HttpStatus.BAD_REQUEST, "같은 증빙이 요청에 두 번 있습니다."),
+    DUPLICATED_ROW_KEY_IN_REQUEST(HttpStatus.BAD_REQUEST, "같은 거래가 요청에 두 번 있습니다. 파일을 다시 미리보기 하세요."),
     ;
 
     private final HttpStatus status;
