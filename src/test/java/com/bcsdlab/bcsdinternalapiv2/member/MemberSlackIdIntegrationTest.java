@@ -1,6 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -8,6 +9,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,6 +69,30 @@ class MemberSlackIdIntegrationTest extends IntegrationTestSupport {
         memberRepository.deleteAll();
         saveMember("20230001", "관리자", MemberRole.ADMIN);
         adminToken = login("20230001");
+    }
+
+    // ---------- GET /v1/members/me ----------
+
+    @Test
+    void 내_정보에_내_Slack_ID가_포함된다() throws Exception {
+        Member member = saveMember("20240011", "김하준", MemberRole.MEMBER);
+        patchSlackId(member.getId(), "\"" + SLACK_ID + "\"").andExpect(status().isNoContent());
+        String memberToken = login("20240011");
+
+        mockMvc.perform(get("/v1/members/me").header("Authorization", "Bearer " + memberToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.studentNumber").value("20240011"))
+                .andExpect(jsonPath("$.slackId").value(SLACK_ID));
+    }
+
+    @Test
+    void 내_Slack_ID가_없으면_null로_내려준다() throws Exception {
+        saveMember("20240012", "이지우", MemberRole.MEMBER);
+        String memberToken = login("20240012");
+
+        mockMvc.perform(get("/v1/members/me").header("Authorization", "Bearer " + memberToken))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"slackId\":null")));
     }
 
     // ---------- PATCH /{memberId}/slack-id ----------
