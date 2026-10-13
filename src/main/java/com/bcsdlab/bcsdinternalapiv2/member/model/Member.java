@@ -42,7 +42,8 @@ public class Member extends BaseTimeEntity {
     @Column(name = "student_number", nullable = false, updatable = false)
     private String studentNumber;
 
-    @Column(name = "password", nullable = false)
+    // NULL이면 로그인 계정이 없는 회원(졸업생·멘토 등 명부에만 있는 회원)이다. 관리자가 초대하면 채워진다.
+    @Column(name = "password")
     private String password;
 
     @Column(name = "name", nullable = false)
@@ -125,11 +126,15 @@ public class Member extends BaseTimeEntity {
     @Column(name = "slack_id")
     private String slackId;
 
+    // 직장. 관리자 인명부에서만 노출된다.
+    @Column(name = "company")
+    private String company;
+
     @Builder
     private Member(String studentNumber, String password, String name, TrackMaster track, String generation,
                    MemberType memberType, String university, String department, AcademicStatus academicStatus,
                    Boolean clubActive, Collection<Position> positions, LocalDate birthDate, Boolean duesRequired,
-                   String email, String phoneNumber, String githubId, String profileImageUrl,
+                   String email, String phoneNumber, String githubId, String profileImageUrl, String company,
                    MemberStatus status, MemberRole role, Instant passwordChangedAt) {
         this.studentNumber = studentNumber;
         this.password = password;
@@ -150,10 +155,16 @@ public class Member extends BaseTimeEntity {
         this.phoneNumber = phoneNumber;
         this.githubId = githubId;
         this.profileImageUrl = profileImageUrl;
+        this.company = company;
         this.status = status != null ? status : MemberStatus.PENDING_SETUP;
         this.role = role != null ? role : MemberRole.MEMBER;
         this.loginFailCount = 0;
         this.passwordChangedAt = truncateToMillis(passwordChangedAt);
+    }
+
+    /** 로그인 계정이 있는지(비밀번호가 설정됐는지). 계정이 없는 회원은 로그인·셀프 비밀번호 재설정을 할 수 없다. */
+    public boolean hasAccount() {
+        return this.password != null;
     }
 
     public boolean isPendingSetup() {
@@ -235,7 +246,7 @@ public class Member extends BaseTimeEntity {
     public void updateProfile(String name, TrackMaster track, String generation, MemberType memberType,
                                String university, String department, Collection<Position> positions,
                                LocalDate birthDate, boolean duesRequired, String email, String phoneNumber,
-                               String githubId) {
+                               String githubId, String company) {
         this.name = name;
         this.track = track;
         this.generation = generation;
@@ -251,6 +262,7 @@ public class Member extends BaseTimeEntity {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.githubId = githubId;
+        this.company = company;
     }
 
     public void changeRole(MemberRole role) {

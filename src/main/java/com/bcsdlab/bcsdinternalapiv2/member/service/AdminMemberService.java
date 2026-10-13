@@ -3,6 +3,7 @@ package com.bcsdlab.bcsdinternalapiv2.member.service;
 import com.bcsdlab.bcsdinternalapiv2.global.config.LoginPageProperties;
 import com.bcsdlab.bcsdinternalapiv2.member.exception.MemberException;
 import com.bcsdlab.bcsdinternalapiv2.member.exception.MemberExceptionType;
+import com.bcsdlab.bcsdinternalapiv2.member.util.CompanyNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.util.GithubIdNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.util.PhoneNumberNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
@@ -61,12 +62,15 @@ public class AdminMemberService {
         TrackMaster track = trackMasterRepository.findByCode(request.track().name())
                 .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_NOT_FOUND));
 
-        String temporaryPassword = generateTemporaryPassword();
+        // 계정 없이 명부에만 등록하면 비밀번호·비밀번호 변경 시각을 비워 두고 환영 메일도 보내지 않는다.
+        // 계정은 나중에 환영 메일 재발송이나 Slack 비밀번호 설정 링크로 만든다.
+        boolean createAccount = request.shouldCreateAccount();
+        String temporaryPassword = createAccount ? generateTemporaryPassword() : null;
         Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 
         Member member = Member.builder()
                 .studentNumber(request.studentNumber())
-                .password(passwordEncoder.encode(temporaryPassword))
+                .password(createAccount ? passwordEncoder.encode(temporaryPassword) : null)
                 .name(request.name())
                 .track(track)
                 .generation(request.generation())
@@ -78,14 +82,17 @@ public class AdminMemberService {
                 .email(normalizedEmail)
                 .phoneNumber(normalizedPhone)
                 .githubId(normalizedGithubId)
-                .passwordChangedAt(now)
+                .company(CompanyNormalizer.normalize(request.company()))
+                .passwordChangedAt(createAccount ? now : null)
                 .build();
 
         memberRepository.save(member);
 
-        eventPublisher.publishEvent(new AccountCreatedEvent(
-                member.getId(), normalizedEmail, member.getStudentNumber(), temporaryPassword,
-                loginPageProperties.url(), now));
+        if (createAccount) {
+            eventPublisher.publishEvent(new AccountCreatedEvent(
+                    member.getId(), normalizedEmail, member.getStudentNumber(), temporaryPassword,
+                    loginPageProperties.url(), now));
+        }
 
         return new AdminMemberCreateResponse(member.getId(), member.getStudentNumber());
     }

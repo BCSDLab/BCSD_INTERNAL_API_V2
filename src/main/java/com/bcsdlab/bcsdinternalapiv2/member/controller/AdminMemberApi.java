@@ -12,7 +12,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.SlackIdLookup
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.SlackIdUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.WithdrawalUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberCreateResponse;
-import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackIdLookupResponse;
@@ -47,7 +47,10 @@ public interface AdminMemberApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "계정 생성", description = "학번이 로그인 아이디가 되며, 초기 비밀번호는 발급 후 이메일로 안내됩니다. "
-            + "생성 직후 입력한 이메일로 Slack 계정을 조회해 Slack ID를 자동 저장합니다(조회 실패·중복이어도 생성은 성공).")
+            + "생성 직후 입력한 이메일로 Slack 계정을 조회해 Slack ID를 자동 저장합니다(조회 실패·중복이어도 생성은 성공). "
+            + "createAccount를 false로 보내면 로그인 계정 없이 명부에만 등록합니다(비밀번호 없음, 환영 메일 없음, "
+            + "셀프 비밀번호 재설정 불가). 이 회원은 환영 메일 재발송 또는 비밀번호 설정 링크 Slack DM 발송으로 계정을 만들 수 "
+            + "있습니다. createAccount를 생략하면 true로 처리합니다. company(직장)는 선택이며 최대 100자, 비우면 null입니다.")
     @SecurityRequirement(name = "JWT")
     @PostMapping
     ResponseEntity<AdminMemberCreateResponse> createMember(@RequestBody @Valid AdminMemberCreateRequest request);
@@ -60,7 +63,8 @@ public interface AdminMemberApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "환영 메일 재발송", description = "새 임시 비밀번호를 발급하고 계정 생성 메일을 다시 보냅니다. "
-            + "이미 초기 설정을 완료한 계정에는 사용할 수 없습니다.")
+            + "이미 초기 설정을 완료한 계정에는 사용할 수 없습니다. 계정 없이 등록한 회원에게 보내면 이 임시 비밀번호로 계정이 "
+            + "생깁니다.")
     @SecurityRequirement(name = "JWT")
     @PostMapping("/{memberId}/resend-welcome-mail")
     ResponseEntity<Void> resendWelcomeMail(@PathVariable Long memberId);
@@ -78,7 +82,8 @@ public interface AdminMemberApi {
     @Operation(summary = "비밀번호 설정 링크 Slack DM 발송", description = "이메일을 받을 수 없는 회원에게 비밀번호 설정(재설정) "
             + "링크를 Slack DM으로 보냅니다. 링크는 24시간 동안 한 번만 쓸 수 있고, 발급하면 그 회원의 기존 미사용 링크는 "
             + "모두 무효가 됩니다. Slack ID가 없으면 400, 탈퇴한 회원이면 409, 같은 회원에게 1분 안에 다시 보내면 429입니다. "
-            + "DM 발송에 실패하면 발급한 링크를 폐기하고 502를 반환합니다.")
+            + "DM 발송에 실패하면 발급한 링크를 폐기하고 502를 반환합니다. 계정 없이 등록한 회원은 이 링크로 비밀번호를 정하면 "
+            + "계정이 생깁니다.")
     @SecurityRequirement(name = "JWT")
     @PostMapping("/{memberId}/password-link/slack")
     ResponseEntity<Void> sendPasswordLinkViaSlack(@PathVariable Long memberId,
@@ -90,10 +95,11 @@ public interface AdminMemberApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "인명부 조회", description = "검색어, 활동 여부, 학적 상태, 트랙, 구분으로 필터링하고 정렬·페이지네이션된 회원 목록과 "
-            + "사이드바 집계 카운트를 반환합니다.")
+            + "사이드바 집계 카운트를 반환합니다. 일반 인명부 항목에 관리자 전용 필드 company(직장, 없으면 null)와 "
+            + "hasAccount(로그인 계정 유무)가 더해집니다.")
     @SecurityRequirement(name = "JWT")
     @GetMapping
-    ResponseEntity<MemberDirectoryResponse> getDirectory(@ModelAttribute MemberDirectoryQuery query,
+    ResponseEntity<AdminMemberDirectoryResponse> getDirectory(@ModelAttribute MemberDirectoryQuery query,
                                                           @Parameter(hidden = true) Pageable pageable);
 
     @ApiResponses(value = {
@@ -129,7 +135,8 @@ public interface AdminMemberApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
-    @Operation(summary = "회원 프로필 수정", description = "이름/트랙/기수/구분/학교/학부/역할/생일/납부여부/이메일/전화번호/깃허브 아이디를 수정합니다.")
+    @Operation(summary = "회원 프로필 수정", description = "이름/트랙/기수/구분/학교/학부/역할/생일/납부여부/이메일/전화번호/깃허브 아이디/직장을 "
+            + "수정합니다. 전체를 덮어쓰므로 company(직장)를 생략하거나 비우면 지워집니다.")
     @SecurityRequirement(name = "JWT")
     @PatchMapping("/{memberId}")
     ResponseEntity<Void> updateProfile(@PathVariable Long memberId,

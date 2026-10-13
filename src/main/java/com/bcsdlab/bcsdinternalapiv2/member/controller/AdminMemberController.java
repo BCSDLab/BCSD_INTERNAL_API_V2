@@ -12,7 +12,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.SlackIdLookup
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.SlackIdUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.WithdrawalUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberCreateResponse;
-import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackIdLookupResponse;
@@ -90,10 +90,10 @@ public class AdminMemberController implements AdminMemberApi {
 
     @Override
     @GetMapping
-    public ResponseEntity<MemberDirectoryResponse> getDirectory(
+    public ResponseEntity<AdminMemberDirectoryResponse> getDirectory(
             @ModelAttribute MemberDirectoryQuery query,
             @PageableDefault(size = 8, sort = "generation", direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(memberDirectoryService.getDirectory(query, pageable));
+        return ResponseEntity.ok(memberDirectoryService.getAdminDirectory(query, pageable));
     }
 
     @Override

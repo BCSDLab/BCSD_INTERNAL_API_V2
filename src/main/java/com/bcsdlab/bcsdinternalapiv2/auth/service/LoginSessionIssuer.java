@@ -30,7 +30,8 @@ public class LoginSessionIssuer {
         Member member = memberRepository.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new AuthException(AuthExceptionType.INVALID_CREDENTIALS));
 
-        if (!member.getPassword().equals(verifiedPasswordHash)) {
+        // 계정이 없는 회원은 비밀번호가 null이다. 검증된 해시 쪽에서 비교해 NPE 없이 불일치로 처리한다.
+        if (!verifiedPasswordHash.equals(member.getPassword())) {
             throw new AuthException(AuthExceptionType.INVALID_CREDENTIALS);
         }
         if (member.isWithdrawn()) {

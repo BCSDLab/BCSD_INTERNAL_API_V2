@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public record AdminMemberCreateRequest(
         @NotBlank
@@ -41,6 +42,15 @@ public record AdminMemberCreateRequest(
 
         String phoneNumber,
 
-        String githubId
+        String githubId,
+
+        @Size(max = 100)
+        String company,
+
+        // false면 로그인 계정 없이 명부에만 등록한다(비밀번호 없음, 환영 메일 없음). 생략하면 기존처럼 계정을 만든다.
+        Boolean createAccount
 ) {
+    public boolean shouldCreateAccount() {
+        return createAccount == null || createAccount;
+    }
 }
