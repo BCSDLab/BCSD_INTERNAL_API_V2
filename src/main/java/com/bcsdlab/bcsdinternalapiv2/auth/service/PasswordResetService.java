@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PasswordResetService {
 
     private static final Duration TOKEN_VALIDITY = Duration.ofMinutes(30);
+    private static final Duration SLACK_LINK_VALIDITY = Duration.ofHours(24);
     private static final Duration RESEND_INTERVAL = Duration.ofMinutes(5);
     private static final Duration IP_RESEND_INTERVAL = Duration.ofSeconds(3);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -61,22 +62,29 @@ public class PasswordResetService {
         memberRepository.findByEmail(email)
                 .flatMap(member -> memberRepository.findByIdForUpdate(member.getId()))
                 .ifPresent(member -> {
-                    passwordResetTokenRepository.markAllUnusedAsUsed(member.getId(), now);
-
-                    String rawToken = generateOpaqueToken();
-                    PasswordResetToken token = PasswordResetToken.builder()
-                            .memberId(member.getId())
-                            .tokenHash(TokenHasher.sha256Hex(rawToken))
-                            .expiresAt(now.plus(TOKEN_VALIDITY))
-                            .requestedIp(requestedIp)
-                            .createdAt(now)
-                            .build();
-                    passwordResetTokenRepository.save(token);
-
-                    String resetUrl = resetPasswordProperties.baseUrl() + "?token=" + rawToken;
+                    IssuedToken issued = issueToken(member, TOKEN_VALIDITY, requestedIp, now);
                     eventPublisher.publishEvent(
-                            new PasswordResetRequestedEvent(token.getId(), member.getEmail(), resetUrl));
+                            new PasswordResetRequestedEvent(issued.token().getId(), member.getEmail(), issued.url()));
                 });
+    }
+
+    /**
+     * 관리자가 Slack DM으로 보낼 재설정 링크를 발급한다. 회원 행을 잠근 뒤 기존 미사용 토큰을 폐기하고 새 토큰을 만든다.
+     * DM은 늦게 읽을 수 있어 메일(30분)보다 긴 24시간 유효하다. 회원 상태·Slack ID 검증과 요청 제한은 호출자 몫이다.
+     * DM 발송은 이 트랜잭션이 커밋된 뒤 호출자가 하고, 실패하면 {@link #revokeToken(Long)}으로 링크를 폐기한다.
+     */
+    @Transactional
+    public IssuedResetLink issueSlackLink(Long memberId, String requestedIp) {
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new AuthException(AuthExceptionType.RESET_TOKEN_INVALID));
+        IssuedToken issued = issueToken(member, SLACK_LINK_VALIDITY, requestedIp, Instant.now());
+        return new IssuedResetLink(issued.token().getId(), issued.url());
+    }
+
+    /** 전달되지 못한 링크를 쓸 수 없게 사용 처리한다. 이미 사용된 토큰이면 아무것도 하지 않는다. */
+    @Transactional
+    public void revokeToken(Long tokenId) {
+        passwordResetTokenRepository.markUsedIfUnused(tokenId, Instant.now());
     }
 
     @Transactional(readOnly = true)
@@ -143,6 +151,30 @@ public class PasswordResetService {
     }
 
     private record ValidTokenResult(PasswordResetToken token, Member member) {
+    }
+
+    /** 같은 회원의 미사용 토큰을 모두 폐기하고 새 토큰을 저장한다. 원문 토큰은 링크에만 담고 DB에는 해시만 남긴다. */
+    private IssuedToken issueToken(Member member, Duration validity, String requestedIp, Instant now) {
+        passwordResetTokenRepository.markAllUnusedAsUsed(member.getId(), now);
+
+        String rawToken = generateOpaqueToken();
+        PasswordResetToken token = PasswordResetToken.builder()
+                .memberId(member.getId())
+                .tokenHash(TokenHasher.sha256Hex(rawToken))
+                .expiresAt(now.plus(validity))
+                .requestedIp(requestedIp)
+                .createdAt(now)
+                .build();
+        passwordResetTokenRepository.save(token);
+
+        return new IssuedToken(token, resetPasswordProperties.baseUrl() + "?token=" + rawToken);
+    }
+
+    private record IssuedToken(PasswordResetToken token, String url) {
+    }
+
+    /** 발급한 링크. url에 원문 토큰이 들어 있으니 로그에 남기지 않는다. */
+    public record IssuedResetLink(Long tokenId, String url) {
     }
 
     private String maskStudentNumber(String studentNumber) {

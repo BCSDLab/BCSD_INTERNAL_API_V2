@@ -18,9 +18,11 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoUrlResp
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackIdLookupResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.SlackProfileSyncResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.service.AdminMemberService;
+import com.bcsdlab.bcsdinternalapiv2.member.service.AdminPasswordLinkService;
 import com.bcsdlab.bcsdinternalapiv2.member.service.MemberDirectoryService;
 import com.bcsdlab.bcsdinternalapiv2.member.service.MemberSlackIdService;
 import com.bcsdlab.bcsdinternalapiv2.member.service.SlackProfileSyncService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +48,7 @@ public class AdminMemberController implements AdminMemberApi {
     private final MemberDirectoryService memberDirectoryService;
     private final SlackProfileSyncService slackProfileSyncService;
     private final MemberSlackIdService memberSlackIdService;
+    private final AdminPasswordLinkService adminPasswordLinkService;
 
     @Override
     @PostMapping
@@ -74,6 +77,14 @@ public class AdminMemberController implements AdminMemberApi {
     @PostMapping("/{memberId}/resend-welcome-mail")
     public ResponseEntity<Void> resendWelcomeMail(@PathVariable Long memberId) {
         adminMemberService.resendWelcomeMail(memberId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PostMapping("/{memberId}/password-link/slack")
+    public ResponseEntity<Void> sendPasswordLinkViaSlack(@PathVariable Long memberId,
+                                                         HttpServletRequest servletRequest) {
+        adminPasswordLinkService.sendViaSlack(memberId, servletRequest.getRemoteAddr());
         return ResponseEntity.noContent().build();
     }
 

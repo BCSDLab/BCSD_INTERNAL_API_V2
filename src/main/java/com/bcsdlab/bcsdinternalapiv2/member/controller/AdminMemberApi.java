@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -63,6 +64,25 @@ public interface AdminMemberApi {
     @SecurityRequirement(name = "JWT")
     @PostMapping("/{memberId}/resend-welcome-mail")
     ResponseEntity<Void> resendWelcomeMail(@PathVariable Long memberId);
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "429", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "502", content = @Content(schema = @Schema(hidden = true))),
+    })
+    @Operation(summary = "비밀번호 설정 링크 Slack DM 발송", description = "이메일을 받을 수 없는 회원에게 비밀번호 설정(재설정) "
+            + "링크를 Slack DM으로 보냅니다. 링크는 24시간 동안 한 번만 쓸 수 있고, 발급하면 그 회원의 기존 미사용 링크는 "
+            + "모두 무효가 됩니다. Slack ID가 없으면 400, 탈퇴한 회원이면 409, 같은 회원에게 1분 안에 다시 보내면 429입니다. "
+            + "DM 발송에 실패하면 발급한 링크를 폐기하고 502를 반환합니다.")
+    @SecurityRequirement(name = "JWT")
+    @PostMapping("/{memberId}/password-link/slack")
+    ResponseEntity<Void> sendPasswordLinkViaSlack(@PathVariable Long memberId,
+                                                  @Parameter(hidden = true) HttpServletRequest servletRequest);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
