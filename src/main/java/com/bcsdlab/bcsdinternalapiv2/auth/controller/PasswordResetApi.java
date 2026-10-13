@@ -27,7 +27,8 @@ public interface PasswordResetApi {
             @ApiResponse(responseCode = "429", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "비밀번호 재설정 이메일 요청",
-            description = "가입된 이메일 존재 여부와 무관하게 항상 동일한 응답을 반환합니다.")
+            description = "가입된 이메일 존재 여부와 무관하게 항상 동일한 응답을 반환합니다. "
+                    + "로그인 계정이 없는 회원(명부에만 등록된 회원)의 이메일이면 메일을 보내지 않습니다.")
     @PostMapping("/reset-requests")
     ResponseEntity<SimpleMessageResponse> requestReset(
             @RequestBody @Valid PasswordResetRequestRequest request,

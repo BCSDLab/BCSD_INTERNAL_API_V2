@@ -59,8 +59,11 @@ public class PasswordResetService {
             throw new AuthException(AuthExceptionType.TOO_MANY_REQUESTS);
         }
 
+        // 계정이 없는 회원(명부에만 있는 회원)은 셀프 재설정을 막는다. 없는 이메일과 같은 응답을 주고 아무것도 하지 않는다.
+        // 계정은 관리자 경로(환영 메일 재발송, Slack 비밀번호 설정 링크)로만 만든다.
         memberRepository.findByEmail(email)
                 .flatMap(member -> memberRepository.findByIdForUpdate(member.getId()))
+                .filter(Member::hasAccount)
                 .ifPresent(member -> {
                     IssuedToken issued = issueToken(member, TOKEN_VALIDITY, requestedIp, now);
                     eventPublisher.publishEvent(

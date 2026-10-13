@@ -3,6 +3,7 @@ package com.bcsdlab.bcsdinternalapiv2.member.service;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.AdminMemberProfileUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberDirectoryQuery;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresignedUrlRequest;
+import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.client.SlackClient;
@@ -15,6 +16,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.Position;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberSpecification;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.PositionRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.util.CompanyNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.util.GithubIdNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.util.PhoneNumberNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
@@ -45,6 +47,16 @@ public class MemberDirectoryService {
 
     @Transactional(readOnly = true)
     public MemberDirectoryResponse getDirectory(MemberDirectoryQuery query, Pageable pageable) {
+        return MemberDirectoryResponse.of(findPage(query, pageable), buildCounts());
+    }
+
+    /** 관리자 인명부. 일반 인명부 항목에 관리자 전용 필드(직장, 계정 유무)를 더한다. */
+    @Transactional(readOnly = true)
+    public AdminMemberDirectoryResponse getAdminDirectory(MemberDirectoryQuery query, Pageable pageable) {
+        return AdminMemberDirectoryResponse.of(findPage(query, pageable), buildCounts());
+    }
+
+    private Page<Member> findPage(MemberDirectoryQuery query, Pageable pageable) {
         Specification<Member> spec = MemberSpecification.combine(Arrays.asList(
                 MemberSpecification.search(query.keyword()),
                 MemberSpecification.hasActive(query.active()),
@@ -52,9 +64,7 @@ public class MemberDirectoryService {
                 MemberSpecification.hasTrackIn(query.track()),
                 MemberSpecification.hasMemberTypeIn(query.memberType())
         ));
-
-        Page<Member> page = memberRepository.findAll(spec, pageable);
-        return MemberDirectoryResponse.of(page, buildCounts());
+        return memberRepository.findAll(spec, pageable);
     }
 
     @Transactional
@@ -93,7 +103,8 @@ public class MemberDirectoryService {
 
         member.updateProfile(request.name(), track, request.generation(), request.memberType(),
                 request.university(), request.department(), positions, request.birthDate(),
-                request.duesRequired(), normalizedEmail, normalizedPhone, normalizedGithubId);
+                request.duesRequired(), normalizedEmail, normalizedPhone, normalizedGithubId,
+                CompanyNormalizer.normalize(request.company()));
     }
 
     @Transactional

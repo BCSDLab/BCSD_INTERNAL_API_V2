@@ -1,0 +1,64 @@
+package com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response;
+
+import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Position;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * 관리자 인명부 항목. {@link MemberSummaryResponse}의 필드에 관리자 전용 필드를 더한다.
+ * 일반 인명부(/v1/members/directory)는 MemberSummaryResponse를 그대로 쓰므로 company·hasAccount가 나가지 않는다.
+ */
+public record AdminMemberSummaryResponse(
+        Long id,
+        String name,
+        String generation,
+        String track,
+        String memberType,
+        String academicStatus,
+        String university,
+        String department,
+        List<String> positionCodes,
+        LocalDate birthDate,
+        boolean duesRequired,
+        String studentNumber,
+        String email,
+        String phoneNumber,
+        String githubId,
+        String slackId,
+        String photoUrl,
+        String role,
+        boolean active,
+        String company,
+        boolean hasAccount
+) {
+    public static AdminMemberSummaryResponse from(Member member) {
+        return new AdminMemberSummaryResponse(
+                member.getId(),
+                member.getName(),
+                member.getGeneration(),
+                member.getTrack().getCode(),
+                member.getMemberType().name(),
+                member.getAcademicStatus().name(),
+                member.getUniversity(),
+                member.getDepartment(),
+                member.getPositions().stream()
+                        .map(Position::getCode)
+                        .sorted(Comparator.naturalOrder())
+                        .toList(),
+                member.getBirthDate(),
+                member.isDuesRequired(),
+                member.getStudentNumber(),
+                member.getEmail(),
+                member.getPhoneNumber(),
+                member.getGithubId(),
+                member.getSlackId(),
+                member.getProfileImageUrl(),
+                member.getRole().name(),
+                member.isClubActive(),
+                member.getCompany(),
+                member.hasAccount()
+        );
+    }
+}
