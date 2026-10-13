@@ -19,7 +19,9 @@ public record MemberResponse(
         String role,
         String photoUrl,
         @Schema(description = "인명부 Slack 멤버 ID. 없으면 null", example = "U0ABCDEFGH1", nullable = true)
-        String slackId
+        String slackId,
+        @Schema(description = "초기 설정에서 새 비밀번호를 받아야 하는지(임시 비밀번호). 비밀번호 설정 링크로 이미 정했으면 false")
+        boolean passwordSetupRequired
 ) {
     public static MemberResponse from(Member member) {
         return new MemberResponse(
@@ -36,7 +38,8 @@ public record MemberResponse(
                 member.getStatus().name(),
                 member.getRole().name(),
                 member.getProfileImageUrl(),
-                member.getSlackId()
+                member.getSlackId(),
+                member.isPasswordTemporary()
         );
     }
 }

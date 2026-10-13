@@ -2,6 +2,7 @@ package com.bcsdlab.bcsdinternalapiv2.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -18,6 +19,7 @@ import com.bcsdlab.bcsdinternalapiv2.auth.repository.PasswordResetTokenRepositor
 import com.bcsdlab.bcsdinternalapiv2.auth.repository.RefreshTokenRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.util.TokenHasher;
 import com.bcsdlab.bcsdinternalapiv2.member.client.SlackApiException;
+import com.bcsdlab.bcsdinternalapiv2.member.client.SlackPostResult;
 import com.bcsdlab.bcsdinternalapiv2.member.client.SlackClient;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
@@ -102,8 +104,10 @@ class AdminPasswordLinkSlackIntegrationTest extends IntegrationTestSupport {
                 .orElseThrow();
         assertThat(issued.isUsed()).isFalse();
         assertThat(Duration.between(issued.getCreatedAt(), issued.getExpiresAt())).isEqualTo(Duration.ofHours(24));
+        assertThat(issued.getMailSentAt()).as("DM으로 전달한 시각을 남긴다").isNotNull();
 
-        validate(rawToken).andExpect(status().isOk()).andExpect(jsonPath("$.valid").value(true));
+        validate(rawToken).andExpect(status().isOk()).andExpect(jsonPath("$.valid").value(true))
+                .andExpect(jsonPath("$.accountSetup").value(false));
         mockMvc.perform(post("/v1/auth/password/reset")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -125,6 +129,7 @@ class AdminPasswordLinkSlackIntegrationTest extends IntegrationTestSupport {
         ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
         verify(slackClient).postDirectMessage(eq(SLACK_ID), text.capture());
         assertThat(text.getValue()).contains("이서연님", "계정 설정 링크");
+        validate(extractToken(text.getValue())).andExpect(jsonPath("$.accountSetup").value(true));
 
         // 링크로 비밀번호를 정해도 가입 전 상태는 그대로라, 로그인하면 초기 설정으로 이어진다.
         mockMvc.perform(post("/v1/auth/password/reset")
@@ -183,8 +188,11 @@ class AdminPasswordLinkSlackIntegrationTest extends IntegrationTestSupport {
         doThrow(new SlackApiException("channel_not_found", null))
                 .when(slackClient).postDirectMessage(anyString(), anyString());
 
+        // Slack 오류 원문은 응답에 넣지 않고 관리자가 확인할 것을 알려 준다.
         sendLink(member.getId()).andExpect(status().isBadGateway())
-                .andExpect(jsonPath("$.message").value(containsString("slackError=channel_not_found")));
+                .andExpect(jsonPath("$.message").value(
+                        "Slack에서 이 회원에게 DM을 보낼 수 없습니다. Slack ID가 맞는지, 워크스페이스를 떠난 계정은 아닌지 확인하세요."))
+                .andExpect(jsonPath("$.message").value(not(containsString("slackError"))));
 
         ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
         verify(slackClient).postDirectMessage(eq(SLACK_ID), text.capture());
@@ -203,6 +211,18 @@ class AdminPasswordLinkSlackIntegrationTest extends IntegrationTestSupport {
 
         List<PasswordResetToken> tokens = passwordResetTokenRepository.findAll();
         assertThat(tokens).hasSize(1).allMatch(PasswordResetToken::isUsed);
+    }
+
+    @Test
+    void 보내지_못했으면_1분을_기다리지_않고_바로_다시_보낼_수_있다() throws Exception {
+        Member member = saveMember("20240009", "윤도현", MemberRole.MEMBER, MemberStatus.ACTIVE, SLACK_ID);
+        doThrow(new SlackApiException("ratelimited", 30L))
+                .doReturn(new SlackPostResult("D0DMCHANNEL", "1.0"))
+                .when(slackClient).postDirectMessage(anyString(), anyString());
+
+        sendLink(member.getId()).andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.message").value("Slack 요청이 많아 보내지 못했습니다. 잠시 후 다시 시도하세요."));
+        sendLink(member.getId()).andExpect(status().isNoContent());
     }
 
     @Test
