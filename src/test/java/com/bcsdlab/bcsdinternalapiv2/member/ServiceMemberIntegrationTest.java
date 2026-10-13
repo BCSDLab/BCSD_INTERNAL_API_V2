@@ -13,13 +13,16 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Position;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.PositionRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +38,8 @@ class ServiceMemberIntegrationTest extends IntegrationTestSupport {
     static final String SERVICE_TOKEN = "test-bbot-service-token-0123456789";
     private static final String RAW_PASSWORD = "Temp1234";
     private static final Set<String> EXPECTED_KEYS = Set.of(
-            "id", "name", "slackId", "githubId", "track", "memberType", "clubActive", "academicStatus");
+            "id", "name", "slackId", "githubId", "track", "memberType", "clubActive", "academicStatus",
+            "positionCodes");
 
     @Autowired
     private MemberRepository memberRepository;
@@ -48,6 +52,9 @@ class ServiceMemberIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PositionRepository positionRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -64,7 +71,8 @@ class ServiceMemberIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void 서비스_토큰이면_탈퇴하지_않은_회원을_id_순으로_공개_필드만_내려준다() throws Exception {
-        Member first = saveMember("20240001", "김하준", frontend, MemberStatus.ACTIVE, "U0FIRST0001");
+        Member first = saveMember("20240001", "김하준", frontend, MemberStatus.ACTIVE, "U0FIRST0001", MemberRole.MEMBER,
+                positionRepository.findAllByCodeIn(List.of("PRESIDENT", "FRONTEND_LEAD")));
         Member pending = saveMember("20240002", "이서연", backend, MemberStatus.PENDING_SETUP, null);
         saveMember("20240003", "탈퇴자", backend, MemberStatus.WITHDRAWN, "U0WITHDRAW1");
 
@@ -79,6 +87,10 @@ class ServiceMemberIntegrationTest extends IntegrationTestSupport {
                 .andExpect(jsonPath("$.members[0].memberType").value("REGULAR"))
                 .andExpect(jsonPath("$.members[0].clubActive").value(true))
                 .andExpect(jsonPath("$.members[0].academicStatus").value("ENROLLED"))
+                .andExpect(jsonPath("$.members[0].positionCodes[0]").value("FRONTEND_LEAD"))
+                .andExpect(jsonPath("$.members[0].positionCodes[1]").value("PRESIDENT"))
+                .andExpect(jsonPath("$.members[0].positionCodes.length()").value(2))
+                .andExpect(jsonPath("$.members[1].positionCodes.length()").value(0))
                 .andExpect(jsonPath("$.members[1].id").value(pending.getId()))
                 .andExpect(jsonPath("$.members[1].slackId").doesNotExist())
                 .andExpect(jsonPath("$.members[1].track").value("BACKEND"))
@@ -140,6 +152,11 @@ class ServiceMemberIntegrationTest extends IntegrationTestSupport {
 
     private Member saveMember(String studentNumber, String name, TrackMaster track, MemberStatus status,
                               String slackId, MemberRole role) {
+        return saveMember(studentNumber, name, track, status, slackId, role, List.of());
+    }
+
+    private Member saveMember(String studentNumber, String name, TrackMaster track, MemberStatus status,
+                              String slackId, MemberRole role, List<Position> positions) {
         Member member = Member.builder()
                 .studentNumber(studentNumber)
                 .password(passwordEncoder.encode(RAW_PASSWORD))
@@ -156,6 +173,7 @@ class ServiceMemberIntegrationTest extends IntegrationTestSupport {
                 .githubId("github-" + studentNumber.substring(4))
                 .status(status)
                 .role(role)
+                .positions(positions)
                 .build();
         member.updateSlackId(slackId);
         return memberRepository.save(member);

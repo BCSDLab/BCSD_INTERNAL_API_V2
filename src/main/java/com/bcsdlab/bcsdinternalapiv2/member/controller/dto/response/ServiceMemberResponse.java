@@ -3,6 +3,9 @@ package com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response;
 import com.bcsdlab.bcsdinternalapiv2.member.model.AcademicStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
+import com.bcsdlab.bcsdinternalapiv2.member.model.Position;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * 내부 서비스(bbot)에 내려주는 회원 한 명. 연락처·학번·생년월일·소속 등 개인정보와 비밀번호 관련 필드는
@@ -16,7 +19,9 @@ public record ServiceMemberResponse(
         String track,
         MemberType memberType,
         boolean clubActive,
-        AcademicStatus academicStatus
+        AcademicStatus academicStatus,
+        // bbot 트랙장 단체 멘션(*_LEAD)용.
+        List<String> positionCodes
 ) {
 
     public static ServiceMemberResponse from(Member member) {
@@ -28,7 +33,11 @@ public record ServiceMemberResponse(
                 member.getTrack() != null ? member.getTrack().getCode() : null,
                 member.getMemberType(),
                 member.isClubActive(),
-                member.getAcademicStatus()
+                member.getAcademicStatus(),
+                member.getPositions().stream()
+                        .map(Position::getCode)
+                        .sorted(Comparator.naturalOrder())
+                        .toList()
         );
     }
 }
