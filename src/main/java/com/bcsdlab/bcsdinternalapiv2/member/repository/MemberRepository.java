@@ -29,7 +29,7 @@ public interface MemberRepository extends JpaRepository<Member, Long>, JpaSpecif
 
     Optional<Member> findBySlackId(String slackId);
 
-    List<Member> findAllByStatus(MemberStatus status);
+    List<Member> findAllByStatusNot(MemberStatus status);
 
     @Transactional
     @Lock(LockModeType.PESSIMISTIC_WRITE)

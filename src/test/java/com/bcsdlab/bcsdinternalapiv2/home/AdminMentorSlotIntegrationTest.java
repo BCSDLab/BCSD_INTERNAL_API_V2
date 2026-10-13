@@ -154,6 +154,24 @@ class AdminMentorSlotIntegrationTest extends IntegrationTestSupport {
         mentorSlotRepository.deleteAll();
     }
 
+    @Test
+    @DisplayName("가입하지 않은 멘토도 슬롯에 지정되면 공개 응답에 노출된다")
+    void 가입_전_멘토도_공개_응답에_노출된다() throws Exception {
+        Member mentor = memberRepository.save(newMember("20277777", "m2@bcsd.club", MemberStatus.PENDING_SETUP));
+        mockMvc.perform(post("/v1/admin/mentor-slots")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"memberId\":%d}".formatted(mentor.getId())))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/v1/home"))
+                .andExpect(jsonPath("$.mentors.length()").value(1))
+                .andExpect(jsonPath("$.mentors[0].name").value(mentor.getName()));
+
+        // 다음 테스트의 member 정리가 FK 위반에 걸리지 않도록 이 테스트가 만든 슬롯은 직접 치운다.
+        mentorSlotRepository.deleteAll();
+    }
+
     private Member newMember(String studentNumber, String email, MemberStatus status) {
         return Member.builder()
                 .studentNumber(studentNumber)

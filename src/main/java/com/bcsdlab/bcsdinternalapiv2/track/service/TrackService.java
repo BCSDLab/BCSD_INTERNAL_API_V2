@@ -68,6 +68,7 @@ public class TrackService {
      * 홈페이지 빌드가 매번 호출하는 공개 경로라 커리큘럼 조회와 같은 이유로 N+1을 피한다 —
      * 배정 목록 1쿼리 + 부원 IN절 배치 조회 1쿼리로 끝낸다.
      */
+    // 탈퇴한 회원만 숨긴다. 가입 전·잠김 같은 계정 상태는 노출 여부와 무관하다(노출은 관리자가 고른 visible이 결정한다).
     private List<TrackMemberResponse> publishedMembers(Long trackPageId) {
         List<TrackPageMember> assignments = trackPageMemberRepository
                 .findAllByTrackPage_IdAndVisibleTrueOrderByDisplayOrderAsc(trackPageId);
@@ -79,7 +80,7 @@ public class TrackService {
 
         return assignments.stream()
                 .map(a -> membersById.get(a.getMember().getId()))
-                .filter(member -> member != null && member.isActive())
+                .filter(member -> member != null && !member.isWithdrawn())
                 .map(TrackMemberResponse::from)
                 .toList();
     }

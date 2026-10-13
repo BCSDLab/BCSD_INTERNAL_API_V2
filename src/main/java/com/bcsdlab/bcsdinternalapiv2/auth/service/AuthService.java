@@ -66,7 +66,7 @@ public class AuthService {
         if (member.isWithdrawn()) {
             throw new AuthException(AuthExceptionType.ACCOUNT_WITHDRAWN);
         }
-        if (!member.isPendingSetup() && !member.isActive()) {
+        if (!member.isPendingSetup() && !member.isAccountActive()) {
             throw new AuthException(AuthExceptionType.ACCOUNT_LOCKED);
         }
 
@@ -91,7 +91,7 @@ public class AuthService {
         Member member = memberRepository.findById(refreshToken.getMemberId())
                 .orElseThrow(() -> new AuthException(AuthExceptionType.REFRESH_TOKEN_INVALID));
 
-        if (!member.isActive()) {
+        if (!member.isAccountActive()) {
             refreshTokenRevoker.revokeAllTokensFor(member.getId(), now);
             cookieUtils.clearRefreshTokenCookie(servletResponse);
             throw new AuthException(AuthExceptionType.REFRESH_TOKEN_INVALID);

@@ -36,7 +36,7 @@ public class LoginSessionIssuer {
         if (member.isWithdrawn()) {
             throw new AuthException(AuthExceptionType.ACCOUNT_WITHDRAWN);
         }
-        if (!member.isPendingSetup() && !member.isActive()) {
+        if (!member.isPendingSetup() && !member.isAccountActive()) {
             throw new AuthException(AuthExceptionType.ACCOUNT_LOCKED);
         }
 

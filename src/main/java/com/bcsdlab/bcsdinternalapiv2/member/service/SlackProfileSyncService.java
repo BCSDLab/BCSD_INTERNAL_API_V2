@@ -27,7 +27,8 @@ public class SlackProfileSyncService {
     private final MemberDirectoryService memberDirectoryService;
 
     public SlackProfileSyncResponse syncAll() {
-        List<Member> members = memberRepository.findAllByStatus(MemberStatus.ACTIVE);
+        // 가입 전·잠김 회원도 홈페이지에 노출될 수 있으므로 탈퇴한 회원만 제외한다.
+        List<Member> members = memberRepository.findAllByStatusNot(MemberStatus.WITHDRAWN);
         int updated = 0;
         int failed = 0;
         for (Member member : members) {
