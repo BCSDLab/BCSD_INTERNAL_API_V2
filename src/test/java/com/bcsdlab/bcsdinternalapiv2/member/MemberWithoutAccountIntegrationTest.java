@@ -224,8 +224,56 @@ class MemberWithoutAccountIntegrationTest extends IntegrationTestSupport {
                 .andExpect(jsonPath("$.status").value("PENDING_SETUP"))
                 .andReturn().getResponse().getContentAsString();
         String accessToken = objectMapper.readTree(responseBody).get("accessToken").asText();
+        // 링크로 직접 정한 비밀번호라 초기 설정에서 다시 묻지 않는다.
         mockMvc.perform(get("/v1/members/me/initial-setup").header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passwordSetupRequired").value(false));
+        mockMvc.perform(post("/v1/members/me/initial-setup")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phoneNumber":"01012345678","email":"alumni5@bcsd.club","githubId":null}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+
+        login("20150005", NEW_PASSWORD).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
+    void 임시_비밀번호인_회원은_초기_설정에서_새_비밀번호를_비우면_400이다() throws Exception {
+        long memberId = createMember("20150006", "alumni6@bcsd.club", false, null);
+        mockMvc.perform(post("/v1/admin/members/{memberId}/resend-welcome-mail", memberId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isNoContent());
+        ArgumentCaptor<String> temporaryPassword = ArgumentCaptor.forClass(String.class);
+        verify(mailSender, timeout(5000)).sendAccountCreated(eq("alumni6@bcsd.club"), eq("20150006"),
+                temporaryPassword.capture(), anyString());
+        String accessToken = loginToken("20150006", temporaryPassword.getValue());
+
+        mockMvc.perform(get("/v1/members/me/initial-setup").header("Authorization", "Bearer " + accessToken))
+                .andExpect(jsonPath("$.passwordSetupRequired").value(true));
+        mockMvc.perform(post("/v1/members/me/initial-setup")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phoneNumber":"01012345678","email":"alumni6@bcsd.club","githubId":null}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("새 비밀번호를 입력해 주세요."));
+    }
+
+    @Test
+    void 탈퇴했다_복구하면_계정이_없거나_임시_비밀번호인_회원은_초기_설정_전으로_돌아간다() throws Exception {
+        long withoutAccount = createMember("20150007", "alumni7@bcsd.club", false, null);
+        long temporary = createMember("20150008", "alumni8@bcsd.club", true, null);
+
+        for (long memberId : new long[] {withoutAccount, temporary}) {
+            changeWithdrawal(memberId, true);
+            changeWithdrawal(memberId, false);
+            assertThat(memberRepository.findById(memberId).orElseThrow().getStatus())
+                    .isEqualTo(MemberStatus.PENDING_SETUP);
+        }
     }
 
     @Test
@@ -289,6 +337,14 @@ class MemberWithoutAccountIntegrationTest extends IntegrationTestSupport {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(responseBody).get("id").asLong();
+    }
+
+    private void changeWithdrawal(long memberId, boolean withdrawn) throws Exception {
+        mockMvc.perform(patch("/v1/admin/members/{memberId}/withdrawal", memberId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"withdrawn\":%s}".formatted(withdrawn)))
+                .andExpect(status().isNoContent());
     }
 
     private ResultActions updateProfile(Long memberId, String companyJson) throws Exception {

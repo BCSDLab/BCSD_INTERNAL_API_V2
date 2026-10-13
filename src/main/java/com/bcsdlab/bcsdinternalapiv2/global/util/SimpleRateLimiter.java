@@ -31,4 +31,9 @@ public class SimpleRateLimiter {
 
         return acquired[0];
     }
+
+    /** 처리에 실패한 요청의 제한을 풀어 바로 다시 시도할 수 있게 한다. */
+    public void release(String key) {
+        nextAllowedAt.remove(key);
+    }
 }

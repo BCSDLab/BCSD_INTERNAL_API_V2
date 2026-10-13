@@ -66,7 +66,12 @@ public class MemberService {
             throw new AuthException(AuthExceptionType.UNAUTHORIZED);
         }
 
-        if (!request.newPassword().equals(request.newPasswordConfirm())) {
+        // 비밀번호 설정 링크로 이미 직접 정한 회원은 새 비밀번호를 다시 받지 않는다. 임시 비밀번호인 회원만 필수다.
+        boolean passwordProvided = request.newPassword() != null && !request.newPassword().isBlank();
+        if (member.isPasswordTemporary() && !passwordProvided) {
+            throw new MemberException(MemberExceptionType.INITIAL_SETUP_PASSWORD_REQUIRED);
+        }
+        if (passwordProvided && !request.newPassword().equals(request.newPasswordConfirm())) {
             throw new AuthException(AuthExceptionType.PASSWORD_CONFIRM_MISMATCH);
         }
 
@@ -78,7 +83,7 @@ public class MemberService {
             throw new MemberException(MemberExceptionType.EMAIL_DUPLICATED);
         }
 
-        String encodedPassword = passwordEncoder.encode(request.newPassword());
+        String encodedPassword = passwordProvided ? passwordEncoder.encode(request.newPassword()) : null;
         member.completeInitialSetup(encodedPassword, normalizedPhone, normalizedEmail, normalizedGithubId,
                 Instant.now());
 

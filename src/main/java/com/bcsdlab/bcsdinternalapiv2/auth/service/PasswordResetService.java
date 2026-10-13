@@ -84,6 +84,12 @@ public class PasswordResetService {
         return new IssuedResetLink(issued.token().getId(), issued.url());
     }
 
+    /** Slack DM으로 링크를 전달한 시각을 남긴다. mail_sent_at은 메일·DM 구분 없이 "전달한 시각"이다. */
+    @Transactional
+    public void markSlackLinkSent(Long tokenId) {
+        passwordResetTokenRepository.markMailSent(tokenId, Instant.now());
+    }
+
     /** 전달되지 못한 링크를 쓸 수 없게 사용 처리한다. 이미 사용된 토큰이면 아무것도 하지 않는다. */
     @Transactional
     public void revokeToken(Long tokenId) {
@@ -93,7 +99,8 @@ public class PasswordResetService {
     @Transactional(readOnly = true)
     public ResetTokenValidationResponse validateToken(String rawToken) {
         Member member = resolveValidToken(rawToken).member();
-        return new ResetTokenValidationResponse(true, maskStudentNumber(member.getStudentNumber()));
+        return new ResetTokenValidationResponse(true, maskStudentNumber(member.getStudentNumber()),
+                member.isPendingSetup());
     }
 
     @Transactional

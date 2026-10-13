@@ -117,6 +117,10 @@ public class Member extends BaseTimeEntity {
     @Column(name = "welcome_mail_sent_at")
     private Instant welcomeMailSentAt;
 
+    // 지금 비밀번호가 관리자가 만든 임시 비밀번호인지. 참이면 초기 설정에서 새 비밀번호를 받는다.
+    @Column(name = "password_temporary", nullable = false)
+    private boolean passwordTemporary;
+
     // 홈페이지 "함께 할 멤버들"에 노출된다(T-18). 관리자 업로드(S3 presigned URL) 또는
     // Slack 프로필 동기화를 통해서만 갱신된다 — 두 경로 모두 admin API를 경유한다.
     @Column(name = "profile_image_url")
@@ -160,6 +164,8 @@ public class Member extends BaseTimeEntity {
         this.role = role != null ? role : MemberRole.MEMBER;
         this.loginFailCount = 0;
         this.passwordChangedAt = truncateToMillis(passwordChangedAt);
+        // 초기 설정 전 회원에게 함께 넣는 비밀번호는 관리자가 만든 임시 비밀번호다(가입 메일로 전달).
+        this.passwordTemporary = password != null && this.status == MemberStatus.PENDING_SETUP;
     }
 
     /** 로그인 계정이 있는지(비밀번호가 설정됐는지). 계정이 없는 회원은 로그인·셀프 비밀번호 재설정을 할 수 없다. */
@@ -201,13 +207,17 @@ public class Member extends BaseTimeEntity {
         }
     }
 
+    /** encodedPassword가 null이면 비밀번호는 그대로 둔다(비밀번호 설정 링크로 이미 직접 정한 회원). */
     public void completeInitialSetup(String encodedPassword, String phoneNumber, String email, String githubId,
                                       Instant now) {
-        this.password = encodedPassword;
+        if (encodedPassword != null) {
+            this.password = encodedPassword;
+            this.passwordChangedAt = truncateToMillis(now);
+        }
+        this.passwordTemporary = false;
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.githubId = githubId;
-        this.passwordChangedAt = truncateToMillis(now);
         this.status = MemberStatus.ACTIVE;
     }
 
@@ -219,11 +229,13 @@ public class Member extends BaseTimeEntity {
 
     public void changePassword(String encodedPassword, Instant now) {
         this.password = encodedPassword;
+        this.passwordTemporary = false;
         this.passwordChangedAt = truncateToMillis(now);
     }
 
     public void resetPassword(String encodedPassword, Instant now) {
         this.password = encodedPassword;
+        this.passwordTemporary = false;
         this.passwordChangedAt = truncateToMillis(now);
         this.loginFailCount = 0;
         this.lockedUntil = null;
@@ -231,6 +243,7 @@ public class Member extends BaseTimeEntity {
 
     public void reissueTemporaryPassword(String encodedPassword, Instant now) {
         this.password = encodedPassword;
+        this.passwordTemporary = true;
         this.passwordChangedAt = truncateToMillis(now);
         this.welcomeMailSentAt = null;
     }
@@ -273,8 +286,12 @@ public class Member extends BaseTimeEntity {
         this.status = MemberStatus.WITHDRAWN;
     }
 
+    /**
+     * 계정이 없거나 임시 비밀번호인 회원은 초기 설정 전(PENDING_SETUP)으로 되돌린다. 탈퇴 전 상태는 따로 남기지 않으므로,
+     * 비밀번호 설정 링크로 비밀번호만 정하고 초기 설정을 마치지 않은 채 탈퇴한 회원은 ACTIVE로 복구된다.
+     */
     public void restore() {
-        this.status = MemberStatus.ACTIVE;
+        this.status = (this.password == null || this.passwordTemporary) ? MemberStatus.PENDING_SETUP : MemberStatus.ACTIVE;
     }
 
     public void updateProfileImageUrl(String profileImageUrl) {
