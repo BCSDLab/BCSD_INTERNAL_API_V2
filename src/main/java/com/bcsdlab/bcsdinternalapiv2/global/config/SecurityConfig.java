@@ -3,10 +3,12 @@ package com.bcsdlab.bcsdinternalapiv2.global.config;
 import com.bcsdlab.bcsdinternalapiv2.auth.security.CustomJwtAuthenticationConverter;
 import com.bcsdlab.bcsdinternalapiv2.auth.security.JwtAccessDeniedHandler;
 import com.bcsdlab.bcsdinternalapiv2.auth.security.JwtAuthenticationEntryPoint;
+import com.bcsdlab.bcsdinternalapiv2.auth.security.ServiceTokenAuthorizationManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationManagers;
@@ -29,6 +31,7 @@ public class SecurityConfig {
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final CustomJwtAuthenticationConverter customJwtAuthenticationConverter;
     private final CorsProperties corsProperties;
+    private final ServiceTokenProperties serviceTokenProperties;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -51,7 +54,31 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * 내부 서비스(bbot) 전용 체인. {@code /v1/service/**}만 담당하고 기본 체인보다 먼저 매칭된다.
+     * oauth2ResourceServer를 붙이지 않으므로 사용자 JWT로는 통과할 수 없고, 반대로 서비스 토큰은
+     * 기본 체인에서 JWT 디코딩에 실패해 다른 경로에 쓸 수 없다. 브라우저가 부르지 않으므로 CORS도 열지 않는다.
+     */
     @Bean
+    @Order(1)
+    public SecurityFilterChain serviceFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/v1/service/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().access(new ServiceTokenAuthorizationManager(serviceTokenProperties.bbotToken()))
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())

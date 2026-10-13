@@ -64,3 +64,5 @@ app:
     public-origin: ${GAME_BUILD_PUBLIC_ORIGIN:https://bcsdlab.com}
   slack:
     bot-token: ${SLACK_BOT_TOKEN:}
+  service:
+    bbot-token: ${BBOT_SERVICE_TOKEN:}

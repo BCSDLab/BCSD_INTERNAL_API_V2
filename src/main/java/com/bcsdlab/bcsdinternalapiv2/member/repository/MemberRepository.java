@@ -58,4 +58,8 @@ public interface MemberRepository extends JpaRepository<Member, Long>, JpaSpecif
 
     @Query("select m.memberType, count(m) from Member m group by m.memberType")
     List<Object[]> countGroupByMemberType();
+
+    // 서비스(bbot) 명부 조회용. 트랙 코드를 함께 내려주므로 N+1을 피하려고 fetch join한다.
+    @Query("select m from Member m left join fetch m.track where m.status <> :status order by m.id")
+    List<Member> findAllWithTrackByStatusNotOrderById(@Param("status") MemberStatus status);
 }
