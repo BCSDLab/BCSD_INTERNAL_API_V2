@@ -164,7 +164,7 @@ class InitialSetupIntegrationTest {
         assertThat(statusCodes).filteredOn(status -> status == 401 || status == 409).hasSize(1);
 
         Member reloaded = memberRepository.findByStudentNumber("20231234").orElseThrow();
-        assertThat(reloaded.isActive()).isTrue();
+        assertThat(reloaded.isAccountActive()).isTrue();
 
         List<RefreshToken> tokens = refreshTokenRepository.findAllByMemberIdAndRevokedAtIsNull(reloaded.getId());
         assertThat(tokens).hasSize(1);

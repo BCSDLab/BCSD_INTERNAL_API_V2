@@ -38,7 +38,7 @@ public class MemberStateJwtValidator implements OAuth2TokenValidator<Jwt> {
         }
         String scope = token.getClaimAsString("scope");
         if (TokenScope.FULL.name().equals(scope)) {
-            return member.isActive();
+            return member.isAccountActive();
         }
         if (TokenScope.PRE_ACTIVATION.name().equals(scope)) {
             return member.isPendingSetup();

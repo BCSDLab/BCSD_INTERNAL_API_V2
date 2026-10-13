@@ -160,7 +160,8 @@ public class Member extends BaseTimeEntity {
         return this.status == MemberStatus.PENDING_SETUP;
     }
 
-    public boolean isActive() {
+    /** 계정이 가입·설정을 마친 상태(status == ACTIVE)인지. 동아리 활동 여부는 {@link #isClubActive()}다. */
+    public boolean isAccountActive() {
         return this.status == MemberStatus.ACTIVE;
     }
 

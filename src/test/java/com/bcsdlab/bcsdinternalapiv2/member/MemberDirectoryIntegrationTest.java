@@ -362,7 +362,7 @@ class MemberDirectoryIntegrationTest {
                                 {"withdrawn":false}
                                 """))
                 .andExpect(status().isNoContent());
-        assertThat(memberRepository.findById(target.getId()).orElseThrow().isActive()).isTrue();
+        assertThat(memberRepository.findById(target.getId()).orElseThrow().isAccountActive()).isTrue();
     }
 
     @Test
