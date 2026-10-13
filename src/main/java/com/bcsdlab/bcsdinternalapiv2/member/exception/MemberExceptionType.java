@@ -16,6 +16,9 @@ public enum MemberExceptionType implements BcsdExceptionType {
     SLACK_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Slack에서 해당 이메일로 등록된 프로필 이미지를 찾을 수 없습니다."),
     SLACK_SYNC_FAILED(HttpStatus.BAD_GATEWAY, "Slack 연동 중 오류가 발생했습니다."),
     SLACK_ID_DUPLICATED(HttpStatus.CONFLICT, "이미 다른 회원이 사용 중인 Slack ID입니다."),
+    SLACK_ID_MISSING(HttpStatus.BAD_REQUEST, "Slack ID가 등록되지 않은 회원입니다."),
+    SLACK_DM_FAILED(HttpStatus.BAD_GATEWAY, "Slack DM 발송에 실패했습니다."),
+    MEMBER_WITHDRAWN(HttpStatus.CONFLICT, "탈퇴한 회원입니다."),
     ;
 
     private final HttpStatus status;
