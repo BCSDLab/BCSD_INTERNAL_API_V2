@@ -40,6 +40,7 @@ public class HomeService {
     }
 
     /** 트랙 공개 조회(TrackService)와 같은 이유로 N+1을 피한다. */
+    // 탈퇴한 멘토만 숨긴다. 가입하지 않은 멘토도 슬롯에 지정되면 노출한다.
     private List<MentorResponse> activeMentors() {
         List<MentorSlot> slots = mentorSlotRepository.findAllByOrderByDisplayOrderAsc();
         List<Long> memberIds = slots.stream().map(slot -> slot.getMember().getId()).toList();
@@ -50,7 +51,7 @@ public class HomeService {
 
         return slots.stream()
                 .map(slot -> membersById.get(slot.getMember().getId()))
-                .filter(member -> member != null && member.isActive())
+                .filter(member -> member != null && !member.isWithdrawn())
                 .map(MentorResponse::from)
                 .toList();
     }

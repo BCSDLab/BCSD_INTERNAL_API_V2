@@ -120,6 +120,31 @@ class TrackIntegrationTest extends IntegrationTestSupport {
                 .andExpect(jsonPath("$.members[0].name").value(visible.getName()));
     }
 
+    @Test
+    @DisplayName("공개 트랙 상세는 가입 전·잠김 부원도 visible이면 포함하고 탈퇴자만 제외한다")
+    void 공개_상세는_계정_상태와_무관하게_탈퇴자만_제외한다() throws Exception {
+        TrackPage trackPage = trackPageRepository.save(TrackPage.builder()
+                .track(frontend).slug("frontend").displayName("Frontend").tagline("tagline")
+                .displayOrder(0).published(true).build());
+
+        Member pending = memberRepository.save(newMember("20240011", "p1@bcsd.club", MemberStatus.PENDING_SETUP));
+        Member locked = memberRepository.save(newMember("20240012", "p2@bcsd.club", MemberStatus.LOCKED));
+        Member withdrawn = memberRepository.save(newMember("20240013", "p3@bcsd.club", MemberStatus.WITHDRAWN));
+
+        trackPageMemberRepository.save(TrackPageMember.builder()
+                .trackPage(trackPage).member(pending).displayOrder(0).visible(true).build());
+        trackPageMemberRepository.save(TrackPageMember.builder()
+                .trackPage(trackPage).member(locked).displayOrder(1).visible(true).build());
+        trackPageMemberRepository.save(TrackPageMember.builder()
+                .trackPage(trackPage).member(withdrawn).displayOrder(2).visible(true).build());
+
+        mockMvc.perform(get("/v1/tracks/frontend"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.members.length()").value(2))
+                .andExpect(jsonPath("$.members[0].name").value(pending.getName()))
+                .andExpect(jsonPath("$.members[1].name").value(locked.getName()));
+    }
+
     private Member newMember(String studentNumber, String email, MemberStatus status) {
         return Member.builder()
                 .studentNumber(studentNumber)

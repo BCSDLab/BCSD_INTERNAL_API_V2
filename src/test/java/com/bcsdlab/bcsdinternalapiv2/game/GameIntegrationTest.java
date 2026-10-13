@@ -147,6 +147,25 @@ class GameIntegrationTest extends IntegrationTestSupport {
                 .andExpect(jsonPath("$.teamLabel").value("1팀"));
     }
 
+    @Test
+    @DisplayName("가입 전·잠김 멤버도 공개 응답의 members에 포함되고 탈퇴자만 제외된다")
+    void 가입_전과_잠김_멤버도_응답에_포함된다() throws Exception {
+        Game game = gameRepository.save(game("neon-drift", 0, true));
+        Member pending = memberRepository.save(newMember("20240011", "p1@bcsd.club", MemberStatus.PENDING_SETUP));
+        Member locked = memberRepository.save(newMember("20240012", "p2@bcsd.club", MemberStatus.LOCKED));
+        Member withdrawn = memberRepository.save(newMember("20240013", "p3@bcsd.club", MemberStatus.WITHDRAWN));
+
+        gameMemberRepository.save(GameMember.builder().game(game).member(pending).displayOrder(0).build());
+        gameMemberRepository.save(GameMember.builder().game(game).member(locked).displayOrder(1).build());
+        gameMemberRepository.save(GameMember.builder().game(game).member(withdrawn).displayOrder(2).build());
+
+        mockMvc.perform(get("/v1/games/neon-drift"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.members.length()").value(2))
+                .andExpect(jsonPath("$.members[0].name").value(pending.getName()))
+                .andExpect(jsonPath("$.members[1].name").value(locked.getName()));
+    }
+
     private Member newMember(String studentNumber, String email, MemberStatus status) {
         return Member.builder()
                 .studentNumber(studentNumber)

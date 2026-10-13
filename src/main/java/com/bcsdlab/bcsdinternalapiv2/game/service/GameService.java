@@ -72,6 +72,7 @@ public class GameService {
      * 트랙 공개 조회(TrackService)와 같은 이유로 N+1을 피한다 —
      * 배정 목록 1쿼리 + 부원 IN절 배치 조회 1쿼리로 끝낸다.
      */
+    // 탈퇴한 회원만 숨긴다. 가입 전·잠김 같은 계정 상태는 노출 여부와 무관하다.
     private List<GameMemberResponse> publishedMembers(Long gameId) {
         List<GameMember> assignments = gameMemberRepository.findAllByGame_IdOrderByDisplayOrderAsc(gameId);
         List<Long> memberIds = assignments.stream().map(a -> a.getMember().getId()).toList();
@@ -82,7 +83,7 @@ public class GameService {
 
         return assignments.stream()
                 .map(a -> membersById.get(a.getMember().getId()))
-                .filter(member -> member != null && member.isActive())
+                .filter(member -> member != null && !member.isWithdrawn())
                 .map(GameMemberResponse::from)
                 .toList();
     }
