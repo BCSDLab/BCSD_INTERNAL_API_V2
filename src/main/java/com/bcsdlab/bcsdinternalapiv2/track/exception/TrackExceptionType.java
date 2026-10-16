@@ -35,28 +35,4 @@ public enum TrackExceptionType implements BcsdExceptionType {
     public String getMessage() {
         return message;
     }
-
-    @Override
-    public BcsdExceptionType withDetail(String detailMessage) {
-        return new DetailedTrackExceptionType(this, detailMessage);
-    }
-
-    private record DetailedTrackExceptionType(TrackExceptionType type, String detailMessage)
-            implements BcsdExceptionType {
-
-        @Override
-        public HttpStatus getHttpStatus() {
-            return type.getHttpStatus();
-        }
-
-        @Override
-        public String getMessage() {
-            return MESSAGE_FORMAT.formatted(type.getMessage(), detailMessage).strip();
-        }
-
-        @Override
-        public BcsdExceptionType withDetail(String detailMessage) {
-            return new DetailedTrackExceptionType(type, detailMessage);
-        }
-    }
 }

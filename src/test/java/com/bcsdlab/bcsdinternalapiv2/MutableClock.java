@@ -1,6 +1,6 @@
-package com.bcsdlab.bcsdinternalapiv2.ledger;
+package com.bcsdlab.bcsdinternalapiv2;
 
-import com.bcsdlab.bcsdinternalapiv2.ledger.config.LedgerTimeConfig;
+import com.bcsdlab.bcsdinternalapiv2.global.config.TimeConfig;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -12,7 +12,7 @@ public class MutableClock extends Clock {
     private volatile Instant instant = Instant.now();
 
     public void setToday(LocalDate date) {
-        this.instant = date.atTime(12, 0).atZone(LedgerTimeConfig.SEOUL).toInstant();
+        this.instant = date.atTime(12, 0).atZone(TimeConfig.SEOUL).toInstant();
     }
 
     public void setInstant(Instant instant) {
@@ -21,7 +21,7 @@ public class MutableClock extends Clock {
 
     @Override
     public ZoneId getZone() {
-        return LedgerTimeConfig.SEOUL;
+        return TimeConfig.SEOUL;
     }
 
     @Override

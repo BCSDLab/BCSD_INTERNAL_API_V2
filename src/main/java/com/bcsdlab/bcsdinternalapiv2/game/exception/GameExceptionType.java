@@ -15,6 +15,7 @@ public enum GameExceptionType implements BcsdExceptionType {
     GAME_BUILD_INVALID_STATE(HttpStatus.CONFLICT, "이 상태의 빌드에는 처리할 수 없습니다."),
     GAME_BUILD_WEBHOOK_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "웹훅 시크릿이 올바르지 않습니다."),
     GAME_BUILD_INVALID_WEBHOOK_STATUS(HttpStatus.BAD_REQUEST, "status는 ACTIVE 또는 FAILED만 가능합니다."),
+    GAME_BUILD_UPLOAD_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "게임 빌드 업로드가 서버에 설정되지 않았습니다."),
     GAME_ACCESS_DENIED(HttpStatus.FORBIDDEN, "게임 트랙 담당자만 접근할 수 있습니다."),
     ;
 
@@ -34,29 +35,5 @@ public enum GameExceptionType implements BcsdExceptionType {
     @Override
     public String getMessage() {
         return message;
-    }
-
-    @Override
-    public BcsdExceptionType withDetail(String detailMessage) {
-        return new DetailedGameExceptionType(this, detailMessage);
-    }
-
-    private record DetailedGameExceptionType(GameExceptionType type, String detailMessage)
-            implements BcsdExceptionType {
-
-        @Override
-        public HttpStatus getHttpStatus() {
-            return type.getHttpStatus();
-        }
-
-        @Override
-        public String getMessage() {
-            return MESSAGE_FORMAT.formatted(type.getMessage(), detailMessage).strip();
-        }
-
-        @Override
-        public BcsdExceptionType withDetail(String detailMessage) {
-            return new DetailedGameExceptionType(type, detailMessage);
-        }
     }
 }

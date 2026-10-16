@@ -16,12 +16,12 @@ import com.bcsdlab.bcsdinternalapiv2.reservation.model.ReservationGroup;
 import com.bcsdlab.bcsdinternalapiv2.reservation.model.RepeatFrequency;
 import com.bcsdlab.bcsdinternalapiv2.reservation.repository.ReservationGroupRepository;
 import com.bcsdlab.bcsdinternalapiv2.reservation.repository.ReservationRepository;
+import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,10 +47,11 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationGroupRepository reservationGroupRepository;
     private final MemberRepository memberRepository;
+    private final Clock clock;
 
     @Transactional
     public ReservationCreateResponse create(Long memberId, ReservationCreateRequest request) {
-        Instant now = Instant.now();
+        Instant now = Instant.now(clock);
         validateCommon(request, now);
 
         if (!request.isRepeat()) {
@@ -89,7 +90,7 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public MyReservationResponse getMyReservations(Long memberId, String status) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         List<Reservation> reservations = "past".equalsIgnoreCase(status)
                 ? reservationRepository
                         .findByMemberIdAndCancelledAtIsNullAndReservationDateLessThanOrderByReservationDateDescStartMinuteDesc(
@@ -116,7 +117,7 @@ public class ReservationService {
 
     @Transactional
     public void cancel(Long memberId, Long reservationId) {
-        Instant now = Instant.now();
+        Instant now = Instant.now(clock);
         Reservation reservation = getOwnedReservation(memberId, reservationId);
         if (reservation.isCancelled()) {
             throw new ReservationException(ReservationExceptionType.ALREADY_CANCELLED);
@@ -129,7 +130,7 @@ public class ReservationService {
 
     @Transactional
     public void cancelGroup(Long memberId, Long groupId) {
-        Instant now = Instant.now();
+        Instant now = Instant.now(clock);
         ReservationGroup group = reservationGroupRepository.findById(groupId)
                 .orElseThrow(() -> new ReservationException(ReservationExceptionType.RESERVATION_GROUP_NOT_FOUND));
         if (!group.getMemberId().equals(memberId)) {
@@ -200,11 +201,11 @@ public class ReservationService {
             throw new ReservationException(ReservationExceptionType.INVALID_HEADCOUNT);
         }
         LocalDateTime startDateTime = request.date().atStartOfDay().plusMinutes(start);
-        if (!startDateTime.isAfter(LocalDateTime.ofInstant(now, ZoneId.systemDefault()))) {
+        if (!startDateTime.isAfter(LocalDateTime.ofInstant(now, clock.getZone()))) {
             throw new ReservationException(ReservationExceptionType.PAST_TIME);
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         if (!request.isRepeat()) {
             if (request.date().isAfter(today.plusDays(SINGLE_BOOKING_WINDOW_DAYS))) {
                 throw new ReservationException(ReservationExceptionType.OUT_OF_SINGLE_BOOKING_WINDOW);
@@ -291,7 +292,7 @@ public class ReservationService {
     private boolean hasStarted(Reservation reservation, Instant now) {
         LocalDateTime startDateTime = reservation.getReservationDate().atStartOfDay()
                 .plusMinutes(reservation.getStartMinute());
-        return !startDateTime.isAfter(LocalDateTime.ofInstant(now, ZoneId.systemDefault()));
+        return !startDateTime.isAfter(LocalDateTime.ofInstant(now, clock.getZone()));
     }
 
     private List<Reservation> pickGroupRepresentatives(List<Reservation> reservations) {
