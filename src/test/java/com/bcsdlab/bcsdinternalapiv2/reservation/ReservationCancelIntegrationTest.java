@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bcsdlab.bcsdinternalapiv2.global.config.TimeConfig;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.reservation.model.Reservation;
 import com.bcsdlab.bcsdinternalapiv2.reservation.model.ReservationGroup;
@@ -20,7 +21,7 @@ class ReservationCancelIntegrationTest extends ReservationIntegrationTestSupport
     @Test
     void 본인_예약을_취소할_수_있다() throws Exception {
         String token = createActiveMemberAndLogin("20250601");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         Long reservationId = createSingleReservationAndGetId(token, date);
 
         mockMvc.perform(delete("/v1/reservations/{id}", reservationId)
@@ -33,7 +34,7 @@ class ReservationCancelIntegrationTest extends ReservationIntegrationTestSupport
     @Test
     void 이미_취소된_예약을_다시_취소하면_409가_반환된다() throws Exception {
         String token = createActiveMemberAndLogin("20250602");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         Long reservationId = createSingleReservationAndGetId(token, date);
 
         mockMvc.perform(delete("/v1/reservations/{id}", reservationId)
@@ -49,7 +50,7 @@ class ReservationCancelIntegrationTest extends ReservationIntegrationTestSupport
     void 타인의_예약을_취소하면_403이_반환된다() throws Exception {
         String ownerToken = createActiveMemberAndLogin("20250603");
         String otherToken = createActiveMemberAndLogin("20250604");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         Long reservationId = createSingleReservationAndGetId(ownerToken, date);
 
         mockMvc.perform(delete("/v1/reservations/{id}", reservationId)
@@ -63,7 +64,7 @@ class ReservationCancelIntegrationTest extends ReservationIntegrationTestSupport
         String token = login("20250605");
         Reservation started = reservationRepository.save(Reservation.builder()
                 .memberId(member.getId())
-                .reservationDate(LocalDate.now().minusDays(1))
+                .reservationDate(LocalDate.now(TimeConfig.SEOUL).minusDays(1))
                 .startMinute((short) 600)
                 .endMinute((short) 660)
                 .purpose("지난예약")
@@ -79,9 +80,9 @@ class ReservationCancelIntegrationTest extends ReservationIntegrationTestSupport
     void 반복_예약_그룹을_전체_취소하면_미래_회차만_취소된다() throws Exception {
         Member member = createActiveMember("20250606");
         String token = login("20250606");
-        LocalDate pastDate = LocalDate.now().minusDays(7);
-        LocalDate futureDate1 = LocalDate.now().plusDays(3);
-        LocalDate futureDate2 = LocalDate.now().plusDays(10);
+        LocalDate pastDate = LocalDate.now(TimeConfig.SEOUL).minusDays(7);
+        LocalDate futureDate1 = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
+        LocalDate futureDate2 = LocalDate.now(TimeConfig.SEOUL).plusDays(10);
 
         ReservationGroup group = reservationGroupRepository.save(ReservationGroup.builder()
                 .memberId(member.getId())
@@ -134,7 +135,7 @@ class ReservationCancelIntegrationTest extends ReservationIntegrationTestSupport
                 .weekdays(List.of(DayOfWeek.MONDAY))
                 .startMinute((short) 600)
                 .endMinute((short) 660)
-                .repeatEndDate(LocalDate.now().plusWeeks(2))
+                .repeatEndDate(LocalDate.now(TimeConfig.SEOUL).plusWeeks(2))
                 .createdAt(java.time.Instant.now())
                 .build());
 

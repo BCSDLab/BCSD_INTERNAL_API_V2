@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bcsdlab.bcsdinternalapiv2.global.config.TimeConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ class ReservationDetailIntegrationTest extends ReservationIntegrationTestSupport
     @Test
     void 본인_예약_상세를_조회할_수_있다() throws Exception {
         String token = createActiveMemberAndLogin("20250501");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         Long reservationId = createSingleReservationAndGetId(token, date);
 
         mockMvc.perform(get("/v1/reservations/{id}", reservationId)
@@ -57,7 +58,7 @@ class ReservationDetailIntegrationTest extends ReservationIntegrationTestSupport
     void 타인의_예약을_조회하면_403이_반환된다() throws Exception {
         String ownerToken = createActiveMemberAndLogin("20250503");
         String otherToken = createActiveMemberAndLogin("20250504");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         Long reservationId = createSingleReservationAndGetId(ownerToken, date);
 
         mockMvc.perform(get("/v1/reservations/{id}", reservationId)
@@ -88,7 +89,7 @@ class ReservationDetailIntegrationTest extends ReservationIntegrationTestSupport
     }
 
     private LocalDate nextDateWithWeekday(DayOfWeek dayOfWeek, int minDaysAhead) {
-        LocalDate date = LocalDate.now().plusDays(minDaysAhead);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(minDaysAhead);
         while (date.getDayOfWeek() != dayOfWeek) {
             date = date.plusDays(1);
         }
