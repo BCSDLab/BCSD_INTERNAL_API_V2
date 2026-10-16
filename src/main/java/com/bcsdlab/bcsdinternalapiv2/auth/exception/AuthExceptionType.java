@@ -39,28 +39,4 @@ public enum AuthExceptionType implements BcsdExceptionType {
     public String getMessage() {
         return message;
     }
-
-    @Override
-    public BcsdExceptionType withDetail(String detailMessage) {
-        return new DetailedAuthExceptionType(this, detailMessage);
-    }
-
-    private record DetailedAuthExceptionType(AuthExceptionType type, String detailMessage)
-            implements BcsdExceptionType {
-
-        @Override
-        public HttpStatus getHttpStatus() {
-            return type.getHttpStatus();
-        }
-
-        @Override
-        public String getMessage() {
-            return MESSAGE_FORMAT.formatted(type.getMessage(), detailMessage).strip();
-        }
-
-        @Override
-        public BcsdExceptionType withDetail(String detailMessage) {
-            return new DetailedAuthExceptionType(type, detailMessage);
-        }
-    }
 }
