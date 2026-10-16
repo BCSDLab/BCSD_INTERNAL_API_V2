@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.curriculum.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.TopicRequest;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.WeekRequest;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.CurriculumTopicResponse;
@@ -10,8 +11,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,14 +30,14 @@ public class AdminWeekController implements AdminWeekApi {
     @Override
     @PutMapping("/{id}")
     public CurriculumWeekResponse updateWeek(@PathVariable Long id, @Valid @RequestBody WeekRequest request,
-                                              @AuthenticationPrincipal Jwt jwt) {
-        return adminCurriculumTreeService.updateWeek(id, request, Long.valueOf(jwt.getSubject()));
+                                              @LoginMemberId Long loginMemberId) {
+        return adminCurriculumTreeService.updateWeek(id, request, loginMemberId);
     }
 
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteWeek(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        adminCurriculumTreeService.deleteWeek(id, Long.valueOf(jwt.getSubject()));
+    public ResponseEntity<Void> deleteWeek(@PathVariable Long id, @LoginMemberId Long loginMemberId) {
+        adminCurriculumTreeService.deleteWeek(id, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
@@ -46,16 +45,16 @@ public class AdminWeekController implements AdminWeekApi {
     @PostMapping("/{id}/topics")
     public ResponseEntity<CurriculumTopicResponse> createTopic(@PathVariable Long id,
                                                                 @Valid @RequestBody TopicRequest request,
-                                                                @AuthenticationPrincipal Jwt jwt) {
+                                                                @LoginMemberId Long loginMemberId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(adminCurriculumTreeService.createTopic(id, request, Long.valueOf(jwt.getSubject())));
+                .body(adminCurriculumTreeService.createTopic(id, request, loginMemberId));
     }
 
     @Override
     @PatchMapping("/{id}/topics/order")
     public ResponseEntity<Void> reorderTopics(@PathVariable Long id, @Valid @RequestBody OrderRequest request,
-                                               @AuthenticationPrincipal Jwt jwt) {
-        adminCurriculumTreeService.reorderTopics(id, request, Long.valueOf(jwt.getSubject()));
+                                               @LoginMemberId Long loginMemberId) {
+        adminCurriculumTreeService.reorderTopics(id, request, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 }

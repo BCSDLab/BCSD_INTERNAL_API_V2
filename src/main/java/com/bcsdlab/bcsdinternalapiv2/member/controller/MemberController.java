@@ -1,6 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.member.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.auth.controller.dto.response.LoginResponse;
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.InitialSetupRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberContactUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PasswordChangeRequest;
@@ -32,59 +33,57 @@ public class MemberController implements MemberApi {
 
     @Override
     @GetMapping
-    public ResponseEntity<MemberResponse> getMe(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(memberService.getMe(memberId(jwt)));
+    public ResponseEntity<MemberResponse> getMe(@LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(memberService.getMe(loginMemberId));
     }
 
     @Override
     @GetMapping("/initial-setup")
-    public ResponseEntity<MemberResponse> getInitialSetupInfo(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(memberService.getInitialSetupInfo(memberId(jwt), passwordVersion(jwt)));
+    public ResponseEntity<MemberResponse> getInitialSetupInfo(@LoginMemberId Long loginMemberId,
+                                                              @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(memberService.getInitialSetupInfo(loginMemberId, passwordVersion(jwt)));
     }
 
     @Override
     @PostMapping("/initial-setup")
-    public ResponseEntity<LoginResponse> completeInitialSetup(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<LoginResponse> completeInitialSetup(@LoginMemberId Long loginMemberId,
+                                                               @AuthenticationPrincipal Jwt jwt,
                                                                @Valid @RequestBody InitialSetupRequest request,
                                                                HttpServletRequest servletRequest,
                                                                HttpServletResponse servletResponse) {
         return ResponseEntity.ok(memberService.completeInitialSetup(
-                memberId(jwt), passwordVersion(jwt), request, servletRequest, servletResponse));
+                loginMemberId, passwordVersion(jwt), request, servletRequest, servletResponse));
     }
 
     @Override
     @PatchMapping
-    public ResponseEntity<Void> updateContact(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<Void> updateContact(@LoginMemberId Long loginMemberId,
                                                @Valid @RequestBody MemberContactUpdateRequest request) {
-        memberService.updateContact(memberId(jwt), request);
+        memberService.updateContact(loginMemberId, request);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/password")
-    public ResponseEntity<Void> changePassword(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<Void> changePassword(@LoginMemberId Long loginMemberId,
                                                 @Valid @RequestBody PasswordChangeRequest request) {
-        memberService.changePassword(memberId(jwt), request);
+        memberService.changePassword(loginMemberId, request);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PostMapping("/photo/presigned-url")
     public ResponseEntity<PhotoPresignedUrlResponse> issuePhotoPresignedUrl(
-            @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody PhotoPresignedUrlRequest request) {
-        return ResponseEntity.ok(memberService.issuePhotoPresignedUrl(memberId(jwt), request));
+            @LoginMemberId Long loginMemberId, @Valid @RequestBody PhotoPresignedUrlRequest request) {
+        return ResponseEntity.ok(memberService.issuePhotoPresignedUrl(loginMemberId, request));
     }
 
     @Override
     @PatchMapping("/photo")
-    public ResponseEntity<Void> updatePhotoUrl(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<Void> updatePhotoUrl(@LoginMemberId Long loginMemberId,
                                                 @Valid @RequestBody PhotoUrlUpdateRequest request) {
-        memberService.updatePhotoUrl(memberId(jwt), request.photoUrl());
+        memberService.updatePhotoUrl(loginMemberId, request.photoUrl());
         return ResponseEntity.noContent().build();
-    }
-
-    private Long memberId(Jwt jwt) {
-        return Long.valueOf(jwt.getSubject());
     }
 
     private long passwordVersion(Jwt jwt) {

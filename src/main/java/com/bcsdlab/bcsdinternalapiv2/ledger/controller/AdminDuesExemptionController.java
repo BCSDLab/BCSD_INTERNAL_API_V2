@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.ExemptionUpsertRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ExemptionListResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ExemptionReasonListResponse;
@@ -9,8 +10,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,8 +34,8 @@ public class AdminDuesExemptionController implements AdminDuesExemptionApi {
     @Override
     @PostMapping("/exemptions")
     public ResponseEntity<ExemptionResponse> createExemption(@Valid @RequestBody ExemptionUpsertRequest request,
-                                                             @AuthenticationPrincipal Jwt jwt) {
-        ExemptionResponse created = exemptionService.create(request.toDraft(), Long.valueOf(jwt.getSubject()));
+                                                             @LoginMemberId Long loginMemberId) {
+        ExemptionResponse created = exemptionService.create(request.toDraft(), loginMemberId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

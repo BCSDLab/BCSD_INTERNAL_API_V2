@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.track.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.SlugChangeRequest;
@@ -17,8 +18,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -51,47 +50,47 @@ public class AdminTrackPageController implements AdminTrackPageApi {
     @Override
     @PostMapping
     public ResponseEntity<AdminTrackPageDetailResponse> createTrackPage(
-            @Valid @RequestBody TrackPageCreateRequest request, @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody TrackPageCreateRequest request, @LoginMemberId Long loginMemberId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(adminTrackPageService.createTrackPage(request, Long.valueOf(jwt.getSubject())));
+                .body(adminTrackPageService.createTrackPage(request, loginMemberId));
     }
 
     @Override
     @PutMapping("/{id}")
     public AdminTrackPageDetailResponse updateTrackPage(@PathVariable Long id,
                                                          @Valid @RequestBody TrackPageUpdateRequest request,
-                                                         @AuthenticationPrincipal Jwt jwt) {
-        return adminTrackPageService.updateTrackPage(id, request, Long.valueOf(jwt.getSubject()));
+                                                         @LoginMemberId Long loginMemberId) {
+        return adminTrackPageService.updateTrackPage(id, request, loginMemberId);
     }
 
     @Override
     @PatchMapping("/{id}/slug")
     public AdminTrackPageDetailResponse changeSlug(@PathVariable Long id,
                                                     @Valid @RequestBody SlugChangeRequest request,
-                                                    @AuthenticationPrincipal Jwt jwt) {
-        return adminTrackPageService.changeSlug(id, request, Long.valueOf(jwt.getSubject()));
+                                                    @LoginMemberId Long loginMemberId) {
+        return adminTrackPageService.changeSlug(id, request, loginMemberId);
     }
 
     @Override
     @PatchMapping("/{id}/publish")
     public ResponseEntity<Void> publish(@PathVariable Long id, @Valid @RequestBody PublishRequest request,
-                                         @AuthenticationPrincipal Jwt jwt) {
-        adminTrackPageService.publish(id, request, Long.valueOf(jwt.getSubject()));
+                                         @LoginMemberId Long loginMemberId) {
+        adminTrackPageService.publish(id, request, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/order")
     public ResponseEntity<Void> reorder(@Valid @RequestBody OrderRequest request,
-                                         @AuthenticationPrincipal Jwt jwt) {
-        adminTrackPageService.reorder(request, Long.valueOf(jwt.getSubject()));
+                                         @LoginMemberId Long loginMemberId) {
+        adminTrackPageService.reorder(request, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTrackPage(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        adminTrackPageService.deleteTrackPage(id, Long.valueOf(jwt.getSubject()));
+    public ResponseEntity<Void> deleteTrackPage(@PathVariable Long id, @LoginMemberId Long loginMemberId) {
+        adminTrackPageService.deleteTrackPage(id, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
@@ -99,15 +98,15 @@ public class AdminTrackPageController implements AdminTrackPageApi {
     @PutMapping("/{id}/study-points")
     public List<StudyPointResponse> replaceStudyPoints(@PathVariable Long id,
                                                         @Valid @RequestBody StudyPointsReplaceRequest request,
-                                                        @AuthenticationPrincipal Jwt jwt) {
-        return adminTrackPageService.replaceStudyPoints(id, request, Long.valueOf(jwt.getSubject()));
+                                                        @LoginMemberId Long loginMemberId) {
+        return adminTrackPageService.replaceStudyPoints(id, request, loginMemberId);
     }
 
     @Override
     @PutMapping("/{id}/tech-stacks")
     public List<TechStackResponse> replaceTechStacks(@PathVariable Long id,
                                                       @Valid @RequestBody TechStacksReplaceRequest request,
-                                                      @AuthenticationPrincipal Jwt jwt) {
-        return adminTrackPageService.replaceTechStacks(id, request, Long.valueOf(jwt.getSubject()));
+                                                      @LoginMemberId Long loginMemberId) {
+        return adminTrackPageService.replaceTechStacks(id, request, loginMemberId);
     }
 }

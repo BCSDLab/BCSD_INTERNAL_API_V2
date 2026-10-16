@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.ImportCommitRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ImportCommitResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ImportPreviewResponse;
@@ -7,8 +8,6 @@ import com.bcsdlab.bcsdinternalapiv2.ledger.service.ImportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +31,7 @@ public class AdminLedgerImportController implements AdminLedgerImportApi {
     @Override
     @PostMapping
     public ResponseEntity<ImportCommitResponse> commit(@Valid @RequestBody ImportCommitRequest request,
-                                                       @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(importService.commit(request, Long.valueOf(jwt.getSubject())));
+                                                       @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(importService.commit(request, loginMemberId));
     }
 }

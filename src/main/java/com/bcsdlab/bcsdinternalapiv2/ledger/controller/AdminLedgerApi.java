@@ -1,11 +1,11 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.DuesLinkRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.LedgerEntryUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.LedgerEntryListResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.LedgerEntryResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,8 +14,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -66,7 +64,7 @@ public interface AdminLedgerApi {
     @SecurityRequirement(name = "JWT")
     @PutMapping("/{id}/dues-link")
     ResponseEntity<LedgerEntryResponse> linkEntry(@PathVariable Long id, @RequestBody @Valid DuesLinkRequest request,
-                                                  @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
+                                                  @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

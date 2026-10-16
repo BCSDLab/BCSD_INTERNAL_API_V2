@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.track.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.SlugChangeRequest;
@@ -21,8 +22,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -56,7 +55,7 @@ public interface AdminTrackPageApi {
     })
     @Operation(summary = "트랙 페이지 생성", description = "slug는 displayName에서 자동 생성됩니다(AC-1.1).")
     ResponseEntity<AdminTrackPageDetailResponse> createTrackPage(@RequestBody @Valid TrackPageCreateRequest request,
-                                                                   @AuthenticationPrincipal Jwt jwt);
+                                                                   @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -67,7 +66,7 @@ public interface AdminTrackPageApi {
     @Operation(summary = "트랙 페이지 헤더 수정")
     AdminTrackPageDetailResponse updateTrackPage(@PathVariable Long id,
                                                   @RequestBody @Valid TrackPageUpdateRequest request,
-                                                  @AuthenticationPrincipal Jwt jwt);
+                                                  @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -78,7 +77,7 @@ public interface AdminTrackPageApi {
     })
     @Operation(summary = "slug 수동 변경", description = "리다이렉트를 지원하지 않습니다 — 변경 전 URL은 더 이상 유효하지 않습니다.")
     AdminTrackPageDetailResponse changeSlug(@PathVariable Long id, @RequestBody @Valid SlugChangeRequest request,
-                                             @AuthenticationPrincipal Jwt jwt);
+                                             @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -88,7 +87,7 @@ public interface AdminTrackPageApi {
     })
     @Operation(summary = "공개/숨김")
     ResponseEntity<Void> publish(@PathVariable Long id, @RequestBody @Valid PublishRequest request,
-                                  @AuthenticationPrincipal Jwt jwt);
+                                  @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -98,7 +97,7 @@ public interface AdminTrackPageApi {
     })
     @Operation(summary = "랜딩 노출 순서 변경",
             description = "ids는 전체 트랙 페이지 id 집합과 정확히 일치해야 합니다(AC-1.5).")
-    ResponseEntity<Void> reorder(@RequestBody @Valid OrderRequest request, @AuthenticationPrincipal Jwt jwt);
+    ResponseEntity<Void> reorder(@RequestBody @Valid OrderRequest request, @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -107,7 +106,7 @@ public interface AdminTrackPageApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "트랙 페이지 삭제", description = "soft delete — 데이터는 보존됩니다.")
-    ResponseEntity<Void> deleteTrackPage(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt);
+    ResponseEntity<Void> deleteTrackPage(@PathVariable Long id, @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -119,7 +118,7 @@ public interface AdminTrackPageApi {
     @Operation(summary = "WHAT WE STUDY 카드 전체 교체", description = "최대 4개(INV-14). 배열 순서가 display_order다.")
     List<StudyPointResponse> replaceStudyPoints(@PathVariable Long id,
                                                  @RequestBody @Valid StudyPointsReplaceRequest request,
-                                                 @AuthenticationPrincipal Jwt jwt);
+                                                 @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -131,5 +130,5 @@ public interface AdminTrackPageApi {
     @Operation(summary = "기술스택 전체 교체", description = "배열 순서가 display_order다.")
     List<TechStackResponse> replaceTechStacks(@PathVariable Long id,
                                                @RequestBody @Valid TechStacksReplaceRequest request,
-                                               @AuthenticationPrincipal Jwt jwt);
+                                               @LoginMemberId Long loginMemberId);
 }
