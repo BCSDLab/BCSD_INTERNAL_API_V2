@@ -2,6 +2,7 @@ package com.bcsdlab.bcsdinternalapiv2.reservation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.bcsdlab.bcsdinternalapiv2.global.config.TimeConfig;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -20,7 +21,7 @@ class ReservationConcurrencyTest extends ReservationIntegrationTestSupport {
     void 동시에_같은_시간대를_예약하면_정확히_1건만_성공한다() throws Exception {
         String firstToken = createActiveMemberAndLogin("20250701");
         String secondToken = createActiveMemberAndLogin("20250702");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         String body = """
                 {"date":"%s","start":600,"end":660,"purpose":"동시성테스트","headcount":2}
                 """.formatted(date);

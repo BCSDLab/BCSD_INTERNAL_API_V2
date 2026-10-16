@@ -74,7 +74,7 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   game-build:
     upload-url: ${GAME_BUILD_UPLOAD_URL:http://localhost:3003/api/games/builds/upload}
-    secret: ${GAME_BUILD_SECRET:local-dev-secret}
+    secret: ${GAME_BUILD_SECRET:}
     token-validity-seconds: 1800
     public-origin: ${GAME_BUILD_PUBLIC_ORIGIN:https://bcsdlab.com}
   slack:

@@ -24,7 +24,7 @@ public class GameBuildWebhookService {
     private final GameBuildProperties gameBuildProperties;
 
     public void applyResult(Long buildId, String secretHeader, GameBuildWebhookRequest request) {
-        if (!gameBuildProperties.secret().equals(secretHeader)) {
+        if (!gameBuildProperties.matchesSecret(secretHeader)) {
             throw new GameException(GameExceptionType.GAME_BUILD_WEBHOOK_UNAUTHORIZED);
         }
 
