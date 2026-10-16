@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bcsdlab.bcsdinternalapiv2.global.config.TimeConfig;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.reservation.model.Reservation;
 import java.time.DayOfWeek;
@@ -95,7 +96,7 @@ class ReservationRepeatCreateIntegrationTest extends ReservationIntegrationTestS
     }
 
     private LocalDate nextDateWithWeekday(DayOfWeek dayOfWeek, int minDaysAhead) {
-        LocalDate date = LocalDate.now().plusDays(minDaysAhead);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(minDaysAhead);
         while (date.getDayOfWeek() != dayOfWeek) {
             date = date.plusDays(1);
         }
