@@ -11,11 +11,22 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    # 운영 로그에 모든 SQL이 찍히지 않게 기본은 끈다. 로컬에서 보려면 JPA_SHOW_SQL=true.
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: true
     open-in-view: false
+
+  # 배포는 컨테이너를 내렸다 올린다. 처리 중인 요청과 큐에 남은 비동기 메일(@Async)을 마치고 종료한다.
+  # deploy.yml의 docker stop 대기 시간은 이 두 단계의 합보다 길어야 한다.
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  task:
+    execution:
+      shutdown:
+        await-termination: true
+        await-termination-period: 20s
 
   flyway:
     enabled: true
@@ -29,6 +40,10 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  # 컨테이너 메모리 한도(300MiB)에서 기본값 200은 과하다. 내부 서비스라 동시 요청이 적다.
+  tomcat:
+    threads:
+      max: 50
 
 swagger:
   server-url: ${SWAGGER_SERVER_URL:http://localhost:8080}
