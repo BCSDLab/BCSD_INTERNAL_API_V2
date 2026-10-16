@@ -6,7 +6,6 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresigne
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.MemberDirectoryResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
-import com.bcsdlab.bcsdinternalapiv2.member.client.SlackClient;
 import com.bcsdlab.bcsdinternalapiv2.member.exception.MemberException;
 import com.bcsdlab.bcsdinternalapiv2.member.exception.MemberExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.member.model.AcademicStatus;
@@ -43,7 +42,6 @@ public class MemberDirectoryService {
     private final TrackMasterRepository trackMasterRepository;
     private final PositionRepository positionRepository;
     private final PhotoStorageService photoStorageService;
-    private final SlackClient slackClient;
 
     @Transactional(readOnly = true)
     public MemberDirectoryResponse getDirectory(MemberDirectoryQuery query, Pageable pageable) {
@@ -138,16 +136,6 @@ public class MemberDirectoryService {
         Member member = memberRepository.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new MemberException(MemberExceptionType.MEMBER_NOT_FOUND));
         member.updateProfileImageUrl(photoUrl);
-    }
-
-    @Transactional
-    public String syncProfileImageFromSlack(Long memberId) {
-        Member member = memberRepository.findByIdForUpdate(memberId)
-                .orElseThrow(() -> new MemberException(MemberExceptionType.MEMBER_NOT_FOUND));
-        String imageUrl = slackClient.findProfileImageUrlByEmail(member.getEmail())
-                .orElseThrow(() -> new MemberException(MemberExceptionType.SLACK_PROFILE_NOT_FOUND));
-        member.updateProfileImageUrl(imageUrl);
-        return imageUrl;
     }
 
     private boolean isBlank(String value) {
