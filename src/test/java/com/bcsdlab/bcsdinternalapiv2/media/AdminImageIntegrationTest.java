@@ -220,4 +220,32 @@ class AdminImageIntegrationTest extends IntegrationTestSupport {
         assertThat(imageAssetRepository.findAll()).singleElement()
                 .satisfies(image -> assertThat(image.getUploadedBy()).isNull());
     }
+
+    @Test
+    @DisplayName("라이브러리 조회에 purpose가 없으면 500이 아니라 400이다")
+    void purpose_없는_라이브러리_조회는_400() throws Exception {
+        mockMvc.perform(get("/v1/admin/images")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("필수 요청 파라미터 'purpose'가 없습니다."));
+    }
+
+    @Test
+    @DisplayName("라이브러리 조회에 없는 purpose 값을 주면 500이 아니라 400이다")
+    void 없는_purpose_값은_400() throws Exception {
+        mockMvc.perform(get("/v1/admin/images")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .queryParam("purpose", "NOT_A_PURPOSE"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("라이브러리 조회에 없는 필드로 정렬하면 500이 아니라 400이다")
+    void 없는_필드_정렬은_400() throws Exception {
+        mockMvc.perform(get("/v1/admin/images")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .queryParam("purpose", "TRACK_HERO")
+                        .queryParam("sort", "noSuchField,desc"))
+                .andExpect(status().isBadRequest());
+    }
 }
