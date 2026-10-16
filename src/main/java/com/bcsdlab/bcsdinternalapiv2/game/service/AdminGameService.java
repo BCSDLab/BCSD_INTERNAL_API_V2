@@ -173,7 +173,6 @@ public class AdminGameService {
                     .build()));
         }
         game.updateThumbnail(imageUrls.isEmpty() ? null : imageUrls.get(0));
-        // 스크린샷 첫 장이 게임 목록의 thumbnailUrl이기도 하므로 목록 캐시도 함께 무효화한다.
         return saved.stream().map(GameScreenshotResponse::from).toList();
     }
 
@@ -194,7 +193,7 @@ public class AdminGameService {
     @Transactional
     public void deleteRating(Long id, Long memberId) {
         requireGameAccess(memberId);
-        Game game = findGameOrThrow(id);
+        findGameOrThrow(id);
         gameRatingRepository.findByGame_Id(id).ifPresent(gameRatingRepository::delete);
     }
 
