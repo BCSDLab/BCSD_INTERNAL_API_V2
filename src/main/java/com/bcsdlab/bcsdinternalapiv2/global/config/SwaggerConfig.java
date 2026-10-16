@@ -2,12 +2,14 @@ package com.bcsdlab.bcsdinternalapiv2.global.config;
 
 import static io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,11 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
 
     private final String serverUrl;
+
+    static {
+        // @LoginMemberId 파라미터는 토큰에서 채우므로 요청 파라미터로 문서화하지 않는다.
+        SpringDocUtils.getConfig().addAnnotationsToIgnore(LoginMemberId.class);
+    }
 
     public SwaggerConfig(@Value("${swagger.server-url}") String serverUrl) {
         this.serverUrl = serverUrl;

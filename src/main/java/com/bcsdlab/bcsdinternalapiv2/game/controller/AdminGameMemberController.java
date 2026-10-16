@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.game.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameMembersAttachRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameMemberResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.service.AdminGameMemberService;
@@ -8,8 +9,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -36,23 +35,23 @@ public class AdminGameMemberController implements AdminGameMemberApi {
     @PostMapping
     public List<AdminGameMemberResponse> attachMembers(@PathVariable Long gameId,
                                                         @Valid @RequestBody GameMembersAttachRequest request,
-                                                        @AuthenticationPrincipal Jwt jwt) {
-        return adminGameMemberService.attachMembers(gameId, request, Long.valueOf(jwt.getSubject()));
+                                                        @LoginMemberId Long loginMemberId) {
+        return adminGameMemberService.attachMembers(gameId, request, loginMemberId);
     }
 
     @Override
     @DeleteMapping("/{memberId}")
     public ResponseEntity<Void> detachMember(@PathVariable Long gameId, @PathVariable Long memberId,
-                                              @AuthenticationPrincipal Jwt jwt) {
-        adminGameMemberService.detachMember(gameId, memberId, Long.valueOf(jwt.getSubject()));
+                                              @LoginMemberId Long loginMemberId) {
+        adminGameMemberService.detachMember(gameId, memberId, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/order")
     public ResponseEntity<Void> reorder(@PathVariable Long gameId, @Valid @RequestBody OrderRequest request,
-                                         @AuthenticationPrincipal Jwt jwt) {
-        adminGameMemberService.reorder(gameId, request, Long.valueOf(jwt.getSubject()));
+                                         @LoginMemberId Long loginMemberId) {
+        adminGameMemberService.reorder(gameId, request, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 }

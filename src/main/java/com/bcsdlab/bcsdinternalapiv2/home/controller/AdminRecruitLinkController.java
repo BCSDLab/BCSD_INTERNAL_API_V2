@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.home.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.request.RecruitLinkUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.response.AdminRecruitLinkResponse;
 import com.bcsdlab.bcsdinternalapiv2.home.controller.dto.response.RecruitLinkHistoryResponse;
@@ -7,8 +8,6 @@ import com.bcsdlab.bcsdinternalapiv2.home.service.AdminRecruitLinkService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,8 +30,8 @@ public class AdminRecruitLinkController implements AdminRecruitLinkApi {
     @Override
     @PutMapping
     public AdminRecruitLinkResponse update(@Valid @RequestBody RecruitLinkUpdateRequest request,
-                                            @AuthenticationPrincipal Jwt jwt) {
-        return adminRecruitLinkService.update(request, Long.valueOf(jwt.getSubject()));
+                                            @LoginMemberId Long loginMemberId) {
+        return adminRecruitLinkService.update(request, loginMemberId);
     }
 
     @Override

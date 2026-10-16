@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.reservation.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.reservation.controller.dto.response.MonthlyOccupancyResponse;
 import com.bcsdlab.bcsdinternalapiv2.reservation.controller.dto.response.MyReservationResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,8 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.YearMonth;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -29,7 +28,7 @@ public interface MyReservationApi {
     @SecurityRequirement(name = "JWT")
     @GetMapping("/monthly-occupancy")
     ResponseEntity<MonthlyOccupancyResponse> getMyMonthlyOccupancy(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @LoginMemberId Long loginMemberId,
             @Parameter(example = "2026-09") @RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth month);
 
     @ApiResponses(value = {
@@ -41,6 +40,6 @@ public interface MyReservationApi {
     @SecurityRequirement(name = "JWT")
     @GetMapping
     ResponseEntity<MyReservationResponse> getMyReservations(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @LoginMemberId Long loginMemberId,
             @Parameter(example = "upcoming") @RequestParam(defaultValue = "upcoming") String status);
 }

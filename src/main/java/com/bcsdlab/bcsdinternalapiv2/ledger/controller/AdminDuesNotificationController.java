@@ -1,13 +1,12 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.DuesNotificationRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.DuesNotificationResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.service.DuesNotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,8 +27,8 @@ public class AdminDuesNotificationController implements AdminDuesNotificationApi
             @PathVariable String semesterId,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DuesNotificationRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @LoginMemberId Long loginMemberId) {
         return ResponseEntity.ok(notificationService.send(semesterId, request, idempotencyKey,
-                Long.valueOf(jwt.getSubject())));
+                loginMemberId));
     }
 }
