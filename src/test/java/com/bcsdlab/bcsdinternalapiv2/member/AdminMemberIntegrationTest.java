@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bcsdlab.bcsdinternalapiv2.IntegrationTestSupport;
 import com.bcsdlab.bcsdinternalapiv2.member.client.SlackClient;
 import com.bcsdlab.bcsdinternalapiv2.member.model.AcademicStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
@@ -18,37 +19,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers
-@SpringBootTest
-@AutoConfigureMockMvc
-class AdminMemberIntegrationTest {
+class AdminMemberIntegrationTest extends IntegrationTestSupport {
 
     private static final String RAW_PASSWORD = "Temp1234";
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
-
-    @DynamicPropertySource
-    static void jwtSecret(DynamicPropertyRegistry registry) {
-        registry.add("app.jwt.secret", () -> "test-only-secret-key-not-for-production-32bytes-min");
-    }
-
-    @Autowired
-    private MockMvc mockMvc;
 
     // 부원 추가가 이메일로 Slack ID를 조회한다 — 테스트에서 실제 slack.com을 부르지 않게 막는다.
     @MockitoBean
