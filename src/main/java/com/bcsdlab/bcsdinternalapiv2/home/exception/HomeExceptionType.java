@@ -29,28 +29,4 @@ public enum HomeExceptionType implements BcsdExceptionType {
     public String getMessage() {
         return message;
     }
-
-    @Override
-    public BcsdExceptionType withDetail(String detailMessage) {
-        return new DetailedHomeExceptionType(this, detailMessage);
-    }
-
-    private record DetailedHomeExceptionType(HomeExceptionType type, String detailMessage)
-            implements BcsdExceptionType {
-
-        @Override
-        public HttpStatus getHttpStatus() {
-            return type.getHttpStatus();
-        }
-
-        @Override
-        public String getMessage() {
-            return MESSAGE_FORMAT.formatted(type.getMessage(), detailMessage).strip();
-        }
-
-        @Override
-        public BcsdExceptionType withDetail(String detailMessage) {
-            return new DetailedHomeExceptionType(type, detailMessage);
-        }
-    }
 }
