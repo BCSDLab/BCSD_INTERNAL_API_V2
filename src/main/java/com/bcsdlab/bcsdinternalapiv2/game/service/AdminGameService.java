@@ -101,7 +101,8 @@ public class AdminGameService {
                 .oneLiner(request.oneLiner())
                 .track(track)
                 .teamLabel(request.teamLabel())
-                .displayOrder((int) gameRepository.count())
+                .displayOrder(DisplayOrders.next(gameRepository.findAllByOrderByDisplayOrderAsc(),
+                        Game::getDisplayOrder))
                 .published(false)
                 .build();
 

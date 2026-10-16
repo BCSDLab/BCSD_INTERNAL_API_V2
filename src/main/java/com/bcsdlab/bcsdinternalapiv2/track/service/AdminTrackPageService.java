@@ -103,7 +103,8 @@ public class AdminTrackPageService {
                 .slug(slug)
                 .displayName(request.displayName())
                 .tagline(request.tagline())
-                .displayOrder((int) trackPageRepository.count())
+                .displayOrder(DisplayOrders.next(trackPageRepository.findAllByOrderByDisplayOrderAsc(),
+                        TrackPage::getDisplayOrder))
                 .published(true)
                 .build();
 

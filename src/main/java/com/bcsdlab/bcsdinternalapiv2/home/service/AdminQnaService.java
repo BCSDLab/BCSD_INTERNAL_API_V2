@@ -35,7 +35,8 @@ public class AdminQnaService {
         QnaItem saved = qnaItemRepository.save(QnaItem.builder()
                 .question(request.question())
                 .answer(request.answer())
-                .displayOrder((int) qnaItemRepository.count())
+                .displayOrder(DisplayOrders.next(qnaItemRepository.findAllByOrderByDisplayOrderAsc(),
+                        QnaItem::getDisplayOrder))
                 .published(true)
                 .build());
         return AdminQnaResponse.from(saved);

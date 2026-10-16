@@ -1,5 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.home;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,6 +23,8 @@ import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -185,5 +189,36 @@ class AdminQnaAndRecruitLinkIntegrationTest extends IntegrationTestSupport {
                                 .formatted(studentNumber, RAW_PASSWORD)))
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(body).get("accessToken").asText();
+    }
+
+    @Test
+    @DisplayName("Q&A를 지운 뒤 새로 만들면 남은 항목과 순서가 겹치지 않고 맨 뒤에 붙는다")
+    void 삭제_후_생성한_Q_A는_맨_뒤에_붙는다() throws Exception {
+        long first = createQna("첫 질문");
+        long second = createQna("둘째 질문");
+        createQna("셋째 질문");
+
+        mockMvc.perform(delete("/v1/admin/qna/" + second).header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isNoContent());
+        long fourth = createQna("넷째 질문");
+
+        String list = mockMvc.perform(get("/v1/admin/qna").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        List<Integer> orders = new ArrayList<>();
+        objectMapper.readTree(list).forEach(item -> orders.add(item.get("displayOrder").asInt()));
+        assertThat(orders).doesNotHaveDuplicates();
+        assertThat(objectMapper.readTree(list).get(0).get("id").asLong()).isEqualTo(first);
+        assertThat(objectMapper.readTree(list).get(2).get("id").asLong()).isEqualTo(fourth);
+    }
+
+    private long createQna(String question) throws Exception {
+        String body = mockMvc.perform(post("/v1/admin/qna")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"%s\",\"answer\":\"답변\"}".formatted(question)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(body).get("id").asLong();
     }
 }

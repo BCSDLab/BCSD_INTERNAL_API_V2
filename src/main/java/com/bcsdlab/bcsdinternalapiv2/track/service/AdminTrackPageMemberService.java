@@ -63,7 +63,9 @@ public class AdminTrackPageMemberService {
             }
         }
 
-        int nextOrder = trackPageMemberRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId).size();
+        int nextOrder = DisplayOrders.next(
+                trackPageMemberRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId),
+                TrackPageMember::getDisplayOrder);
         for (Long memberId : memberIds) {
             trackPageMemberRepository.save(TrackPageMember.builder()
                     .trackPage(trackPage)
