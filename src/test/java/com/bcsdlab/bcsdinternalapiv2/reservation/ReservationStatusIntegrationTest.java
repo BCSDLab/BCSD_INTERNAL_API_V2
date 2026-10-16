@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bcsdlab.bcsdinternalapiv2.global.config.TimeConfig;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.reservation.model.Reservation;
 import java.time.LocalDate;
@@ -16,7 +17,7 @@ class ReservationStatusIntegrationTest extends ReservationIntegrationTestSupport
     @Test
     void 비로그인_상태로_일별_예약을_조회하면_예약자_이름과_목적이_마스킹된다() throws Exception {
         Member member = createActiveMember("20250101");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         reservationRepository.save(Reservation.builder()
                 .memberId(member.getId())
                 .reservationDate(date)
@@ -39,7 +40,7 @@ class ReservationStatusIntegrationTest extends ReservationIntegrationTestSupport
     void 로그인_상태로_일별_예약을_조회하면_예약자_이름과_목적이_그대로_보인다() throws Exception {
         Member member = createActiveMember("20250102");
         String token = login("20250102");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         reservationRepository.save(Reservation.builder()
                 .memberId(member.getId())
                 .reservationDate(date)
@@ -61,7 +62,7 @@ class ReservationStatusIntegrationTest extends ReservationIntegrationTestSupport
     @Test
     void 월별_예약_현황은_비로그인_상태에서도_조회할_수_있다() throws Exception {
         Member member = createActiveMember("20250103");
-        LocalDate date = LocalDate.now().plusDays(3);
+        LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(3);
         reservationRepository.save(Reservation.builder()
                 .memberId(member.getId())
                 .reservationDate(date)
