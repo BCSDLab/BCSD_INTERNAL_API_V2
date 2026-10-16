@@ -1,6 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.media.service;
 
-import com.bcsdlab.bcsdinternalapiv2.global.config.S3Properties;
+import com.bcsdlab.bcsdinternalapiv2.global.storage.S3UploadUrlSigner;
+import com.bcsdlab.bcsdinternalapiv2.global.storage.S3UploadUrlSigner.PresignedUpload;
 import com.bcsdlab.bcsdinternalapiv2.media.controller.dto.request.PresignedUrlRequest;
 import com.bcsdlab.bcsdinternalapiv2.media.controller.dto.response.ImageAssetResponse;
 import com.bcsdlab.bcsdinternalapiv2.media.controller.dto.response.ImageCompleteResponse;
@@ -10,17 +11,11 @@ import com.bcsdlab.bcsdinternalapiv2.media.exception.MediaExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.media.model.ImageAsset;
 import com.bcsdlab.bcsdinternalapiv2.media.model.ImagePurpose;
 import com.bcsdlab.bcsdinternalapiv2.media.repository.ImageAssetRepository;
-import java.time.Duration;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 /**
  * presigned URL 발급 → 브라우저가 S3에 직접 PUT → complete 등록(ADR-009). 서버는 이미지
@@ -32,11 +27,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 @Transactional(readOnly = true)
 public class AdminImageService {
 
-    private static final Duration UPLOAD_URL_VALIDITY = Duration.ofMinutes(10);
-
     private final ImageAssetRepository imageAssetRepository;
-    private final S3Presigner s3Presigner;
-    private final S3Properties s3Properties;
+    private final S3UploadUrlSigner s3UploadUrlSigner;
 
     @Transactional
     public PresignedUrlResponse issuePresignedUrl(PresignedUrlRequest request) {
@@ -53,12 +45,12 @@ public class AdminImageService {
     @Transactional
     public PresignedUrlResponse issueUpload(ImagePurpose purpose, String fileName, String contentType, long byteSize,
                                             Long uploadedBy, boolean signContentLength) {
-        String s3Key = "%s/%s.%s".formatted(purpose.name().toLowerCase(), UUID.randomUUID(), extensionOf(fileName));
-        String publicUrl = s3Properties.publicBaseUrl() + "/" + s3Key;
+        PresignedUpload upload = s3UploadUrlSigner.presignPut(
+                purpose.name().toLowerCase(), fileName, contentType, signContentLength ? byteSize : null);
 
         ImageAsset image = imageAssetRepository.save(ImageAsset.builder()
-                .s3Key(s3Key)
-                .url(publicUrl)
+                .s3Key(upload.key())
+                .url(upload.publicUrl())
                 .originalName(fileName)
                 .contentType(contentType)
                 .byteSize(byteSize)
@@ -66,8 +58,7 @@ public class AdminImageService {
                 .uploadedBy(uploadedBy)
                 .build());
 
-        String uploadUrl = presignPutUrl(s3Key, contentType, signContentLength ? byteSize : null);
-        return new PresignedUrlResponse(image.getId(), uploadUrl, publicUrl);
+        return new PresignedUrlResponse(image.getId(), upload.uploadUrl(), upload.publicUrl());
     }
 
     @Transactional
@@ -93,23 +84,6 @@ public class AdminImageService {
         }
     }
 
-    private String presignPutUrl(String s3Key, String contentType, Long contentLength) {
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3Properties.bucket())
-                .key(s3Key)
-                .contentType(contentType)
-                .contentLength(contentLength)
-                .build();
-        PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(PutObjectPresignRequest.builder()
-                .signatureDuration(UPLOAD_URL_VALIDITY)
-                .putObjectRequest(putObjectRequest)
-                .build());
-        return presigned.url().toString();
-    }
-
-    private String extensionOf(String fileName) {
-        return fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-    }
 
     private ImageAsset findOrThrow(Long id) {
         return imageAssetRepository.findById(id)
