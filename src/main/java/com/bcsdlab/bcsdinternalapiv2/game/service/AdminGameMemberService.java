@@ -82,7 +82,7 @@ public class AdminGameMemberService {
     @Transactional
     public void detachMember(Long gameId, Long memberId, Long requesterId) {
         requireGameAccess(requesterId);
-        Game game = findGameOrThrow(gameId);
+        findGameOrThrow(gameId);
         GameMember assignment = gameMemberRepository.findByGame_IdAndMember_Id(gameId, memberId)
                 .orElseThrow(() -> new GameException(GameExceptionType.GAME_MEMBER_NOT_FOUND));
         gameMemberRepository.delete(assignment);
@@ -91,7 +91,7 @@ public class AdminGameMemberService {
     @Transactional
     public void reorder(Long gameId, OrderRequest request, Long requesterId) {
         requireGameAccess(requesterId);
-        Game game = findGameOrThrow(gameId);
+        findGameOrThrow(gameId);
         List<GameMember> assignments = gameMemberRepository.findAllByGame_IdOrderByDisplayOrderAsc(gameId);
         Map<Long, GameMember> byId = assignments.stream()
                 .collect(Collectors.toMap(GameMember::getId, assignment -> assignment));
