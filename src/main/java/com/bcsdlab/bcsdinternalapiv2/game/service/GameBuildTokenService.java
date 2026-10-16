@@ -1,6 +1,8 @@
 package com.bcsdlab.bcsdinternalapiv2.game.service;
 
 import com.bcsdlab.bcsdinternalapiv2.game.config.GameBuildProperties;
+import com.bcsdlab.bcsdinternalapiv2.game.exception.GameException;
+import com.bcsdlab.bcsdinternalapiv2.game.exception.GameExceptionType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -31,6 +33,9 @@ public class GameBuildTokenService {
     }
 
     public IssuedToken issue(Long buildId, Long gameId, String slug, String version) {
+        if (!properties.isSecretConfigured()) {
+            throw new GameException(GameExceptionType.GAME_BUILD_UPLOAD_NOT_CONFIGURED);
+        }
         Instant expiresAt = Instant.now().plusSeconds(properties.tokenValiditySeconds());
         Payload payload = new Payload(buildId, gameId, slug, version, expiresAt.getEpochSecond());
         byte[] payloadBytes = writeValueAsBytes(payload);
