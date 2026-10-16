@@ -32,8 +32,13 @@ public abstract class IntegrationTestSupport {
     private static final Set<String> PRESERVED_TABLES =
             Set.of("flyway_schema_history", "track", "position", "dues_exemption_reason");
 
+    /**
+     * 설정(목 빈, 프로퍼티)이 다른 테스트 클래스마다 Spring 컨텍스트가 따로 캐시되고 각자 커넥션 풀을 잡는다.
+     * 모든 컨텍스트가 이 컨테이너 하나를 쓰므로 기본 연결 상한(100)을 넘지 않게 늘린다.
+     */
     @ServiceConnection
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withCommand("postgres", "-c", "max_connections=500");
 
     static {
         POSTGRES.start();
