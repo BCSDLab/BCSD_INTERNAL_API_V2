@@ -1,5 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.game.model;
 
+import com.bcsdlab.bcsdinternalapiv2.game.exception.GameException;
+import com.bcsdlab.bcsdinternalapiv2.game.exception.GameExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.global.BaseTimeEntity;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import jakarta.persistence.Column;
@@ -86,17 +88,39 @@ public class GameBuild extends BaseTimeEntity {
         this.status = status;
     }
 
-    public void applyActive(Integer canvasWidth, Integer canvasHeight, Long storageBytes, String buildFileUrl) {
+    /**
+     * 완료 웹훅(ACTIVE)을 반영한다. 업로드 중(PROCESSING)인 빌드만 활성화한다 — 늦게 도착하거나 다시 보낸 웹훅이
+     * 보관된 옛 빌드를 되살리지 못하게 한다. 이미 ACTIVE면 재전송으로 보고 아무것도 바꾸지 않는다.
+     *
+     * @return 이번 호출로 활성화됐으면 true
+     */
+    public boolean applyActive(Integer canvasWidth, Integer canvasHeight, Long storageBytes, String buildFileUrl) {
+        if (status == GameBuildStatus.ACTIVE) {
+            return false;
+        }
+        requireProcessing();
         this.status = GameBuildStatus.ACTIVE;
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
         this.storageBytes = storageBytes;
         this.buildFileUrl = buildFileUrl;
         this.failureReason = null;
+        return true;
     }
 
+    /** 실패 웹훅(FAILED)을 반영한다. 업로드 중인 빌드만 실패 처리하고, 이미 FAILED면 아무것도 바꾸지 않는다. */
     public void markFailed(String failureReason) {
+        if (status == GameBuildStatus.FAILED) {
+            return;
+        }
+        requireProcessing();
         this.status = GameBuildStatus.FAILED;
         this.failureReason = failureReason;
+    }
+
+    private void requireProcessing() {
+        if (status != GameBuildStatus.PROCESSING) {
+            throw new GameException(GameExceptionType.GAME_BUILD_INVALID_STATE);
+        }
     }
 }
