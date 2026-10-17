@@ -1,16 +1,11 @@
 package com.bcsdlab.bcsdinternalapiv2.member.service;
 
-import com.bcsdlab.bcsdinternalapiv2.global.config.S3Properties;
+import com.bcsdlab.bcsdinternalapiv2.global.storage.S3UploadUrlSigner;
+import com.bcsdlab.bcsdinternalapiv2.global.storage.S3UploadUrlSigner.PresignedUpload;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PhotoPresignedUrlRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PhotoPresignedUrlResponse;
-import java.time.Duration;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 /**
  * 회원 프로필 사진도 미디어 도메인의 이미지 업로드와 동일하게 presigned URL로 처리한다 —
@@ -21,29 +16,11 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 @RequiredArgsConstructor
 public class PhotoStorageService {
 
-    private static final Duration UPLOAD_URL_VALIDITY = Duration.ofMinutes(10);
-
-    private final S3Presigner s3Presigner;
-    private final S3Properties s3Properties;
+    private final S3UploadUrlSigner s3UploadUrlSigner;
 
     public PhotoPresignedUrlResponse issuePresignedUrl(Long memberId, PhotoPresignedUrlRequest request) {
-        String key = "member-photos/%d/%s.%s".formatted(memberId, UUID.randomUUID(), extensionOf(request.fileName()));
-        String publicUrl = s3Properties.publicBaseUrl() + "/" + key;
-
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3Properties.bucket())
-                .key(key)
-                .contentType(request.contentType())
-                .build();
-        PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(PutObjectPresignRequest.builder()
-                .signatureDuration(UPLOAD_URL_VALIDITY)
-                .putObjectRequest(putObjectRequest)
-                .build());
-
-        return new PhotoPresignedUrlResponse(presigned.url().toString(), publicUrl);
-    }
-
-    private String extensionOf(String fileName) {
-        return fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+        PresignedUpload upload = s3UploadUrlSigner.presignPut(
+                "member-photos/" + memberId, request.fileName(), request.contentType(), null);
+        return new PhotoPresignedUrlResponse(upload.uploadUrl(), upload.publicUrl());
     }
 }
