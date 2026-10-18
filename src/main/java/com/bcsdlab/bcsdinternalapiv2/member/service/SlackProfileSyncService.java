@@ -38,6 +38,19 @@ public class SlackProfileSyncService {
     private final SlackClient slackClient;
     private final MemberDirectoryService memberDirectoryService;
 
+    /**
+     * 한 회원의 프로필 사진을 Slack(이메일 조회)에서 가져와 저장한다. Slack 호출은 트랜잭션과 행 잠금 밖에서 하고,
+     * 저장만 짧은 트랜잭션으로 한다 — 잠금을 쥔 채 외부 호출을 기다리면 같은 회원의 로그인·토큰 갱신이 막힌다.
+     */
+    public String syncOne(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberExceptionType.MEMBER_NOT_FOUND));
+        String imageUrl = slackClient.findProfileImageUrlByEmail(member.getEmail())
+                .orElseThrow(() -> new MemberException(MemberExceptionType.SLACK_PROFILE_NOT_FOUND));
+        memberDirectoryService.updatePhotoUrl(memberId, imageUrl);
+        return imageUrl;
+    }
+
     public SlackProfileSyncResponse syncAll() {
         // 가입 전·잠김 회원도 홈페이지에 노출될 수 있으므로 탈퇴한 회원만 제외한다.
         List<Member> members = memberRepository.findAllByStatusNot(MemberStatus.WITHDRAWN);

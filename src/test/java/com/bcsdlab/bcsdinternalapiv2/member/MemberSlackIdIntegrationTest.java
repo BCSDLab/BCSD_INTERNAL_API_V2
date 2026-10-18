@@ -27,13 +27,16 @@ import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @TestPropertySource(properties = "app.mail.transport=log")
 class MemberSlackIdIntegrationTest extends IntegrationTestSupport {
@@ -342,5 +345,25 @@ class MemberSlackIdIntegrationTest extends IntegrationTestSupport {
                 .getResponse()
                 .getContentAsString();
         return objectMapper.readTree(responseBody).get("accessToken").asText();
+    }
+
+    @Test
+    @DisplayName("Slack 사진 동기화는 트랜잭션(회원 행 잠금) 밖에서 Slack을 부르고 사진을 저장한다")
+    void Slack_사진_동기화는_트랜잭션_밖에서_Slack을_부른다() throws Exception {
+        Member member = saveMember("20240021", "윤사진", MemberRole.MEMBER);
+        AtomicBoolean calledInTransaction = new AtomicBoolean(true);
+        when(slackClient.findProfileImageUrlByEmail(member.getEmail())).thenAnswer(invocation -> {
+            calledInTransaction.set(TransactionSynchronizationManager.isActualTransactionActive());
+            return Optional.of("https://avatars.slack-edge.com/photo.png");
+        });
+
+        mockMvc.perform(post("/v1/admin/members/" + member.getId() + "/photo/slack-sync")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.photoUrl").value("https://avatars.slack-edge.com/photo.png"));
+
+        assertThat(calledInTransaction).isFalse();
+        assertThat(memberRepository.findById(member.getId()).orElseThrow().getProfileImageUrl())
+                .isEqualTo("https://avatars.slack-edge.com/photo.png");
     }
 }
