@@ -1,7 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.member.model;
 
 import com.bcsdlab.bcsdinternalapiv2.global.BaseTimeEntity;
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

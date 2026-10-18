@@ -17,12 +17,12 @@ import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TechStackResp
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TechStack;
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.member.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPageTechStack;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackStudyPoint;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TechStackRepository;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.TrackMasterRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageMemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageTechStackRepository;

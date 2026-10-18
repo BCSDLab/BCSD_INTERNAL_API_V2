@@ -11,10 +11,8 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.AdminMemberCr
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.AdminMemberCreateResponse;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.mail.MailSender;
-import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
-import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.TrackMasterRepository;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -60,7 +58,7 @@ public class AdminMemberService {
                 : PhoneNumberNormalizer.normalize(request.phoneNumber());
         String normalizedGithubId = GithubIdNormalizer.normalize(request.githubId());
         TrackMaster track = trackMasterRepository.findByCode(request.track().name())
-                .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberExceptionType.TRACK_NOT_FOUND));
 
         // 계정 없이 명부에만 등록하면 비밀번호·비밀번호 변경 시각을 비워 두고 환영 메일도 보내지 않는다.
         // 계정은 나중에 환영 메일 재발송이나 Slack 비밀번호 설정 링크로 만든다.

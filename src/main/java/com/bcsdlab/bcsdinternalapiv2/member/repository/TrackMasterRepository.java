@@ -1,6 +1,6 @@
-package com.bcsdlab.bcsdinternalapiv2.track.repository;
+package com.bcsdlab.bcsdinternalapiv2.member.repository;
 
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.member.model.TrackMaster;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

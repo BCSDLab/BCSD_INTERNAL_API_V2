@@ -1,7 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.game.model;
 
 import com.bcsdlab.bcsdinternalapiv2.global.SoftDeletableEntity;
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.member.model.TrackMaster;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
