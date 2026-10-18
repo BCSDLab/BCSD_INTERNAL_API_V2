@@ -18,6 +18,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # jar는 러너에서 Gradle 캐시로 빌드한다. Docker 안에서 빌드하면 매번 의존성 해석·컴파일을 처음부터 한다.
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build jar and extract layers
+        run: |
+          ./gradlew bootJar --console=plain
+          java -Djarmode=tools -jar build/libs/bcsd-internal-api-v2-*.jar extract --layers --launcher --destination build/extracted
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -81,3 +96,15 @@ jobs:
               -e BBOT_SERVICE_TOKEN='${{ secrets.BBOT_SERVICE_TOKEN }}' \
               --memory=300m \
               ghcr.io/bcsdlab/bcsd-internal-api:latest
+            # docker run -d는 컨테이너가 뜨자마자 끝난다. 앱이 실제로 응답할 때까지 기다리고, 못 뜨면 배포를 실패로 남긴다.
+            for i in $(seq 1 40); do
+              if docker exec bcsd-internal-api wget -q -O /dev/null http://127.0.0.1:8081/health 2>/dev/null; then
+                echo "healthy after $((i * 3))s"
+                exit 0
+              fi
+              sleep 3
+            done
+            # 공개 레포라 Actions 로그가 공개된다. 앱 로그 대신 컨테이너 상태만 남기고, 원인은 서버에서 docker logs로 본다.
+            echo "health check failed"
+            docker inspect -f 'status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} restarts={{.RestartCount}}' bcsd-internal-api
+            exit 1
