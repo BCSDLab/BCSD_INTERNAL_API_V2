@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MemberService {
 
     private final MemberRepository memberRepository;
@@ -36,12 +37,10 @@ public class MemberService {
     private final AuthService authService;
     private final PhotoStorageService photoStorageService;
 
-    @Transactional(readOnly = true)
     public MemberResponse getMe(Long memberId) {
         return MemberResponse.from(getMemberOrThrow(memberId));
     }
 
-    @Transactional(readOnly = true)
     public MemberResponse getInitialSetupInfo(Long memberId, long tokenPasswordVersion) {
         Member member = getMemberOrThrow(memberId);
         if (!member.isPendingSetup()) {
@@ -126,7 +125,6 @@ public class MemberService {
                 .forEach(refreshToken -> refreshToken.revoke(now));
     }
 
-    @Transactional(readOnly = true)
     public PhotoPresignedUrlResponse issuePhotoPresignedUrl(Long memberId, PhotoPresignedUrlRequest request) {
         return photoStorageService.issuePresignedUrl(memberId, request);
     }

@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReservationService {
 
     private static final int MAX_DAILY_MINUTES = 180;
@@ -68,7 +69,6 @@ public class ReservationService {
         return createRepeat(memberId, request, now);
     }
 
-    @Transactional(readOnly = true)
     public DailyReservationResponse getDaily(LocalDate date, Long viewerMemberId) {
         List<Reservation> reservations =
                 reservationRepository.findByReservationDateAndCancelledAtIsNullOrderByStartMinuteAsc(date);
@@ -76,14 +76,12 @@ public class ReservationService {
         return DailyReservationResponse.of(date, reservations, namesById, viewerMemberId);
     }
 
-    @Transactional(readOnly = true)
     public MonthlyOccupancyResponse getMonthlyOccupancy(YearMonth month) {
         LocalDate from = month.atDay(1);
         LocalDate to = month.atEndOfMonth();
         return MonthlyOccupancyResponse.of(month, toDays(reservationRepository.sumReservedMinutesByDateBetween(from, to)));
     }
 
-    @Transactional(readOnly = true)
     public MonthlyOccupancyResponse getMyMonthlyOccupancy(Long memberId, YearMonth month) {
         LocalDate from = month.atDay(1);
         LocalDate to = month.atEndOfMonth();
@@ -91,7 +89,6 @@ public class ReservationService {
         return MonthlyOccupancyResponse.of(month, toDays(rows));
     }
 
-    @Transactional(readOnly = true)
     public MyReservationResponse getMyReservations(Long memberId, String status) {
         LocalDate today = LocalDate.now(clock);
         List<Reservation> reservations = "past".equalsIgnoreCase(status)
@@ -104,7 +101,6 @@ public class ReservationService {
         return MyReservationResponse.of(pickGroupRepresentatives(reservations));
     }
 
-    @Transactional(readOnly = true)
     public ReservationDetailResponse getDetail(Long memberId, Long reservationId) {
         Reservation reservation = getOwnedReservation(memberId, reservationId);
         ReservationDetailResponse.Group group = null;

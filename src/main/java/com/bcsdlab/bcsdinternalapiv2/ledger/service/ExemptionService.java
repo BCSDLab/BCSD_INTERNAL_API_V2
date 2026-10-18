@@ -20,19 +20,18 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ExemptionService {
 
     private final DuesExemptionRepository exemptionRepository;
     private final DuesExemptionReasonRepository reasonRepository;
     private final MemberRepository memberRepository;
 
-    @Transactional(readOnly = true)
     public ExemptionListResponse getExemptions() {
         return new ExemptionListResponse(
                 exemptionRepository.findAllByOrderByIdAsc().stream().map(ExemptionResponse::from).toList());
     }
 
-    @Transactional(readOnly = true)
     public ExemptionReasonListResponse getReasons() {
         return new ExemptionReasonListResponse(reasonRepository.findAllNames());
     }
