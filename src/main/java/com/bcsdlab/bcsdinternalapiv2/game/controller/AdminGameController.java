@@ -37,14 +37,14 @@ public class AdminGameController implements AdminGameApi {
 
     @Override
     @GetMapping
-    public List<AdminGameSummaryResponse> getGames() {
-        return adminGameService.getGames();
+    public ResponseEntity<List<AdminGameSummaryResponse>> getGames() {
+        return ResponseEntity.ok(adminGameService.getGames());
     }
 
     @Override
     @GetMapping("/{id}")
-    public AdminGameDetailResponse getGame(@PathVariable Long id) {
-        return adminGameService.getGame(id);
+    public ResponseEntity<AdminGameDetailResponse> getGame(@PathVariable Long id) {
+        return ResponseEntity.ok(adminGameService.getGame(id));
     }
 
     @Override
@@ -57,17 +57,17 @@ public class AdminGameController implements AdminGameApi {
 
     @Override
     @PutMapping("/{id}")
-    public AdminGameDetailResponse updateGame(@PathVariable Long id, @Valid @RequestBody GameUpdateRequest request,
-                                               @LoginMemberId Long loginMemberId) {
-        return adminGameService.updateGame(id, request, loginMemberId);
+    public ResponseEntity<AdminGameDetailResponse> updateGame(@PathVariable Long id, @Valid @RequestBody GameUpdateRequest request,
+                                                               @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminGameService.updateGame(id, request, loginMemberId));
     }
 
     @Override
     @PatchMapping("/{id}/slug")
-    public AdminGameDetailResponse changeSlug(@PathVariable Long id,
-                                               @Valid @RequestBody GameSlugChangeRequest request,
-                                               @LoginMemberId Long loginMemberId) {
-        return adminGameService.changeSlug(id, request, loginMemberId);
+    public ResponseEntity<AdminGameDetailResponse> changeSlug(@PathVariable Long id,
+                                                               @Valid @RequestBody GameSlugChangeRequest request,
+                                                               @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminGameService.changeSlug(id, request, loginMemberId));
     }
 
     @Override
@@ -95,17 +95,17 @@ public class AdminGameController implements AdminGameApi {
 
     @Override
     @PutMapping("/{id}/screenshots")
-    public List<GameScreenshotResponse> replaceScreenshots(@PathVariable Long id,
-                                                            @Valid @RequestBody GameScreenshotsReplaceRequest request,
-                                                            @LoginMemberId Long loginMemberId) {
-        return adminGameService.replaceScreenshots(id, request, loginMemberId);
+    public ResponseEntity<List<GameScreenshotResponse>> replaceScreenshots(@PathVariable Long id,
+                                                                            @Valid @RequestBody GameScreenshotsReplaceRequest request,
+                                                                            @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminGameService.replaceScreenshots(id, request, loginMemberId));
     }
 
     @Override
     @PutMapping("/{id}/rating")
-    public GameRatingResponse upsertRating(@PathVariable Long id, @Valid @RequestBody GameRatingRequest request,
-                                            @LoginMemberId Long loginMemberId) {
-        return adminGameService.upsertRating(id, request, loginMemberId);
+    public ResponseEntity<GameRatingResponse> upsertRating(@PathVariable Long id, @Valid @RequestBody GameRatingRequest request,
+                                                            @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminGameService.upsertRating(id, request, loginMemberId));
     }
 
     @Override

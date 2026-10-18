@@ -5,6 +5,7 @@ import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TrackSummaryR
 import com.bcsdlab.bcsdinternalapiv2.track.service.TrackService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,13 +20,13 @@ public class TrackController implements TrackApi {
 
     @Override
     @GetMapping
-    public List<TrackSummaryResponse> getTracks() {
-        return trackService.getTracks();
+    public ResponseEntity<List<TrackSummaryResponse>> getTracks() {
+        return ResponseEntity.ok(trackService.getTracks());
     }
 
     @Override
     @GetMapping("/{slug}")
-    public TrackDetailResponse getTrack(@PathVariable String slug) {
-        return trackService.getTrack(slug);
+    public ResponseEntity<TrackDetailResponse> getTrack(@PathVariable String slug) {
+        return ResponseEntity.ok(trackService.getTrack(slug));
     }
 }

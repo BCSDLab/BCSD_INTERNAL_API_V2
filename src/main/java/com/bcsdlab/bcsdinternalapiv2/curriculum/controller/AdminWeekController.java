@@ -29,9 +29,9 @@ public class AdminWeekController implements AdminWeekApi {
 
     @Override
     @PutMapping("/{id}")
-    public CurriculumWeekResponse updateWeek(@PathVariable Long id, @Valid @RequestBody WeekRequest request,
-                                              @LoginMemberId Long loginMemberId) {
-        return adminCurriculumTreeService.updateWeek(id, request, loginMemberId);
+    public ResponseEntity<CurriculumWeekResponse> updateWeek(@PathVariable Long id, @Valid @RequestBody WeekRequest request,
+                                                              @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminCurriculumTreeService.updateWeek(id, request, loginMemberId));
     }
 
     @Override

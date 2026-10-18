@@ -29,8 +29,8 @@ public interface AdminTopicApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "토픽 제목 수정")
-    CurriculumTopicResponse updateTopic(@PathVariable Long id, @RequestBody @Valid TopicRequest request,
-                                         @LoginMemberId Long loginMemberId);
+    ResponseEntity<CurriculumTopicResponse> updateTopic(@PathVariable Long id, @RequestBody @Valid TopicRequest request,
+                                                         @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -49,6 +49,6 @@ public interface AdminTopicApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "세부 항목 전체 교체", description = "빈 배열이면 전부 삭제된다(AC-2.9, 에러가 아니다).")
-    List<String> replaceDetails(@PathVariable Long id, @RequestBody @Valid TopicDetailsReplaceRequest request,
-                                 @LoginMemberId Long loginMemberId);
+    ResponseEntity<List<String>> replaceDetails(@PathVariable Long id, @RequestBody @Valid TopicDetailsReplaceRequest request,
+                                                 @LoginMemberId Long loginMemberId);
 }

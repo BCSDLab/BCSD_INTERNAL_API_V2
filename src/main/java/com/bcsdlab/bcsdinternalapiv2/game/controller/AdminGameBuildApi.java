@@ -24,7 +24,7 @@ public interface AdminGameBuildApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "빌드 메타 목록", description = "버전·상태·업로드 일시, 최신순.")
-    List<AdminGameBuildResponse> getBuilds(Long gameId);
+    ResponseEntity<List<AdminGameBuildResponse>> getBuilds(Long gameId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),
@@ -49,5 +49,5 @@ public interface AdminGameBuildApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "업로드 토큰 발급", description = "PENDING 또는 FAILED 빌드에만 발급하고, 발급 즉시 status=PROCESSING이 된다(ADR-024).")
-    GameBuildUploadTokenResponse issueUploadToken(Long gameId, Long buildId, @LoginMemberId Long loginMemberId);
+    ResponseEntity<GameBuildUploadTokenResponse> issueUploadToken(Long gameId, Long buildId, @LoginMemberId Long loginMemberId);
 }

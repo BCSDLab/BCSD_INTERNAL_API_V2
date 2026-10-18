@@ -37,14 +37,14 @@ public class AdminTrackPageController implements AdminTrackPageApi {
 
     @Override
     @GetMapping
-    public List<AdminTrackPageSummaryResponse> getTrackPages() {
-        return adminTrackPageService.getTrackPages();
+    public ResponseEntity<List<AdminTrackPageSummaryResponse>> getTrackPages() {
+        return ResponseEntity.ok(adminTrackPageService.getTrackPages());
     }
 
     @Override
     @GetMapping("/{id}")
-    public AdminTrackPageDetailResponse getTrackPage(@PathVariable Long id) {
-        return adminTrackPageService.getTrackPage(id);
+    public ResponseEntity<AdminTrackPageDetailResponse> getTrackPage(@PathVariable Long id) {
+        return ResponseEntity.ok(adminTrackPageService.getTrackPage(id));
     }
 
     @Override
@@ -57,18 +57,18 @@ public class AdminTrackPageController implements AdminTrackPageApi {
 
     @Override
     @PutMapping("/{id}")
-    public AdminTrackPageDetailResponse updateTrackPage(@PathVariable Long id,
-                                                         @Valid @RequestBody TrackPageUpdateRequest request,
-                                                         @LoginMemberId Long loginMemberId) {
-        return adminTrackPageService.updateTrackPage(id, request, loginMemberId);
+    public ResponseEntity<AdminTrackPageDetailResponse> updateTrackPage(@PathVariable Long id,
+                                                                         @Valid @RequestBody TrackPageUpdateRequest request,
+                                                                         @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminTrackPageService.updateTrackPage(id, request, loginMemberId));
     }
 
     @Override
     @PatchMapping("/{id}/slug")
-    public AdminTrackPageDetailResponse changeSlug(@PathVariable Long id,
-                                                    @Valid @RequestBody SlugChangeRequest request,
-                                                    @LoginMemberId Long loginMemberId) {
-        return adminTrackPageService.changeSlug(id, request, loginMemberId);
+    public ResponseEntity<AdminTrackPageDetailResponse> changeSlug(@PathVariable Long id,
+                                                                    @Valid @RequestBody SlugChangeRequest request,
+                                                                    @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminTrackPageService.changeSlug(id, request, loginMemberId));
     }
 
     @Override
@@ -96,17 +96,17 @@ public class AdminTrackPageController implements AdminTrackPageApi {
 
     @Override
     @PutMapping("/{id}/study-points")
-    public List<StudyPointResponse> replaceStudyPoints(@PathVariable Long id,
-                                                        @Valid @RequestBody StudyPointsReplaceRequest request,
-                                                        @LoginMemberId Long loginMemberId) {
-        return adminTrackPageService.replaceStudyPoints(id, request, loginMemberId);
+    public ResponseEntity<List<StudyPointResponse>> replaceStudyPoints(@PathVariable Long id,
+                                                                        @Valid @RequestBody StudyPointsReplaceRequest request,
+                                                                        @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminTrackPageService.replaceStudyPoints(id, request, loginMemberId));
     }
 
     @Override
     @PutMapping("/{id}/tech-stacks")
-    public List<TechStackResponse> replaceTechStacks(@PathVariable Long id,
-                                                      @Valid @RequestBody TechStacksReplaceRequest request,
-                                                      @LoginMemberId Long loginMemberId) {
-        return adminTrackPageService.replaceTechStacks(id, request, loginMemberId);
+    public ResponseEntity<List<TechStackResponse>> replaceTechStacks(@PathVariable Long id,
+                                                                      @Valid @RequestBody TechStacksReplaceRequest request,
+                                                                      @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminTrackPageService.replaceTechStacks(id, request, loginMemberId));
     }
 }

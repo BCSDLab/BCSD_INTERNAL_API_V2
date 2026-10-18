@@ -8,6 +8,7 @@ import com.bcsdlab.bcsdinternalapiv2.home.service.AdminRecruitLinkService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,20 +24,20 @@ public class AdminRecruitLinkController implements AdminRecruitLinkApi {
 
     @Override
     @GetMapping
-    public AdminRecruitLinkResponse getCurrent() {
-        return adminRecruitLinkService.getCurrent();
+    public ResponseEntity<AdminRecruitLinkResponse> getCurrent() {
+        return ResponseEntity.ok(adminRecruitLinkService.getCurrent());
     }
 
     @Override
     @PutMapping
-    public AdminRecruitLinkResponse update(@Valid @RequestBody RecruitLinkUpdateRequest request,
-                                            @LoginMemberId Long loginMemberId) {
-        return adminRecruitLinkService.update(request, loginMemberId);
+    public ResponseEntity<AdminRecruitLinkResponse> update(@Valid @RequestBody RecruitLinkUpdateRequest request,
+                                                            @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminRecruitLinkService.update(request, loginMemberId));
     }
 
     @Override
     @GetMapping("/history")
-    public List<RecruitLinkHistoryResponse> getHistory() {
-        return adminRecruitLinkService.getHistory();
+    public ResponseEntity<List<RecruitLinkHistoryResponse>> getHistory() {
+        return ResponseEntity.ok(adminRecruitLinkService.getHistory());
     }
 }

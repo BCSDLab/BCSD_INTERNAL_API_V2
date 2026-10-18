@@ -29,16 +29,16 @@ public class AdminCurriculumController implements AdminCurriculumApi {
 
     @Override
     @GetMapping("/{id}")
-    public AdminCurriculumTreeResponse getTree(@PathVariable Long id) {
-        return adminCurriculumTreeService.getTree(id);
+    public ResponseEntity<AdminCurriculumTreeResponse> getTree(@PathVariable Long id) {
+        return ResponseEntity.ok(adminCurriculumTreeService.getTree(id));
     }
 
     @Override
     @PutMapping("/{id}")
-    public AdminCurriculumSummaryResponse updateCurriculum(@PathVariable Long id,
-                                                            @Valid @RequestBody CurriculumUpdateRequest request,
-                                                            @LoginMemberId Long loginMemberId) {
-        return adminCurriculumService.updateCurriculum(id, request, loginMemberId);
+    public ResponseEntity<AdminCurriculumSummaryResponse> updateCurriculum(@PathVariable Long id,
+                                                                            @Valid @RequestBody CurriculumUpdateRequest request,
+                                                                            @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminCurriculumService.updateCurriculum(id, request, loginMemberId));
     }
 
     @Override

@@ -25,9 +25,9 @@ public class AdminTopicController implements AdminTopicApi {
 
     @Override
     @PutMapping("/{id}")
-    public CurriculumTopicResponse updateTopic(@PathVariable Long id, @Valid @RequestBody TopicRequest request,
-                                                @LoginMemberId Long loginMemberId) {
-        return adminCurriculumTreeService.updateTopic(id, request, loginMemberId);
+    public ResponseEntity<CurriculumTopicResponse> updateTopic(@PathVariable Long id, @Valid @RequestBody TopicRequest request,
+                                                                @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminCurriculumTreeService.updateTopic(id, request, loginMemberId));
     }
 
     @Override
@@ -39,8 +39,8 @@ public class AdminTopicController implements AdminTopicApi {
 
     @Override
     @PutMapping("/{id}/details")
-    public List<String> replaceDetails(@PathVariable Long id, @Valid @RequestBody TopicDetailsReplaceRequest request,
-                                        @LoginMemberId Long loginMemberId) {
-        return adminCurriculumTreeService.replaceDetails(id, request, loginMemberId);
+    public ResponseEntity<List<String>> replaceDetails(@PathVariable Long id, @Valid @RequestBody TopicDetailsReplaceRequest request,
+                                                        @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminCurriculumTreeService.replaceDetails(id, request, loginMemberId));
     }
 }

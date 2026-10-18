@@ -26,14 +26,14 @@ public class AdminMentorSlotController implements AdminMentorSlotApi {
 
     @Override
     @GetMapping
-    public List<AdminMentorSlotResponse> getSlots() {
-        return adminMentorSlotService.getSlots();
+    public ResponseEntity<List<AdminMentorSlotResponse>> getSlots() {
+        return ResponseEntity.ok(adminMentorSlotService.getSlots());
     }
 
     @Override
     @PostMapping
-    public List<AdminMentorSlotResponse> addSlot(@Valid @RequestBody MentorSlotCreateRequest request) {
-        return adminMentorSlotService.addSlot(request);
+    public ResponseEntity<List<AdminMentorSlotResponse>> addSlot(@Valid @RequestBody MentorSlotCreateRequest request) {
+        return ResponseEntity.ok(adminMentorSlotService.addSlot(request));
     }
 
     @Override

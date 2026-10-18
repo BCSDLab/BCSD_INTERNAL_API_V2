@@ -28,16 +28,16 @@ public class AdminTrackPageMemberController implements AdminTrackPageMemberApi {
 
     @Override
     @GetMapping
-    public List<AdminTrackPageMemberResponse> getMembers(@PathVariable Long trackPageId) {
-        return adminTrackPageMemberService.getMembers(trackPageId);
+    public ResponseEntity<List<AdminTrackPageMemberResponse>> getMembers(@PathVariable Long trackPageId) {
+        return ResponseEntity.ok(adminTrackPageMemberService.getMembers(trackPageId));
     }
 
     @Override
     @PostMapping
-    public List<AdminTrackPageMemberResponse> attachMembers(@PathVariable Long trackPageId,
-                                                              @Valid @RequestBody TrackPageMembersAttachRequest request,
-                                                              @LoginMemberId Long loginMemberId) {
-        return adminTrackPageMemberService.attachMembers(trackPageId, request, loginMemberId);
+    public ResponseEntity<List<AdminTrackPageMemberResponse>> attachMembers(@PathVariable Long trackPageId,
+                                                                              @Valid @RequestBody TrackPageMembersAttachRequest request,
+                                                                              @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminTrackPageMemberService.attachMembers(trackPageId, request, loginMemberId));
     }
 
     @Override

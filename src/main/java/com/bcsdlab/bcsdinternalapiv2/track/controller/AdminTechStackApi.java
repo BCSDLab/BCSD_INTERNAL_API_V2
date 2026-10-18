@@ -24,7 +24,7 @@ public interface AdminTechStackApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "기술스택 마스터 목록")
-    List<TechStackResponse> getTechStacks();
+    ResponseEntity<List<TechStackResponse>> getTechStacks();
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),

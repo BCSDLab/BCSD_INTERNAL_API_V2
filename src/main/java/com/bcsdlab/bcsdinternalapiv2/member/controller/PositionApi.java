@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 
 @Tag(name = "회원 API")
 public interface PositionApi {
@@ -19,5 +20,5 @@ public interface PositionApi {
     })
     @Operation(summary = "직책 목록", description = "부원 프로필에 부여할 수 있는 직책 마스터 목록을 반환합니다.")
     @SecurityRequirement(name = "JWT")
-    List<PositionResponse> getPositions();
+    ResponseEntity<List<PositionResponse>> getPositions();
 }

@@ -28,7 +28,7 @@ public interface AdminCurriculumApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "주차 > 토픽 > 세부항목 3단 트리 전체 조회")
-    AdminCurriculumTreeResponse getTree(@PathVariable Long id);
+    ResponseEntity<AdminCurriculumTreeResponse> getTree(@PathVariable Long id);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -37,9 +37,9 @@ public interface AdminCurriculumApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "커리큘럼 세트 이름 수정")
-    AdminCurriculumSummaryResponse updateCurriculum(@PathVariable Long id,
-                                                     @RequestBody @Valid CurriculumUpdateRequest request,
-                                                     @LoginMemberId Long loginMemberId);
+    ResponseEntity<AdminCurriculumSummaryResponse> updateCurriculum(@PathVariable Long id,
+                                                                     @RequestBody @Valid CurriculumUpdateRequest request,
+                                                                     @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

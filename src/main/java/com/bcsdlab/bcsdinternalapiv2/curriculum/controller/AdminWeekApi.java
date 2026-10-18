@@ -30,8 +30,8 @@ public interface AdminWeekApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "주차 라벨 수정")
-    CurriculumWeekResponse updateWeek(@PathVariable Long id, @RequestBody @Valid WeekRequest request,
-                                       @LoginMemberId Long loginMemberId);
+    ResponseEntity<CurriculumWeekResponse> updateWeek(@PathVariable Long id, @RequestBody @Valid WeekRequest request,
+                                                       @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

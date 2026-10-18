@@ -25,8 +25,8 @@ public class AdminCurriculumSetController implements AdminCurriculumSetApi {
 
     @Override
     @GetMapping
-    public List<AdminCurriculumSummaryResponse> getCurriculums(@PathVariable Long trackPageId) {
-        return adminCurriculumService.getCurriculums(trackPageId);
+    public ResponseEntity<List<AdminCurriculumSummaryResponse>> getCurriculums(@PathVariable Long trackPageId) {
+        return ResponseEntity.ok(adminCurriculumService.getCurriculums(trackPageId));
     }
 
     @Override

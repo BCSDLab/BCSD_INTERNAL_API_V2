@@ -30,8 +30,8 @@ public class AdminActivityCategoryController implements AdminActivityCategoryApi
 
     @Override
     @GetMapping
-    public List<AdminActivityCategoryResponse> getCategories() {
-        return adminActivityCategoryService.getCategories();
+    public ResponseEntity<List<AdminActivityCategoryResponse>> getCategories() {
+        return ResponseEntity.ok(adminActivityCategoryService.getCategories());
     }
 
     @Override
@@ -43,9 +43,9 @@ public class AdminActivityCategoryController implements AdminActivityCategoryApi
 
     @Override
     @PutMapping("/{id}")
-    public AdminActivityCategoryResponse updateCategory(@PathVariable Long id,
-                                                         @Valid @RequestBody ActivityCategoryUpdateRequest request) {
-        return adminActivityCategoryService.updateCategory(id, request);
+    public ResponseEntity<AdminActivityCategoryResponse> updateCategory(@PathVariable Long id,
+                                                                         @Valid @RequestBody ActivityCategoryUpdateRequest request) {
+        return ResponseEntity.ok(adminActivityCategoryService.updateCategory(id, request));
     }
 
     @Override
