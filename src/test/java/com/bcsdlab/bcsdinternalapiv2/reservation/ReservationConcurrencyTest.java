@@ -69,4 +69,54 @@ class ReservationConcurrencyTest extends ReservationIntegrationTestSupport {
             executor.shutdown();
         }
     }
+
+    @Test
+    void 같은_회원이_빈_날에_동시에_예약해도_하루_3시간을_넘지_않는다() throws Exception {
+        String token = createActiveMemberAndLogin("20250703");
+        for (int day = 3; day <= 7; day++) {
+            LocalDate date = LocalDate.now(TimeConfig.SEOUL).plusDays(day);
+            List<String> bodies = List.of(
+                    """
+                    {"date":"%s","start":600,"end":720,"purpose":"한도1","headcount":2}
+                    """.formatted(date),
+                    """
+                    {"date":"%s","start":780,"end":900,"purpose":"한도2","headcount":2}
+                    """.formatted(date));
+
+            List<Integer> statuses = postConcurrently(token, bodies);
+
+            assertThat(statuses).containsExactlyInAnyOrder(200, 409);
+            assertThat(reservationRepository.findByReservationDateAndCancelledAtIsNullOrderByStartMinuteAsc(date))
+                    .hasSize(1);
+        }
+    }
+
+    private List<Integer> postConcurrently(String token, List<String> bodies) throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(bodies.size());
+        CountDownLatch readyLatch = new CountDownLatch(bodies.size());
+        CountDownLatch startLatch = new CountDownLatch(1);
+        try {
+            List<Future<Integer>> futures = bodies.stream()
+                    .map(body -> executor.submit(() -> {
+                        readyLatch.countDown();
+                        startLatch.await();
+                        return mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                        .post("/v1/reservations")
+                                        .header("Authorization", "Bearer " + token)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(body))
+                                .andReturn().getResponse().getStatus();
+                    }))
+                    .toList();
+            readyLatch.await();
+            startLatch.countDown();
+            List<Integer> statuses = new java.util.ArrayList<>();
+            for (Future<Integer> future : futures) {
+                statuses.add(future.get());
+            }
+            return statuses;
+        } finally {
+            executor.shutdown();
+        }
+    }
 }
