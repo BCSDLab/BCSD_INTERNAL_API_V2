@@ -1,6 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.member.controller;
 
 import com.bcsdlab.bcsdinternalapiv2.auth.controller.dto.response.LoginResponse;
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.InitialSetupRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.MemberContactUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.request.PasswordChangeRequest;
@@ -38,7 +39,7 @@ public interface MemberApi {
     @Operation(summary = "내 정보 확인")
     @SecurityRequirement(name = "JWT")
     @GetMapping
-    ResponseEntity<MemberResponse> getMe(@Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
+    ResponseEntity<MemberResponse> getMe(@LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -48,7 +49,8 @@ public interface MemberApi {
     @Operation(summary = "최초 로그인 - 정보 확인", description = "관리자 등록 정보(읽기 전용)와 기존 연락처/이메일/깃허브 아이디를 조회합니다.")
     @SecurityRequirement(name = "JWT")
     @GetMapping("/initial-setup")
-    ResponseEntity<MemberResponse> getInitialSetupInfo(@Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
+    ResponseEntity<MemberResponse> getInitialSetupInfo(@LoginMemberId Long loginMemberId,
+                                                       @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -60,6 +62,7 @@ public interface MemberApi {
     @SecurityRequirement(name = "JWT")
     @PostMapping("/initial-setup")
     ResponseEntity<LoginResponse> completeInitialSetup(
+            @LoginMemberId Long loginMemberId,
             @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid InitialSetupRequest request,
             @Parameter(hidden = true) HttpServletRequest servletRequest,
@@ -76,7 +79,7 @@ public interface MemberApi {
     @SecurityRequirement(name = "JWT")
     @PatchMapping
     ResponseEntity<Void> updateContact(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @LoginMemberId Long loginMemberId,
             @RequestBody @Valid MemberContactUpdateRequest request
     );
 
@@ -89,7 +92,7 @@ public interface MemberApi {
     @SecurityRequirement(name = "JWT")
     @PatchMapping("/password")
     ResponseEntity<Void> changePassword(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @LoginMemberId Long loginMemberId,
             @RequestBody @Valid PasswordChangeRequest request
     );
 
@@ -102,7 +105,7 @@ public interface MemberApi {
     @SecurityRequirement(name = "JWT")
     @PostMapping("/photo/presigned-url")
     ResponseEntity<PhotoPresignedUrlResponse> issuePhotoPresignedUrl(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @LoginMemberId Long loginMemberId,
             @RequestBody @Valid PhotoPresignedUrlRequest request
     );
 
@@ -115,7 +118,7 @@ public interface MemberApi {
     @SecurityRequirement(name = "JWT")
     @PatchMapping("/photo")
     ResponseEntity<Void> updatePhotoUrl(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @LoginMemberId Long loginMemberId,
             @RequestBody @Valid PhotoUrlUpdateRequest request
     );
 }

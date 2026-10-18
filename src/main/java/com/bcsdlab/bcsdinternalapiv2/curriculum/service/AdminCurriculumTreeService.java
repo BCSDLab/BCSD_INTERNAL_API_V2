@@ -20,9 +20,9 @@ import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumTopicReposi
 import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumWeekRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
-import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard.AccessErrors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,11 +36,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminCurriculumTreeService {
 
+    private static final AccessErrors ACCESS_ERRORS = new AccessErrors(
+            CurriculumException::new,
+            CurriculumExceptionType.MEMBER_NOT_FOUND,
+            CurriculumExceptionType.CURRICULUM_ACCESS_DENIED);
+
     private final CurriculumRepository curriculumRepository;
     private final CurriculumWeekRepository curriculumWeekRepository;
     private final CurriculumTopicRepository curriculumTopicRepository;
     private final CurriculumTopicDetailRepository curriculumTopicDetailRepository;
-    private final MemberRepository memberRepository;
+    private final TrackAccessGuard trackAccessGuard;
 
     public AdminCurriculumTreeResponse getTree(Long curriculumId) {
         Curriculum curriculum = curriculumRepository.findById(curriculumId)
@@ -228,10 +233,6 @@ public class AdminCurriculumTreeService {
     }
 
     private void requireCurriculumAccess(Long memberId, TrackPage trackPage) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.MEMBER_NOT_FOUND));
-        if (!member.canManage(trackPage.getTrack())) {
-            throw new CurriculumException(CurriculumExceptionType.CURRICULUM_ACCESS_DENIED);
-        }
+        trackAccessGuard.requireManager(memberId, trackPage.getTrack(), ACCESS_ERRORS);
     }
 }

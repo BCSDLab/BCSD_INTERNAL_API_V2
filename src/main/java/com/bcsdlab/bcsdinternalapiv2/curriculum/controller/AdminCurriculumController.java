@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.curriculum.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.CurriculumUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumSummaryResponse;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumTreeResponse;
@@ -9,8 +10,6 @@ import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishReques
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,22 +37,22 @@ public class AdminCurriculumController implements AdminCurriculumApi {
     @PutMapping("/{id}")
     public AdminCurriculumSummaryResponse updateCurriculum(@PathVariable Long id,
                                                             @Valid @RequestBody CurriculumUpdateRequest request,
-                                                            @AuthenticationPrincipal Jwt jwt) {
-        return adminCurriculumService.updateCurriculum(id, request, Long.valueOf(jwt.getSubject()));
+                                                            @LoginMemberId Long loginMemberId) {
+        return adminCurriculumService.updateCurriculum(id, request, loginMemberId);
     }
 
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCurriculum(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        adminCurriculumService.deleteCurriculum(id, Long.valueOf(jwt.getSubject()));
+    public ResponseEntity<Void> deleteCurriculum(@PathVariable Long id, @LoginMemberId Long loginMemberId) {
+        adminCurriculumService.deleteCurriculum(id, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/{id}/publish")
     public ResponseEntity<Void> publish(@PathVariable Long id, @Valid @RequestBody PublishRequest request,
-                                         @AuthenticationPrincipal Jwt jwt) {
-        adminCurriculumService.publish(id, request, Long.valueOf(jwt.getSubject()));
+                                         @LoginMemberId Long loginMemberId) {
+        adminCurriculumService.publish(id, request, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 }

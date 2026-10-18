@@ -1,7 +1,7 @@
 package com.bcsdlab.bcsdinternalapiv2.reservation.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,8 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -27,5 +25,5 @@ public interface ReservationGroupApi {
     @SecurityRequirement(name = "JWT")
     @DeleteMapping("/{groupId}")
     ResponseEntity<Void> cancelReservationGroup(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt, @PathVariable Long groupId);
+            @LoginMemberId Long loginMemberId, @PathVariable Long groupId);
 }

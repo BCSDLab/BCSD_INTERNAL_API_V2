@@ -21,10 +21,6 @@ public abstract class SoftDeletableEntity extends BaseTimeEntity {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    public boolean isDeleted() {
-        return deletedAt != null;
-    }
-
     public void delete(Instant now) {
         this.deletedAt = now;
     }

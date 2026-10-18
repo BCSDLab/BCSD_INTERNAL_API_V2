@@ -30,6 +30,7 @@ import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackStudyPointRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.util.SlugGenerator;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard.AccessErrors;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,6 +46,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminTrackPageService {
 
+    private static final AccessErrors ACCESS_ERRORS = new AccessErrors(
+            TrackException::new, TrackExceptionType.MEMBER_NOT_FOUND, TrackExceptionType.TRACK_ACCESS_DENIED);
+
     private final TrackPageRepository trackPageRepository;
     private final TrackMasterRepository trackMasterRepository;
     private final TrackStudyPointRepository trackStudyPointRepository;
@@ -52,6 +56,7 @@ public class AdminTrackPageService {
     private final TrackPageTechStackRepository trackPageTechStackRepository;
     private final TrackPageMemberRepository trackPageMemberRepository;
     private final MemberRepository memberRepository;
+    private final TrackAccessGuard trackAccessGuard;
 
     public List<AdminTrackPageSummaryResponse> getTrackPages() {
         return trackPageRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -218,9 +223,6 @@ public class AdminTrackPageService {
     }
 
     private void requireTrackAccess(Long memberId, TrackPage trackPage) {
-        Member member = findMemberOrThrow(memberId);
-        if (!member.canManage(trackPage.getTrack())) {
-            throw new TrackException(TrackExceptionType.TRACK_ACCESS_DENIED);
-        }
+        trackAccessGuard.requireManager(memberId, trackPage.getTrack(), ACCESS_ERRORS);
     }
 }

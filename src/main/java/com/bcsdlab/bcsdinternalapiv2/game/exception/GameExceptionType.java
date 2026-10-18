@@ -36,28 +36,4 @@ public enum GameExceptionType implements BcsdExceptionType {
     public String getMessage() {
         return message;
     }
-
-    @Override
-    public BcsdExceptionType withDetail(String detailMessage) {
-        return new DetailedGameExceptionType(this, detailMessage);
-    }
-
-    private record DetailedGameExceptionType(GameExceptionType type, String detailMessage)
-            implements BcsdExceptionType {
-
-        @Override
-        public HttpStatus getHttpStatus() {
-            return type.getHttpStatus();
-        }
-
-        @Override
-        public String getMessage() {
-            return MESSAGE_FORMAT.formatted(type.getMessage(), detailMessage).strip();
-        }
-
-        @Override
-        public BcsdExceptionType withDetail(String detailMessage) {
-            return new DetailedGameExceptionType(type, detailMessage);
-        }
-    }
 }

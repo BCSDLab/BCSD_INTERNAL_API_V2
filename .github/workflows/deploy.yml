@@ -50,7 +50,8 @@ jobs:
           script: |
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker pull ghcr.io/bcsdlab/bcsd-internal-api:latest
-            docker stop bcsd-internal-api || true
+            # 기본 10초면 graceful shutdown(요청 20초 + 비동기 메일 20초)이 끝나기 전에 강제 종료된다.
+            docker stop -t 45 bcsd-internal-api || true
             docker rm bcsd-internal-api || true
             docker run -d \
               --name bcsd-internal-api \

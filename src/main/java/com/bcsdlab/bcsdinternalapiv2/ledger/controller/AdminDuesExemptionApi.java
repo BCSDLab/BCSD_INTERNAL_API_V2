@@ -1,11 +1,11 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.ExemptionUpsertRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ExemptionListResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ExemptionReasonListResponse;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.ExemptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,8 +14,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,7 +46,7 @@ public interface AdminDuesExemptionApi {
     @SecurityRequirement(name = "JWT")
     @PostMapping("/exemptions")
     ResponseEntity<ExemptionResponse> createExemption(@RequestBody @Valid ExemptionUpsertRequest request,
-                                                      @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
+                                                      @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),

@@ -52,28 +52,4 @@ public enum LedgerExceptionType implements BcsdExceptionType {
     public String getMessage() {
         return message;
     }
-
-    @Override
-    public BcsdExceptionType withDetail(String detailMessage) {
-        return new DetailedLedgerExceptionType(this, detailMessage);
-    }
-
-    private record DetailedLedgerExceptionType(LedgerExceptionType type, String detailMessage)
-            implements BcsdExceptionType {
-
-        @Override
-        public HttpStatus getHttpStatus() {
-            return type.getHttpStatus();
-        }
-
-        @Override
-        public String getMessage() {
-            return MESSAGE_FORMAT.formatted(type.getMessage(), detailMessage).strip();
-        }
-
-        @Override
-        public BcsdExceptionType withDetail(String detailMessage) {
-            return new DetailedLedgerExceptionType(type, detailMessage);
-        }
-    }
 }

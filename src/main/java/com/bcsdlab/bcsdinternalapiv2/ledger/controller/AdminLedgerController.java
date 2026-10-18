@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.DuesLinkRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.LedgerEntryUpdateRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.LedgerEntryListResponse;
@@ -9,8 +10,6 @@ import com.bcsdlab.bcsdinternalapiv2.ledger.service.LedgerEntryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -45,8 +44,8 @@ public class AdminLedgerController implements AdminLedgerApi {
     @PutMapping("/{id}/dues-link")
     public ResponseEntity<LedgerEntryResponse> linkEntry(@PathVariable Long id,
                                                          @Valid @RequestBody DuesLinkRequest request,
-                                                         @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(duesLinkService.link(id, request, Long.valueOf(jwt.getSubject())));
+                                                         @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(duesLinkService.link(id, request, loginMemberId));
     }
 
     @Override

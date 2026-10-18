@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.curriculum.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.CurriculumCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.AdminCurriculumSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,8 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -41,5 +40,5 @@ public interface AdminCurriculumSetApi {
                     + "트리 전체까지 복제한다(AC-2.8).")
     ResponseEntity<AdminCurriculumSummaryResponse> createCurriculum(@PathVariable Long trackPageId,
                                                                      @RequestBody @Valid CurriculumCreateRequest request,
-                                                                     @AuthenticationPrincipal Jwt jwt);
+                                                                     @LoginMemberId Long loginMemberId);
 }

@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.DuesLinkBulkRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.ExemptionPreviewRequest;
 import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.request.SemesterCreateRequest;
@@ -16,8 +17,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,8 +48,8 @@ public class AdminDuesController implements AdminDuesApi {
     @Override
     @PostMapping
     public ResponseEntity<SemesterDuesSummaryResponse> createSemester(@Valid @RequestBody SemesterCreateRequest request,
-                                                                       @AuthenticationPrincipal Jwt jwt) {
-        SemesterDuesSummaryResponse created = semesterService.create(request, Long.valueOf(jwt.getSubject()));
+                                                                       @LoginMemberId Long loginMemberId) {
+        SemesterDuesSummaryResponse created = semesterService.create(request, loginMemberId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -64,8 +63,8 @@ public class AdminDuesController implements AdminDuesApi {
     @PostMapping("/{semesterId}/links")
     public ResponseEntity<DuesLinkBulkResponse> linkEntries(@PathVariable String semesterId,
                                                             @Valid @RequestBody DuesLinkBulkRequest request,
-                                                            @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(duesLinkService.linkAll(semesterId, request, Long.valueOf(jwt.getSubject())));
+                                                            @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(duesLinkService.linkAll(semesterId, request, loginMemberId));
     }
 
     @Override

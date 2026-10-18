@@ -9,12 +9,12 @@ import com.bcsdlab.bcsdinternalapiv2.curriculum.model.Curriculum;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
-import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard.AccessErrors;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +26,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminCurriculumService {
 
+    private static final AccessErrors ACCESS_ERRORS = new AccessErrors(
+            CurriculumException::new,
+            CurriculumExceptionType.MEMBER_NOT_FOUND,
+            CurriculumExceptionType.CURRICULUM_ACCESS_DENIED);
+
     private final CurriculumRepository curriculumRepository;
     private final TrackPageRepository trackPageRepository;
     private final AdminCurriculumTreeService adminCurriculumTreeService;
-    private final MemberRepository memberRepository;
+    private final TrackAccessGuard trackAccessGuard;
 
     public List<AdminCurriculumSummaryResponse> getCurriculums(Long trackPageId) {
         return curriculumRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId).stream()
@@ -104,10 +109,6 @@ public class AdminCurriculumService {
     }
 
     private void requireCurriculumAccess(Long memberId, TrackPage trackPage) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.MEMBER_NOT_FOUND));
-        if (!member.canManage(trackPage.getTrack())) {
-            throw new CurriculumException(CurriculumExceptionType.CURRICULUM_ACCESS_DENIED);
-        }
+        trackAccessGuard.requireManager(memberId, trackPage.getTrack(), ACCESS_ERRORS);
     }
 }

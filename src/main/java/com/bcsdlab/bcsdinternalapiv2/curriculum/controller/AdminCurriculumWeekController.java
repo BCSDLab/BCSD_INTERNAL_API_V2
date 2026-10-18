@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.curriculum.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.WeekRequest;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.CurriculumWeekResponse;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.service.AdminCurriculumTreeService;
@@ -8,8 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,16 +27,16 @@ public class AdminCurriculumWeekController implements AdminCurriculumWeekApi {
     @PostMapping
     public ResponseEntity<CurriculumWeekResponse> createWeek(@PathVariable Long curriculumId,
                                                               @Valid @RequestBody WeekRequest request,
-                                                              @AuthenticationPrincipal Jwt jwt) {
+                                                              @LoginMemberId Long loginMemberId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(adminCurriculumTreeService.createWeek(curriculumId, request, Long.valueOf(jwt.getSubject())));
+                .body(adminCurriculumTreeService.createWeek(curriculumId, request, loginMemberId));
     }
 
     @Override
     @PatchMapping("/order")
     public ResponseEntity<Void> reorderWeeks(@PathVariable Long curriculumId, @Valid @RequestBody OrderRequest request,
-                                              @AuthenticationPrincipal Jwt jwt) {
-        adminCurriculumTreeService.reorderWeeks(curriculumId, request, Long.valueOf(jwt.getSubject()));
+                                              @LoginMemberId Long loginMemberId) {
+        adminCurriculumTreeService.reorderWeeks(curriculumId, request, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 }

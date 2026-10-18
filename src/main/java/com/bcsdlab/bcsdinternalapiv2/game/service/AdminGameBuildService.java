@@ -13,8 +13,8 @@ import com.bcsdlab.bcsdinternalapiv2.game.repository.GameBuildRepository;
 import com.bcsdlab.bcsdinternalapiv2.game.repository.GameRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard.AccessErrors;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -38,14 +38,15 @@ public class AdminGameBuildService {
     private static final Set<GameBuildStatus> TOKEN_ISSUABLE_STATUSES = Set.of(
             GameBuildStatus.PENDING, GameBuildStatus.PROCESSING, GameBuildStatus.FAILED);
 
-    private static final String GAME_TRACK_CODE = "GAME";
+    private static final AccessErrors ACCESS_ERRORS = new AccessErrors(
+            GameException::new, GameExceptionType.MEMBER_NOT_FOUND, GameExceptionType.GAME_ACCESS_DENIED);
 
     private final GameRepository gameRepository;
     private final GameBuildRepository gameBuildRepository;
     private final MemberRepository memberRepository;
-    private final TrackMasterRepository trackMasterRepository;
     private final GameBuildProperties gameBuildProperties;
     private final GameBuildTokenService gameBuildTokenService;
+    private final TrackAccessGuard trackAccessGuard;
 
     public List<AdminGameBuildResponse> getBuilds(Long gameId) {
         findGameOrThrow(gameId);
@@ -105,15 +106,6 @@ public class AdminGameBuildService {
     }
 
     private void requireGameAccess(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new GameException(GameExceptionType.MEMBER_NOT_FOUND));
-        if (member.isAdmin()) {
-            return;
-        }
-        TrackMaster gameTrack = trackMasterRepository.findByCode(GAME_TRACK_CODE)
-                .orElseThrow(() -> new GameException(GameExceptionType.GAME_ACCESS_DENIED));
-        if (!member.canManage(gameTrack)) {
-            throw new GameException(GameExceptionType.GAME_ACCESS_DENIED);
-        }
+        trackAccessGuard.requireGameManager(memberId, ACCESS_ERRORS);
     }
 }

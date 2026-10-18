@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.game.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.request.GameBuildCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.AdminGameBuildResponse;
 import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameBuildUploadTokenResponse;
@@ -9,8 +10,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,24 +35,23 @@ public class AdminGameBuildController implements AdminGameBuildApi {
     @PostMapping
     public ResponseEntity<AdminGameBuildResponse> createBuild(@PathVariable Long gameId,
                                                                @Valid @RequestBody GameBuildCreateRequest request,
-                                                               @AuthenticationPrincipal Jwt jwt) {
-        Long uploadedByMemberId = Long.valueOf(jwt.getSubject());
+                                                               @LoginMemberId Long loginMemberId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(adminGameBuildService.createBuild(gameId, request, uploadedByMemberId));
+                .body(adminGameBuildService.createBuild(gameId, request, loginMemberId));
     }
 
     @Override
     @DeleteMapping("/{buildId}")
     public ResponseEntity<Void> deleteBuild(@PathVariable Long gameId, @PathVariable Long buildId,
-                                             @AuthenticationPrincipal Jwt jwt) {
-        adminGameBuildService.deleteBuild(gameId, buildId, Long.valueOf(jwt.getSubject()));
+                                             @LoginMemberId Long loginMemberId) {
+        adminGameBuildService.deleteBuild(gameId, buildId, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PostMapping("/{buildId}/upload-token")
     public GameBuildUploadTokenResponse issueUploadToken(@PathVariable Long gameId, @PathVariable Long buildId,
-                                                           @AuthenticationPrincipal Jwt jwt) {
-        return adminGameBuildService.issueUploadToken(gameId, buildId, Long.valueOf(jwt.getSubject()));
+                                                           @LoginMemberId Long loginMemberId) {
+        return adminGameBuildService.issueUploadToken(gameId, buildId, loginMemberId);
     }
 }

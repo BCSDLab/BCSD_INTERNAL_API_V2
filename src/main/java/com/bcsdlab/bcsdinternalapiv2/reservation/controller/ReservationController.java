@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.reservation.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.reservation.controller.dto.request.ReservationCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.reservation.controller.dto.response.DailyReservationResponse;
 import com.bcsdlab.bcsdinternalapiv2.reservation.controller.dto.response.MonthlyOccupancyResponse;
@@ -12,8 +13,6 @@ import java.time.YearMonth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,36 +40,28 @@ public class ReservationController implements ReservationApi {
     @GetMapping("/daily")
     public ResponseEntity<DailyReservationResponse> getDaily(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(reservationService.getDaily(date, viewerMemberId(jwt)));
+            @LoginMemberId(required = false) Long viewerMemberId) {
+        return ResponseEntity.ok(reservationService.getDaily(date, viewerMemberId));
     }
 
     @Override
     @PostMapping
-    public ResponseEntity<ReservationCreateResponse> createReservation(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<ReservationCreateResponse> createReservation(@LoginMemberId Long loginMemberId,
                                                                         @Valid @RequestBody ReservationCreateRequest request) {
-        return ResponseEntity.ok(reservationService.create(memberId(jwt), request));
+        return ResponseEntity.ok(reservationService.create(loginMemberId, request));
     }
 
     @Override
     @GetMapping("/{reservationId}")
-    public ResponseEntity<ReservationDetailResponse> getReservationDetail(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<ReservationDetailResponse> getReservationDetail(@LoginMemberId Long loginMemberId,
                                                                            @PathVariable Long reservationId) {
-        return ResponseEntity.ok(reservationService.getDetail(memberId(jwt), reservationId));
+        return ResponseEntity.ok(reservationService.getDetail(loginMemberId, reservationId));
     }
 
     @Override
     @DeleteMapping("/{reservationId}")
-    public ResponseEntity<Void> cancelReservation(@AuthenticationPrincipal Jwt jwt, @PathVariable Long reservationId) {
-        reservationService.cancel(memberId(jwt), reservationId);
+    public ResponseEntity<Void> cancelReservation(@LoginMemberId Long loginMemberId, @PathVariable Long reservationId) {
+        reservationService.cancel(loginMemberId, reservationId);
         return ResponseEntity.noContent().build();
-    }
-
-    private Long memberId(Jwt jwt) {
-        return Long.valueOf(jwt.getSubject());
-    }
-
-    private Long viewerMemberId(Jwt jwt) {
-        return jwt == null ? null : Long.valueOf(jwt.getSubject());
     }
 }

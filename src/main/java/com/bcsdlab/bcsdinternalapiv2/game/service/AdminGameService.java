@@ -25,12 +25,12 @@ import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.global.util.SlugGenerator;
-import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
-import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard.AccessErrors;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -57,9 +57,10 @@ public class AdminGameService {
     private final GameRatingRepository gameRatingRepository;
     private final GameMemberRepository gameMemberRepository;
     private final TrackMasterRepository trackMasterRepository;
-    private final MemberRepository memberRepository;
+    private final TrackAccessGuard trackAccessGuard;
 
-    private static final String GAME_TRACK_CODE = "GAME";
+    private static final AccessErrors ACCESS_ERRORS = new AccessErrors(
+            GameException::new, GameExceptionType.MEMBER_NOT_FOUND, GameExceptionType.GAME_ACCESS_DENIED);
 
     public List<AdminGameSummaryResponse> getGames() {
         return gameRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -174,7 +175,6 @@ public class AdminGameService {
                     .build()));
         }
         game.updateThumbnail(imageUrls.isEmpty() ? null : imageUrls.get(0));
-        // 스크린샷 첫 장이 게임 목록의 thumbnailUrl이기도 하므로 목록 캐시도 함께 무효화한다.
         return saved.stream().map(GameScreenshotResponse::from).toList();
     }
 
@@ -195,7 +195,7 @@ public class AdminGameService {
     @Transactional
     public void deleteRating(Long id, Long memberId) {
         requireGameAccess(memberId);
-        Game game = findGameOrThrow(id);
+        findGameOrThrow(id);
         gameRatingRepository.findByGame_Id(id).ifPresent(gameRatingRepository::delete);
     }
 
@@ -228,15 +228,6 @@ public class AdminGameService {
     }
 
     private void requireGameAccess(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new GameException(GameExceptionType.MEMBER_NOT_FOUND));
-        if (member.isAdmin()) {
-            return;
-        }
-        TrackMaster gameTrack = trackMasterRepository.findByCode(GAME_TRACK_CODE)
-                .orElseThrow(() -> new GameException(GameExceptionType.GAME_ACCESS_DENIED));
-        if (!member.canManage(gameTrack)) {
-            throw new GameException(GameExceptionType.GAME_ACCESS_DENIED);
-        }
+        trackAccessGuard.requireGameManager(memberId, ACCESS_ERRORS);
     }
 }
