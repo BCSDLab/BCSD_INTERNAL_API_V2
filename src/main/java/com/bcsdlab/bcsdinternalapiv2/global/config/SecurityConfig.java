@@ -6,6 +6,7 @@ import com.bcsdlab.bcsdinternalapiv2.auth.security.JwtAuthenticationEntryPoint;
 import com.bcsdlab.bcsdinternalapiv2.auth.security.ServiceTokenAuthorizationManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -33,9 +34,10 @@ public class SecurityConfig {
     private final CorsProperties corsProperties;
     private final ServiceTokenProperties serviceTokenProperties;
 
+    /** 운영은 12. 통합 테스트만 IntegrationTestSupport에서 낮춘다(해시에 비용이 기록돼 검증은 그대로 된다). */
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
+    public PasswordEncoder passwordEncoder(@Value("${app.security.bcrypt-strength:12}") int strength) {
+        return new BCryptPasswordEncoder(strength);
     }
 
     // 인터널 프론트가 access token은 Authorization 헤더로, refresh token은 httpOnly

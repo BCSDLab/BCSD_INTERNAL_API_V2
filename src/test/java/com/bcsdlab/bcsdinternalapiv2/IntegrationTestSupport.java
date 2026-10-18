@@ -45,8 +45,10 @@ public abstract class IntegrationTestSupport {
     }
 
     @DynamicPropertySource
-    static void jwtSecret(DynamicPropertyRegistry registry) {
+    static void testProperties(DynamicPropertyRegistry registry) {
         registry.add("app.jwt.secret", () -> "test-only-secret-key-not-for-production-32bytes-min");
+        // 비용 12면 해시 한 번에 수백 ms라, 회원을 만들고 로그인하는 테스트마다 수 초가 BCrypt에 쓰인다.
+        registry.add("app.security.bcrypt-strength", () -> 4);
     }
 
     @Autowired
