@@ -28,7 +28,7 @@ public interface AdminActivityCategoryApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "활동 카테고리 목록", description = "숨김 포함 전체, display_order 순.")
-    List<AdminActivityCategoryResponse> getCategories();
+    ResponseEntity<List<AdminActivityCategoryResponse>> getCategories();
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),
@@ -47,8 +47,8 @@ public interface AdminActivityCategoryApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "이름·헤드라인·히어로 이미지 수정", description = "slug는 불변이다.")
-    AdminActivityCategoryResponse updateCategory(@PathVariable Long id,
-                                                  @RequestBody @Valid ActivityCategoryUpdateRequest request);
+    ResponseEntity<AdminActivityCategoryResponse> updateCategory(@PathVariable Long id,
+                                                                  @RequestBody @Valid ActivityCategoryUpdateRequest request);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

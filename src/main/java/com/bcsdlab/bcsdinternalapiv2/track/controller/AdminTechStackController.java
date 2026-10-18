@@ -23,8 +23,8 @@ public class AdminTechStackController implements AdminTechStackApi {
 
     @Override
     @GetMapping
-    public List<TechStackResponse> getTechStacks() {
-        return adminTechStackService.getTechStacks();
+    public ResponseEntity<List<TechStackResponse>> getTechStacks() {
+        return ResponseEntity.ok(adminTechStackService.getTechStacks());
     }
 
     @Override

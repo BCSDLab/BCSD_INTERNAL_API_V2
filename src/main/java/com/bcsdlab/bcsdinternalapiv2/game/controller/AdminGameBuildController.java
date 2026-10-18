@@ -27,8 +27,8 @@ public class AdminGameBuildController implements AdminGameBuildApi {
 
     @Override
     @GetMapping
-    public List<AdminGameBuildResponse> getBuilds(@PathVariable Long gameId) {
-        return adminGameBuildService.getBuilds(gameId);
+    public ResponseEntity<List<AdminGameBuildResponse>> getBuilds(@PathVariable Long gameId) {
+        return ResponseEntity.ok(adminGameBuildService.getBuilds(gameId));
     }
 
     @Override
@@ -50,8 +50,8 @@ public class AdminGameBuildController implements AdminGameBuildApi {
 
     @Override
     @PostMapping("/{buildId}/upload-token")
-    public GameBuildUploadTokenResponse issueUploadToken(@PathVariable Long gameId, @PathVariable Long buildId,
-                                                           @LoginMemberId Long loginMemberId) {
-        return adminGameBuildService.issueUploadToken(gameId, buildId, loginMemberId);
+    public ResponseEntity<GameBuildUploadTokenResponse> issueUploadToken(@PathVariable Long gameId, @PathVariable Long buildId,
+                                                                           @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminGameBuildService.issueUploadToken(gameId, buildId, loginMemberId));
     }
 }

@@ -35,7 +35,7 @@ public interface AdminTrackPageApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "트랙 페이지 목록", description = "숨김 포함 전체, display_order 순.")
-    List<AdminTrackPageSummaryResponse> getTrackPages();
+    ResponseEntity<List<AdminTrackPageSummaryResponse>> getTrackPages();
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -44,7 +44,7 @@ public interface AdminTrackPageApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "트랙 페이지 편집 화면 조회")
-    AdminTrackPageDetailResponse getTrackPage(@PathVariable Long id);
+    ResponseEntity<AdminTrackPageDetailResponse> getTrackPage(@PathVariable Long id);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),
@@ -64,9 +64,9 @@ public interface AdminTrackPageApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "트랙 페이지 헤더 수정")
-    AdminTrackPageDetailResponse updateTrackPage(@PathVariable Long id,
-                                                  @RequestBody @Valid TrackPageUpdateRequest request,
-                                                  @LoginMemberId Long loginMemberId);
+    ResponseEntity<AdminTrackPageDetailResponse> updateTrackPage(@PathVariable Long id,
+                                                                  @RequestBody @Valid TrackPageUpdateRequest request,
+                                                                  @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -76,8 +76,8 @@ public interface AdminTrackPageApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "slug 수동 변경", description = "리다이렉트를 지원하지 않습니다 — 변경 전 URL은 더 이상 유효하지 않습니다.")
-    AdminTrackPageDetailResponse changeSlug(@PathVariable Long id, @RequestBody @Valid SlugChangeRequest request,
-                                             @LoginMemberId Long loginMemberId);
+    ResponseEntity<AdminTrackPageDetailResponse> changeSlug(@PathVariable Long id, @RequestBody @Valid SlugChangeRequest request,
+                                                             @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -116,9 +116,9 @@ public interface AdminTrackPageApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "WHAT WE STUDY 카드 전체 교체", description = "최대 4개(INV-14). 배열 순서가 display_order다.")
-    List<StudyPointResponse> replaceStudyPoints(@PathVariable Long id,
-                                                 @RequestBody @Valid StudyPointsReplaceRequest request,
-                                                 @LoginMemberId Long loginMemberId);
+    ResponseEntity<List<StudyPointResponse>> replaceStudyPoints(@PathVariable Long id,
+                                                                 @RequestBody @Valid StudyPointsReplaceRequest request,
+                                                                 @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -128,7 +128,7 @@ public interface AdminTrackPageApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "기술스택 전체 교체", description = "배열 순서가 display_order다.")
-    List<TechStackResponse> replaceTechStacks(@PathVariable Long id,
-                                               @RequestBody @Valid TechStacksReplaceRequest request,
-                                               @LoginMemberId Long loginMemberId);
+    ResponseEntity<List<TechStackResponse>> replaceTechStacks(@PathVariable Long id,
+                                                               @RequestBody @Valid TechStacksReplaceRequest request,
+                                                               @LoginMemberId Long loginMemberId);
 }

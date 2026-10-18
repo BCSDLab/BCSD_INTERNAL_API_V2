@@ -5,6 +5,7 @@ import com.bcsdlab.bcsdinternalapiv2.activity.controller.dto.response.ActivityTi
 import com.bcsdlab.bcsdinternalapiv2.activity.service.ActivityService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,13 +21,13 @@ public class ActivityController implements ActivityApi {
 
     @Override
     @GetMapping
-    public List<ActivityTimelineResponse> getTimeline(@RequestParam String category) {
-        return activityService.getTimeline(category);
+    public ResponseEntity<List<ActivityTimelineResponse>> getTimeline(@RequestParam String category) {
+        return ResponseEntity.ok(activityService.getTimeline(category));
     }
 
     @Override
     @GetMapping("/{id}")
-    public ActivityDetailResponse getActivity(@PathVariable Long id) {
-        return activityService.getActivity(id);
+    public ResponseEntity<ActivityDetailResponse> getActivity(@PathVariable Long id) {
+        return ResponseEntity.ok(activityService.getActivity(id));
     }
 }

@@ -35,7 +35,7 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "게임 목록", description = "숨김 포함 전체, display_order 순.")
-    List<AdminGameSummaryResponse> getGames();
+    ResponseEntity<List<AdminGameSummaryResponse>> getGames();
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -44,7 +44,7 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "게임 편집 화면 조회 (기본정보·설명 탭)")
-    AdminGameDetailResponse getGame(@PathVariable Long id);
+    ResponseEntity<AdminGameDetailResponse> getGame(@PathVariable Long id);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),
@@ -64,8 +64,8 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "게임 기본정보·설명 수정", description = "description은 저장 시 jsoup으로 정제됩니다(ADR-008).")
-    AdminGameDetailResponse updateGame(@PathVariable Long id, @RequestBody @Valid GameUpdateRequest request,
-                                       @LoginMemberId Long loginMemberId);
+    ResponseEntity<AdminGameDetailResponse> updateGame(@PathVariable Long id, @RequestBody @Valid GameUpdateRequest request,
+                                                       @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -75,8 +75,8 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "slug 수동 변경", description = "리다이렉트를 지원하지 않습니다 — 변경 전 URL은 더 이상 유효하지 않습니다.")
-    AdminGameDetailResponse changeSlug(@PathVariable Long id, @RequestBody @Valid GameSlugChangeRequest request,
-                                       @LoginMemberId Long loginMemberId);
+    ResponseEntity<AdminGameDetailResponse> changeSlug(@PathVariable Long id, @RequestBody @Valid GameSlugChangeRequest request,
+                                                       @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -113,9 +113,9 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "스크린샷 전체 교체", description = "배열 순서가 display_order다(AC-9.6).")
-    List<GameScreenshotResponse> replaceScreenshots(@PathVariable Long id,
-                                                     @RequestBody @Valid GameScreenshotsReplaceRequest request,
-                                                     @LoginMemberId Long loginMemberId);
+    ResponseEntity<List<GameScreenshotResponse>> replaceScreenshots(@PathVariable Long id,
+                                                                     @RequestBody @Valid GameScreenshotsReplaceRequest request,
+                                                                     @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -125,8 +125,8 @@ public interface AdminGameApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "등급정보 upsert", description = "contentDescriptors는 7종 고정 키만 허용합니다(INV-21).")
-    GameRatingResponse upsertRating(@PathVariable Long id, @RequestBody @Valid GameRatingRequest request,
-                                     @LoginMemberId Long loginMemberId);
+    ResponseEntity<GameRatingResponse> upsertRating(@PathVariable Long id, @RequestBody @Valid GameRatingRequest request,
+                                                     @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

@@ -27,7 +27,7 @@ public interface AdminCurriculumSetApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "커리큘럼 세트 목록")
-    List<AdminCurriculumSummaryResponse> getCurriculums(@PathVariable Long trackPageId);
+    ResponseEntity<List<AdminCurriculumSummaryResponse>> getCurriculums(@PathVariable Long trackPageId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),

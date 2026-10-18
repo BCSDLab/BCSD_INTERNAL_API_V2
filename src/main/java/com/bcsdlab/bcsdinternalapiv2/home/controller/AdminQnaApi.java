@@ -24,7 +24,7 @@ public interface AdminQnaApi {
 
     @ApiResponses(value = {@ApiResponse(responseCode = "200")})
     @Operation(summary = "질문 목록", description = "숨김 포함 전체, display_order 순.")
-    List<AdminQnaResponse> getQnaItems();
+    ResponseEntity<List<AdminQnaResponse>> getQnaItems();
 
     @ApiResponses(value = {@ApiResponse(responseCode = "201")})
     @Operation(summary = "질문 추가")
@@ -35,7 +35,7 @@ public interface AdminQnaApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "질문 수정")
-    AdminQnaResponse updateQnaItem(@PathVariable Long id, @RequestBody @Valid QnaUpdateRequest request);
+    ResponseEntity<AdminQnaResponse> updateQnaItem(@PathVariable Long id, @RequestBody @Valid QnaUpdateRequest request);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

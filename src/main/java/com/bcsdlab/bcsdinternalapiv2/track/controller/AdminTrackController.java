@@ -26,8 +26,8 @@ public class AdminTrackController implements AdminTrackApi {
 
     @Override
     @GetMapping
-    public List<TrackMasterResponse> getTracks() {
-        return adminTrackMasterService.getTracks();
+    public ResponseEntity<List<TrackMasterResponse>> getTracks() {
+        return ResponseEntity.ok(adminTrackMasterService.getTracks());
     }
 
     @Override
@@ -38,7 +38,7 @@ public class AdminTrackController implements AdminTrackApi {
 
     @Override
     @PutMapping("/{id}")
-    public TrackMasterResponse updateTrack(@PathVariable Long id, @Valid @RequestBody TrackMasterUpdateRequest request) {
-        return adminTrackMasterService.updateTrack(id, request);
+    public ResponseEntity<TrackMasterResponse> updateTrack(@PathVariable Long id, @Valid @RequestBody TrackMasterUpdateRequest request) {
+        return ResponseEntity.ok(adminTrackMasterService.updateTrack(id, request));
     }
 }

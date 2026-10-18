@@ -34,10 +34,10 @@ public interface AdminActivityApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "활동 목록", description = "숨김 포함. categoryId/year/published로 선택적으로 필터링한다.")
-    Page<AdminActivitySummaryResponse> getActivities(@RequestParam(required = false) Long categoryId,
-                                                      @RequestParam(required = false) Integer year,
-                                                      @RequestParam(required = false) Boolean published,
-                                                      Pageable pageable);
+    ResponseEntity<Page<AdminActivitySummaryResponse>> getActivities(@RequestParam(required = false) Long categoryId,
+                                                                      @RequestParam(required = false) Integer year,
+                                                                      @RequestParam(required = false) Boolean published,
+                                                                      Pageable pageable);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -46,7 +46,7 @@ public interface AdminActivityApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "활동 상세 조회")
-    AdminActivityDetailResponse getActivity(@PathVariable Long id);
+    ResponseEntity<AdminActivityDetailResponse> getActivity(@PathVariable Long id);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),
@@ -66,8 +66,8 @@ public interface AdminActivityApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "활동 수정")
-    AdminActivityDetailResponse updateActivity(@PathVariable Long id,
-                                                @RequestBody @Valid ActivityUpdateRequest request);
+    ResponseEntity<AdminActivityDetailResponse> updateActivity(@PathVariable Long id,
+                                                                @RequestBody @Valid ActivityUpdateRequest request);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -106,5 +106,5 @@ public interface AdminActivityApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "활동 사진 전체 교체", description = "첫 번째 항목이 목록 썸네일이다(INV-12).")
-    List<String> replaceImages(@PathVariable Long id, @RequestBody @Valid ActivityImagesReplaceRequest request);
+    ResponseEntity<List<String>> replaceImages(@PathVariable Long id, @RequestBody @Valid ActivityImagesReplaceRequest request);
 }
