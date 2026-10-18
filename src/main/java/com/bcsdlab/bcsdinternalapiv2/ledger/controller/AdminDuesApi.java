@@ -19,9 +19,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "관리자 - 회비 학기 API")
@@ -34,7 +32,6 @@ public interface AdminDuesApi {
     })
     @Operation(summary = "학기 회비 목록", description = "학기별 요약을 최신 학기부터 돌려줍니다. 집계는 조회할 때 계산합니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping
     ResponseEntity<SemesterDuesListResponse> getSemesters();
 
     @ApiResponses(value = {
@@ -45,7 +42,6 @@ public interface AdminDuesApi {
     @Operation(summary = "학기 회비 생성 가능 여부", description = "오늘(Asia/Seoul) 날짜로 현재 학기를 정합니다. "
             + "만들 학기는 가장 최근 학기의 다음 학기(학기가 없으면 현재 학기)이고, 현재 학기의 바로 다음 학기까지만 만들 수 있습니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping("/creatable")
     ResponseEntity<SemesterCreatableResponse> getCreatable();
 
     @ApiResponses(value = {
@@ -59,7 +55,6 @@ public interface AdminDuesApi {
             + "생성 시점에 활동 중이고 탈퇴하지 않은 회원을 명단으로 스냅샷하고, 납부 대상 여부는 인명부의 납부 여부를 따릅니다. "
             + "월 회비는 1~1,000,000원입니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping
     ResponseEntity<SemesterDuesSummaryResponse> createSemester(@RequestBody @Valid SemesterCreateRequest request,
                                                                 @LoginMemberId Long loginMemberId);
 
@@ -73,7 +68,6 @@ public interface AdminDuesApi {
     @Operation(summary = "학기 회원별 회비", description = "학기 요약과 명단 회원별 회비를 이름·학번 순으로 돌려줍니다. "
             + "학기 ID는 \"2026-2\" 형식입니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping("/{semesterId}/members")
     ResponseEntity<SemesterDuesDetailResponse> getSemesterMembers(@PathVariable String semesterId);
 
     @ApiResponses(value = {
@@ -88,7 +82,6 @@ public interface AdminDuesApi {
             + "없는 내역과 이미 연결된 내역은 건너뛰고 세지 않습니다. 명단에 없는 회원(404)이나 납부 비대상 회원(409)이 "
             + "하나라도 있으면 아무것도 연결하지 않습니다. 연결한 내역의 분류는 회비(DUES)가 됩니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/{semesterId}/links")
     ResponseEntity<DuesLinkBulkResponse> linkEntries(@PathVariable String semesterId,
                                                      @RequestBody @Valid DuesLinkBulkRequest request,
                                                      @LoginMemberId Long loginMemberId);
@@ -104,7 +97,6 @@ public interface AdminDuesApi {
             + "before/after로 돌려줍니다. 아무것도 저장하지 않습니다(사유 등록도 하지 않음). editingId가 있으면 그 면제를 "
             + "이 값으로 바꾼 경우입니다. 검증은 면제 저장과 같고, 회원이 이 학기 명단에 없으면 404입니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/{semesterId}/exemption-preview")
     ResponseEntity<ExemptionPreviewResponse> previewExemption(@PathVariable String semesterId,
                                                               @RequestBody @Valid ExemptionPreviewRequest request);
 }

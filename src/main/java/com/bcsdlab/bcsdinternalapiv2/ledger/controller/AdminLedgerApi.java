@@ -14,11 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "관리자 - 장부 API")
@@ -33,7 +29,6 @@ public interface AdminLedgerApi {
             + "balance는 은행 거래 후 잔액이고, linkStatus는 연결이 있으면 CONFIRMED, 없으면 회비(DUES) 분류일 때 PENDING, "
             + "그 밖에는 NONE입니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping
     ResponseEntity<LedgerEntryListResponse> getEntries();
 
     @ApiResponses(value = {
@@ -47,7 +42,6 @@ public interface AdminLedgerApi {
             + "분류가 바뀌면 회비 연결이 해제됩니다. evidenceLinks는 구글 드라이브(https, drive.google.com·docs.google.com) 링크 0~5개이고, "
             + "보낸 목록이 최종 상태입니다(빠진 링크는 떼고, []이면 모두 뗍니다).")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{id}")
     ResponseEntity<LedgerEntryResponse> updateEntry(@PathVariable Long id,
                                                     @RequestBody @Valid LedgerEntryUpdateRequest request);
 
@@ -62,7 +56,6 @@ public interface AdminLedgerApi {
     @Operation(summary = "회비 연결", description = "장부 기록을 학기·회원의 회비에 연결합니다. 이미 연결돼 있으면 새 대상으로 옮깁니다. "
             + "연결하면 분류는 입금·출금 모두 회비(DUES)가 됩니다. 명단에 없는 회원이면 404, 납부 비대상 회원이면 409입니다.")
     @SecurityRequirement(name = "JWT")
-    @PutMapping("/{id}/dues-link")
     ResponseEntity<LedgerEntryResponse> linkEntry(@PathVariable Long id, @RequestBody @Valid DuesLinkRequest request,
                                                   @LoginMemberId Long loginMemberId);
 
@@ -74,6 +67,5 @@ public interface AdminLedgerApi {
     })
     @Operation(summary = "회비 연결 해제", description = "연결만 끊고 분류는 그대로 둡니다. 연결이 없어도 204입니다.")
     @SecurityRequirement(name = "JWT")
-    @DeleteMapping("/{id}/dues-link")
     ResponseEntity<Void> unlinkEntry(@PathVariable Long id);
 }

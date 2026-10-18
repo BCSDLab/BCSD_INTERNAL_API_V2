@@ -19,10 +19,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -33,7 +30,6 @@ public interface ReservationApi {
             @ApiResponse(responseCode = "200"),
     })
     @Operation(summary = "월별 예약 현황", description = "해당 월의 날짜별 예약된 시간(분)을 반환합니다. 로그인 여부와 무관하게 조회 가능합니다.")
-    @GetMapping("/monthly-occupancy")
     ResponseEntity<MonthlyOccupancyResponse> getMonthlyOccupancy(
             @Parameter(example = "2026-09") @RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth month);
 
@@ -41,7 +37,6 @@ public interface ReservationApi {
             @ApiResponse(responseCode = "200"),
     })
     @Operation(summary = "일별 예약 목록", description = "해당 날짜의 예약 목록을 반환합니다. 비로그인 상태에서는 예약자 이름과 목적이 응답에서 생략됩니다.")
-    @GetMapping("/daily")
     ResponseEntity<DailyReservationResponse> getDaily(
             @Parameter(example = "2026-09-01") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @LoginMemberId(required = false) Long viewerMemberId);
@@ -55,7 +50,6 @@ public interface ReservationApi {
     @Operation(summary = "예약 생성", description = "요청에 repeat 필드가 있으면 반복 예약으로 생성합니다. "
             + "반복 예약은 겹치거나 하루 한도를 초과하는 회차만 건너뛰고, 단건 예약은 충돌 시 요청 전체가 실패합니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping
     ResponseEntity<ReservationCreateResponse> createReservation(
             @LoginMemberId Long loginMemberId,
             @RequestBody @Valid ReservationCreateRequest request);
@@ -68,7 +62,6 @@ public interface ReservationApi {
     })
     @Operation(summary = "예약 상세 조회", description = "본인 예약만 조회할 수 있습니다. 반복 예약이면 그룹의 전체 회차 목록을 포함합니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping("/{reservationId}")
     ResponseEntity<ReservationDetailResponse> getReservationDetail(
             @LoginMemberId Long loginMemberId, @PathVariable Long reservationId);
 
@@ -81,7 +74,6 @@ public interface ReservationApi {
     })
     @Operation(summary = "예약 취소", description = "본인 예약 1건(반복 예약이면 해당 회차 1건)만 취소합니다. 이미 시작된 예약은 취소할 수 없습니다.")
     @SecurityRequirement(name = "JWT")
-    @DeleteMapping("/{reservationId}")
     ResponseEntity<Void> cancelReservation(
             @LoginMemberId Long loginMemberId, @PathVariable Long reservationId);
 }
