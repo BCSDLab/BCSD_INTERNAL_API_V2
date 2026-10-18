@@ -26,4 +26,9 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
     @Modifying
     @Query("update PasswordResetToken t set t.mailSentAt = :now where t.id = :id")
     int markMailSent(@Param("id") Long id, @Param("now") Instant now);
+
+    @Transactional
+    @Modifying
+    @Query("delete from PasswordResetToken t where t.expiresAt < :cutoff")
+    int deleteExpiredBefore(@Param("cutoff") Instant cutoff);
 }
