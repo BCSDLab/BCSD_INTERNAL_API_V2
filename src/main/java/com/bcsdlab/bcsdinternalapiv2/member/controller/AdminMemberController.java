@@ -154,7 +154,7 @@ public class AdminMemberController implements AdminMemberApi {
     @Override
     @PostMapping("/{memberId}/photo/slack-sync")
     public ResponseEntity<PhotoUrlResponse> syncPhotoFromSlack(@PathVariable Long memberId) {
-        return ResponseEntity.ok(new PhotoUrlResponse(memberDirectoryService.syncProfileImageFromSlack(memberId)));
+        return ResponseEntity.ok(new PhotoUrlResponse(slackProfileSyncService.syncOne(memberId)));
     }
 
     @Override
