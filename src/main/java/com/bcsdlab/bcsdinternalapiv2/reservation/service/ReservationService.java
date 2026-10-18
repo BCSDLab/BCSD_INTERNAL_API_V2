@@ -248,7 +248,7 @@ public class ReservationService {
 
     private boolean overlapsExisting(LocalDate date, short start, short end) {
         return reservationRepository.findByReservationDateAndCancelledAtIsNullOrderByStartMinuteAsc(date).stream()
-                .anyMatch(existing -> existing.getStartMinute() < end && start < existing.getEndMinute());
+                .anyMatch(existing -> existing.overlaps(start, end));
     }
 
     private boolean dailyLimitExceeded(Long memberId, LocalDate date, short start, short end) {
@@ -289,9 +289,7 @@ public class ReservationService {
     }
 
     private boolean hasStarted(Reservation reservation, Instant now) {
-        LocalDateTime startDateTime = reservation.getReservationDate().atStartOfDay()
-                .plusMinutes(reservation.getStartMinute());
-        return !startDateTime.isAfter(LocalDateTime.ofInstant(now, clock.getZone()));
+        return reservation.hasStartedAt(LocalDateTime.ofInstant(now, clock.getZone()));
     }
 
     private List<Reservation> pickGroupRepresentatives(List<Reservation> reservations) {

@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -74,6 +75,16 @@ public class Reservation extends BaseTimeEntity {
 
     public int durationMinutes() {
         return this.endMinute - this.startMinute;
+    }
+
+    /** [start, end) 분 구간이 이 예약과 겹치는지. 끝과 시작이 맞닿기만 하면 겹치지 않는다. */
+    public boolean overlaps(short start, short end) {
+        return this.startMinute < end && start < this.endMinute;
+    }
+
+    /** 예약 시작 시각이 now(같은 시간대의 로컬 시각) 이전이거나 같으면 이미 시작한 것이다. */
+    public boolean hasStartedAt(LocalDateTime now) {
+        return !this.reservationDate.atStartOfDay().plusMinutes(this.startMinute).isAfter(now);
     }
 
     public void cancel(Instant now) {
