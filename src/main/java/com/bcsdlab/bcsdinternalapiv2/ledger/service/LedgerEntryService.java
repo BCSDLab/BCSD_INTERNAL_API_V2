@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class LedgerEntryService {
 
     private final LedgerEntryRepository entryRepository;
@@ -22,7 +23,6 @@ public class LedgerEntryService {
     private final EvidenceLinkWriter evidenceLinkWriter;
 
     /** 쿼리 파라미터(필터)는 받지 않는다. FE가 전체를 받아 클라이언트에서 거른다. */
-    @Transactional(readOnly = true)
     public LedgerEntryListResponse getEntries() {
         return new LedgerEntryListResponse(assembler.toResponses(entryRepository.findAllLatestFirst()));
     }

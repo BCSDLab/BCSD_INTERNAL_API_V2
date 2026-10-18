@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MemberDirectoryService {
 
     private final MemberRepository memberRepository;
@@ -43,13 +44,11 @@ public class MemberDirectoryService {
     private final PositionRepository positionRepository;
     private final PhotoStorageService photoStorageService;
 
-    @Transactional(readOnly = true)
     public MemberDirectoryResponse getDirectory(MemberDirectoryQuery query, Pageable pageable) {
         return MemberDirectoryResponse.of(findPage(query, pageable), buildCounts());
     }
 
     /** 관리자 인명부. 일반 인명부 항목에 관리자 전용 필드(직장, 계정 유무)를 더한다. */
-    @Transactional(readOnly = true)
     public AdminMemberDirectoryResponse getAdminDirectory(MemberDirectoryQuery query, Pageable pageable) {
         return AdminMemberDirectoryResponse.of(findPage(query, pageable), buildCounts());
     }
@@ -123,7 +122,6 @@ public class MemberDirectoryService {
         }
     }
 
-    @Transactional(readOnly = true)
     public PhotoPresignedUrlResponse issuePhotoPresignedUrl(Long memberId, PhotoPresignedUrlRequest request) {
         if (!memberRepository.existsById(memberId)) {
             throw new MemberException(MemberExceptionType.MEMBER_NOT_FOUND);

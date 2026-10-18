@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class SemesterService {
 
     private final Clock clock;
@@ -29,7 +30,6 @@ public class SemesterService {
     private final DuesSemesterWriter semesterWriter;
     private final DuesQueryService duesQueryService;
 
-    @Transactional(readOnly = true)
     public SemesterCreatableResponse getCreatable() {
         Creatable creatable = creatable();
         return SemesterCreatableResponse.of(creatable.current(), creatable.next(), creatable.creatable());
