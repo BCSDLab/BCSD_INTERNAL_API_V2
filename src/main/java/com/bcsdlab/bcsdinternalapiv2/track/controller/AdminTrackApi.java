@@ -26,7 +26,7 @@ public interface AdminTrackApi {
             @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "트랙 마스터 목록", description = "부원 소속용 트랙 마스터. 홈페이지 프로필 유무를 함께 반환합니다.")
-    List<TrackMasterResponse> getTracks();
+    ResponseEntity<List<TrackMasterResponse>> getTracks();
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201"),
@@ -44,5 +44,5 @@ public interface AdminTrackApi {
             @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "트랙 마스터 수정", description = "이름과 활성 여부만 수정할 수 있습니다. code는 불변입니다.")
-    TrackMasterResponse updateTrack(@PathVariable Long id, @RequestBody @Valid TrackMasterUpdateRequest request);
+    ResponseEntity<TrackMasterResponse> updateTrack(@PathVariable Long id, @RequestBody @Valid TrackMasterUpdateRequest request);
 }

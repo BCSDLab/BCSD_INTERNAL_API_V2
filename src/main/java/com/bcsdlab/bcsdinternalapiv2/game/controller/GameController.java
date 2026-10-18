@@ -5,6 +5,7 @@ import com.bcsdlab.bcsdinternalapiv2.game.controller.dto.response.GameSummaryRes
 import com.bcsdlab.bcsdinternalapiv2.game.service.GameService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,13 +20,13 @@ public class GameController implements GameApi {
 
     @Override
     @GetMapping
-    public List<GameSummaryResponse> getGames() {
-        return gameService.getGames();
+    public ResponseEntity<List<GameSummaryResponse>> getGames() {
+        return ResponseEntity.ok(gameService.getGames());
     }
 
     @Override
     @GetMapping("/{slug}")
-    public GameDetailResponse getGame(@PathVariable String slug) {
-        return gameService.getGame(slug);
+    public ResponseEntity<GameDetailResponse> getGame(@PathVariable String slug) {
+        return ResponseEntity.ok(gameService.getGame(slug));
     }
 }

@@ -35,17 +35,17 @@ public class AdminActivityController implements AdminActivityApi {
 
     @Override
     @GetMapping
-    public Page<AdminActivitySummaryResponse> getActivities(@RequestParam(required = false) Long categoryId,
-                                                              @RequestParam(required = false) Integer year,
-                                                              @RequestParam(required = false) Boolean published,
-                                                              Pageable pageable) {
-        return adminActivityService.getActivities(categoryId, year, published, pageable);
+    public ResponseEntity<Page<AdminActivitySummaryResponse>> getActivities(@RequestParam(required = false) Long categoryId,
+                                                                              @RequestParam(required = false) Integer year,
+                                                                              @RequestParam(required = false) Boolean published,
+                                                                              Pageable pageable) {
+        return ResponseEntity.ok(adminActivityService.getActivities(categoryId, year, published, pageable));
     }
 
     @Override
     @GetMapping("/{id}")
-    public AdminActivityDetailResponse getActivity(@PathVariable Long id) {
-        return adminActivityService.getActivity(id);
+    public ResponseEntity<AdminActivityDetailResponse> getActivity(@PathVariable Long id) {
+        return ResponseEntity.ok(adminActivityService.getActivity(id));
     }
 
     @Override
@@ -57,9 +57,9 @@ public class AdminActivityController implements AdminActivityApi {
 
     @Override
     @PutMapping("/{id}")
-    public AdminActivityDetailResponse updateActivity(@PathVariable Long id,
-                                                       @Valid @RequestBody ActivityUpdateRequest request) {
-        return adminActivityService.updateActivity(id, request);
+    public ResponseEntity<AdminActivityDetailResponse> updateActivity(@PathVariable Long id,
+                                                                       @Valid @RequestBody ActivityUpdateRequest request) {
+        return ResponseEntity.ok(adminActivityService.updateActivity(id, request));
     }
 
     @Override
@@ -86,8 +86,8 @@ public class AdminActivityController implements AdminActivityApi {
 
     @Override
     @PutMapping("/{id}/images")
-    public List<String> replaceImages(@PathVariable Long id,
-                                       @Valid @RequestBody ActivityImagesReplaceRequest request) {
-        return adminActivityService.replaceImages(id, request);
+    public ResponseEntity<List<String>> replaceImages(@PathVariable Long id,
+                                                       @Valid @RequestBody ActivityImagesReplaceRequest request) {
+        return ResponseEntity.ok(adminActivityService.replaceImages(id, request));
     }
 }

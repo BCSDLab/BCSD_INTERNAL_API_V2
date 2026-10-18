@@ -22,7 +22,7 @@ public interface AdminMentorSlotApi {
 
     @ApiResponses(value = {@ApiResponse(responseCode = "200")})
     @Operation(summary = "노출 중 멘토 목록", description = "순서 포함.")
-    List<AdminMentorSlotResponse> getSlots();
+    ResponseEntity<List<AdminMentorSlotResponse>> getSlots();
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -30,7 +30,7 @@ public interface AdminMentorSlotApi {
             @ApiResponse(responseCode = "409", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "멘토 추가", description = "이미 노출 중이면 409(INV-20, AC-10.1). 부원 검색은 GET /members?name=를 그대로 쓴다.")
-    List<AdminMentorSlotResponse> addSlot(@RequestBody @Valid MentorSlotCreateRequest request);
+    ResponseEntity<List<AdminMentorSlotResponse>> addSlot(@RequestBody @Valid MentorSlotCreateRequest request);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

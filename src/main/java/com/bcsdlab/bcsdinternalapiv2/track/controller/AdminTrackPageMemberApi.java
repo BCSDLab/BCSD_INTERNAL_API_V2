@@ -21,7 +21,7 @@ public interface AdminTrackPageMemberApi {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 트랙 페이지"),
     })
     @Operation(summary = "트랙에 배정된 부원 목록", description = "명부 join(이름·등급·프로필 사진). 부원 검색은 GET /members?name=를 그대로 쓴다.")
-    List<AdminTrackPageMemberResponse> getMembers(Long trackPageId);
+    ResponseEntity<List<AdminTrackPageMemberResponse>> getMembers(Long trackPageId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -29,9 +29,9 @@ public interface AdminTrackPageMemberApi {
             @ApiResponse(responseCode = "409", description = "이미 배정된 부원(INV-8)"),
     })
     @Operation(summary = "부원 배정")
-    List<AdminTrackPageMemberResponse> attachMembers(Long trackPageId,
-                                                       @Valid TrackPageMembersAttachRequest request,
-                                                       @LoginMemberId Long loginMemberId);
+    ResponseEntity<List<AdminTrackPageMemberResponse>> attachMembers(Long trackPageId,
+                                                                       @Valid TrackPageMembersAttachRequest request,
+                                                                       @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

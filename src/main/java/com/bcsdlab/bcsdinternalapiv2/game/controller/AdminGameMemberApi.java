@@ -20,7 +20,7 @@ public interface AdminGameMemberApi {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 게임"),
     })
     @Operation(summary = "게임에 배정된 참여 멤버 목록", description = "명부 join(이름·등급·프로필 사진). 부원 검색은 GET /members?name=를 그대로 쓴다.")
-    List<AdminGameMemberResponse> getMembers(Long gameId);
+    ResponseEntity<List<AdminGameMemberResponse>> getMembers(Long gameId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -28,8 +28,8 @@ public interface AdminGameMemberApi {
             @ApiResponse(responseCode = "409", description = "이미 배정된 부원"),
     })
     @Operation(summary = "참여 멤버 배정")
-    List<AdminGameMemberResponse> attachMembers(Long gameId, @Valid GameMembersAttachRequest request,
-                                                 @LoginMemberId Long loginMemberId);
+    ResponseEntity<List<AdminGameMemberResponse>> attachMembers(Long gameId, @Valid GameMembersAttachRequest request,
+                                                                 @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),

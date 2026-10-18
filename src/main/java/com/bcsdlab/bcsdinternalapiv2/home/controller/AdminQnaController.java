@@ -30,8 +30,8 @@ public class AdminQnaController implements AdminQnaApi {
 
     @Override
     @GetMapping
-    public List<AdminQnaResponse> getQnaItems() {
-        return adminQnaService.getQnaItems();
+    public ResponseEntity<List<AdminQnaResponse>> getQnaItems() {
+        return ResponseEntity.ok(adminQnaService.getQnaItems());
     }
 
     @Override
@@ -42,8 +42,8 @@ public class AdminQnaController implements AdminQnaApi {
 
     @Override
     @PutMapping("/{id}")
-    public AdminQnaResponse updateQnaItem(@PathVariable Long id, @Valid @RequestBody QnaUpdateRequest request) {
-        return adminQnaService.updateQnaItem(id, request);
+    public ResponseEntity<AdminQnaResponse> updateQnaItem(@PathVariable Long id, @Valid @RequestBody QnaUpdateRequest request) {
+        return ResponseEntity.ok(adminQnaService.updateQnaItem(id, request));
     }
 
     @Override

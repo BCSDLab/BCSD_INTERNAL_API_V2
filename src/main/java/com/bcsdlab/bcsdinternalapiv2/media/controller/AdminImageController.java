@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,19 +28,19 @@ public class AdminImageController implements AdminImageApi {
 
     @Override
     @PostMapping("/presigned-url")
-    public PresignedUrlResponse issuePresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
-        return adminImageService.issuePresignedUrl(request);
+    public ResponseEntity<PresignedUrlResponse> issuePresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
+        return ResponseEntity.ok(adminImageService.issuePresignedUrl(request));
     }
 
     @Override
     @PostMapping("/{id}/complete")
-    public ImageCompleteResponse complete(@PathVariable Long id) {
-        return adminImageService.complete(id);
+    public ResponseEntity<ImageCompleteResponse> complete(@PathVariable Long id) {
+        return ResponseEntity.ok(adminImageService.complete(id));
     }
 
     @Override
     @GetMapping
-    public Page<ImageAssetResponse> getImages(@RequestParam ImagePurpose purpose, Pageable pageable) {
-        return adminImageService.getImages(purpose, pageable);
+    public ResponseEntity<Page<ImageAssetResponse>> getImages(@RequestParam ImagePurpose purpose, Pageable pageable) {
+        return ResponseEntity.ok(adminImageService.getImages(purpose, pageable));
     }
 }

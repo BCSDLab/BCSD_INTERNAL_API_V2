@@ -4,6 +4,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.controller.dto.response.PositionResp
 import com.bcsdlab.bcsdinternalapiv2.member.service.PositionService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +18,7 @@ public class PositionController implements PositionApi {
 
     @Override
     @GetMapping
-    public List<PositionResponse> getPositions() {
-        return positionService.getPositions();
+    public ResponseEntity<List<PositionResponse>> getPositions() {
+        return ResponseEntity.ok(positionService.getPositions());
     }
 }

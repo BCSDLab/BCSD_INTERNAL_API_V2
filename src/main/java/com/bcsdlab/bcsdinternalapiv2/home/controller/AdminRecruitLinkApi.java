@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "관리자 - 모집 링크 API")
@@ -23,17 +24,17 @@ public interface AdminRecruitLinkApi {
             @ApiResponse(responseCode = "200", description = "아직 저장된 적 없으면 본문이 null이다"),
     })
     @Operation(summary = "현재 모집 링크 설정 조회")
-    AdminRecruitLinkResponse getCurrent();
+    ResponseEntity<AdminRecruitLinkResponse> getCurrent();
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
             @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(hidden = true))),
     })
     @Operation(summary = "모집 링크 저장", description = "googleFormUrl은 forms.gle 또는 docs.google.com/forms만 허용한다(AC-10.6). 저장 시 이력을 남긴다(AC-10.7).")
-    AdminRecruitLinkResponse update(@RequestBody @Valid RecruitLinkUpdateRequest request,
-                                     @LoginMemberId Long loginMemberId);
+    ResponseEntity<AdminRecruitLinkResponse> update(@RequestBody @Valid RecruitLinkUpdateRequest request,
+                                                     @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {@ApiResponse(responseCode = "200")})
     @Operation(summary = "변경 이력 조회", description = "최신순.")
-    List<RecruitLinkHistoryResponse> getHistory();
+    ResponseEntity<List<RecruitLinkHistoryResponse>> getHistory();
 }

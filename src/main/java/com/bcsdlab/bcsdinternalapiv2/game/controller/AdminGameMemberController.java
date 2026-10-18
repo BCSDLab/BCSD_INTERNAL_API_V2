@@ -27,16 +27,16 @@ public class AdminGameMemberController implements AdminGameMemberApi {
 
     @Override
     @GetMapping
-    public List<AdminGameMemberResponse> getMembers(@PathVariable Long gameId) {
-        return adminGameMemberService.getMembers(gameId);
+    public ResponseEntity<List<AdminGameMemberResponse>> getMembers(@PathVariable Long gameId) {
+        return ResponseEntity.ok(adminGameMemberService.getMembers(gameId));
     }
 
     @Override
     @PostMapping
-    public List<AdminGameMemberResponse> attachMembers(@PathVariable Long gameId,
-                                                        @Valid @RequestBody GameMembersAttachRequest request,
-                                                        @LoginMemberId Long loginMemberId) {
-        return adminGameMemberService.attachMembers(gameId, request, loginMemberId);
+    public ResponseEntity<List<AdminGameMemberResponse>> attachMembers(@PathVariable Long gameId,
+                                                                        @Valid @RequestBody GameMembersAttachRequest request,
+                                                                        @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminGameMemberService.attachMembers(gameId, request, loginMemberId));
     }
 
     @Override
