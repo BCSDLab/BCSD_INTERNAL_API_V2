@@ -13,7 +13,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.MemberRole;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.TrackMasterRepository;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;

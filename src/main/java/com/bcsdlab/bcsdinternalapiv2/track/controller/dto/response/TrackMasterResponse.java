@@ -1,6 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response;
 
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.member.model.TrackMaster;
 
 public record TrackMasterResponse(
         Long id,
