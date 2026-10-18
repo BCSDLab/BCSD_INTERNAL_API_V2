@@ -53,6 +53,9 @@ public class ReservationService {
     public ReservationCreateResponse create(Long memberId, ReservationCreateRequest request) {
         Instant now = Instant.now(clock);
         validateCommon(request, now);
+        // 하루 이용 한도는 그날 회원의 기존 예약을 합산해 검사한다. 기존 예약이 없는 날에는 잠글 행이 없어
+        // 같은 회원의 동시 요청이 둘 다 통과했으므로, 회원 행을 잠가 한 회원의 예약 생성을 직렬화한다.
+        memberRepository.findByIdForUpdate(memberId);
 
         if (!request.isRepeat()) {
             checkDailyLimitOrThrow(memberId, request.date(), request.start(), request.end());
@@ -167,7 +170,7 @@ public class ReservationService {
             }
             Reservation reservation = buildReservation(memberId, group.getId(), date, request.start(), request.end(),
                     request.purpose(), request.headcount());
-            created.add(reservationRepository.save(reservation));
+            created.add(saveOrTranslateConflict(reservation));
         }
         return ReservationCreateResponse.of(created, skipped);
     }
