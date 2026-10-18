@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RosterService {
 
     private final DuesSemesterReader semesterReader;
@@ -35,7 +36,6 @@ public class RosterService {
     private final MemberRepository memberRepository;
     private final DuesLinkRepository linkRepository;
 
-    @Transactional(readOnly = true)
     public SemesterRosterResponse getRoster(String semesterId) {
         DuesSemester semester = semesterReader.get(semesterId);
         List<RosterMemberResponse> members = rosterRepository
@@ -46,7 +46,6 @@ public class RosterService {
         return new SemesterRosterResponse(members);
     }
 
-    @Transactional(readOnly = true)
     public RosterCandidateListResponse getCandidates(String semesterId) {
         DuesSemester semester = semesterReader.get(semesterId);
         List<RosterCandidateResponse> members = rosterRepository.findCandidates(semester.getId()).stream()
