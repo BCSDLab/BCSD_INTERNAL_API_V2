@@ -29,11 +29,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "관리자 - 회원 API")
@@ -52,7 +49,6 @@ public interface AdminMemberApi {
             + "셀프 비밀번호 재설정 불가). 이 회원은 환영 메일 재발송 또는 비밀번호 설정 링크 Slack DM 발송으로 계정을 만들 수 "
             + "있습니다. createAccount를 생략하면 true로 처리합니다. company(직장)는 선택이며 최대 100자, 비우면 null입니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping
     ResponseEntity<AdminMemberCreateResponse> createMember(@RequestBody @Valid AdminMemberCreateRequest request);
 
     @ApiResponses(value = {
@@ -66,7 +62,6 @@ public interface AdminMemberApi {
             + "이미 초기 설정을 완료한 계정에는 사용할 수 없습니다. 계정 없이 등록한 회원에게 보내면 이 임시 비밀번호로 계정이 "
             + "생깁니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/{memberId}/resend-welcome-mail")
     ResponseEntity<Void> resendWelcomeMail(@PathVariable Long memberId);
 
     @ApiResponses(value = {
@@ -85,7 +80,6 @@ public interface AdminMemberApi {
             + "DM 발송에 실패하면 발급한 링크를 폐기하고 502를 반환합니다. 계정 없이 등록한 회원은 이 링크로 비밀번호를 정하면 "
             + "계정이 생깁니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/{memberId}/password-link/slack")
     ResponseEntity<Void> sendPasswordLinkViaSlack(@PathVariable Long memberId,
                                                   @Parameter(hidden = true) HttpServletRequest servletRequest);
 
@@ -98,7 +92,6 @@ public interface AdminMemberApi {
             + "사이드바 집계 카운트를 반환합니다. 일반 인명부 항목에 관리자 전용 필드 company(직장, 없으면 null)와 "
             + "hasAccount(로그인 계정 유무)가 더해집니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping
     ResponseEntity<AdminMemberDirectoryResponse> getDirectory(@ModelAttribute MemberDirectoryQuery query,
                                                           @Parameter(hidden = true) Pageable pageable);
 
@@ -111,7 +104,6 @@ public interface AdminMemberApi {
     })
     @Operation(summary = "학적 상태 변경", description = "회원의 학적 상태(재학/휴학/군휴학/현장실습/졸업)를 변경합니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{memberId}/academic-status")
     ResponseEntity<Void> updateAcademicStatus(@PathVariable Long memberId,
                                                @RequestBody @Valid AcademicStatusUpdateRequest request);
 
@@ -124,7 +116,6 @@ public interface AdminMemberApi {
     })
     @Operation(summary = "활동 여부 변경", description = "회원의 동아리 활동 여부를 변경합니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{memberId}/active")
     ResponseEntity<Void> updateActive(@PathVariable Long memberId, @RequestBody @Valid ActiveUpdateRequest request);
 
     @ApiResponses(value = {
@@ -138,7 +129,6 @@ public interface AdminMemberApi {
     @Operation(summary = "회원 프로필 수정", description = "이름/트랙/기수/구분/학교/학부/역할/생일/납부여부/이메일/전화번호/깃허브 아이디/직장을 "
             + "수정합니다. 전체를 덮어쓰므로 company(직장)를 생략하거나 비우면 지워집니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{memberId}")
     ResponseEntity<Void> updateProfile(@PathVariable Long memberId,
                                         @RequestBody @Valid AdminMemberProfileUpdateRequest request);
 
@@ -151,7 +141,6 @@ public interface AdminMemberApi {
     })
     @Operation(summary = "권한 변경", description = "회원의 권한(관리자/일반)을 변경합니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{memberId}/role")
     ResponseEntity<Void> updateRole(@PathVariable Long memberId, @RequestBody @Valid RoleUpdateRequest request);
 
     @ApiResponses(value = {
@@ -163,7 +152,6 @@ public interface AdminMemberApi {
     })
     @Operation(summary = "탈퇴 상태 변경", description = "회원을 탈퇴(WITHDRAWN) 처리하거나 복구합니다. 실제 데이터는 삭제되지 않습니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{memberId}/withdrawal")
     ResponseEntity<Void> updateWithdrawal(@PathVariable Long memberId,
                                            @RequestBody @Valid WithdrawalUpdateRequest request);
 
@@ -178,7 +166,6 @@ public interface AdminMemberApi {
             + "브라우저가 반환된 uploadUrl로 S3에 직접 PUT한 뒤, publicUrl을 프로필 사진 등록 API로 저장해야 합니다. "
             + "서버는 이미지 바이트를 경유하지 않습니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/{memberId}/photo/presigned-url")
     ResponseEntity<PhotoPresignedUrlResponse> issuePhotoPresignedUrl(
             @PathVariable Long memberId, @RequestBody @Valid PhotoPresignedUrlRequest request);
 
@@ -191,7 +178,6 @@ public interface AdminMemberApi {
     })
     @Operation(summary = "프로필 사진 등록", description = "S3에 직접 PUT을 마친 뒤, 그 결과 publicUrl을 회원 프로필에 저장합니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{memberId}/photo")
     ResponseEntity<Void> updatePhotoUrl(@PathVariable Long memberId, @RequestBody @Valid PhotoUrlUpdateRequest request);
 
     @ApiResponses(value = {
@@ -204,7 +190,6 @@ public interface AdminMemberApi {
     @Operation(summary = "Slack 프로필 사진 동기화", description = "회원 이메일로 Slack 워크스페이스 프로필을 조회하여 "
             + "프로필 이미지를 회원 프로필에 동기화합니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/{memberId}/photo/slack-sync")
     ResponseEntity<PhotoUrlResponse> syncPhotoFromSlack(@PathVariable Long memberId);
 
     @ApiResponses(value = {
@@ -216,7 +201,6 @@ public interface AdminMemberApi {
             + "Slack 프로필 동기화를 즉시 실행합니다. 매주 일요일 00:05(KST)에 자동 실행되는 배치와 동일한 로직입니다. "
             + "회원 개별 실패는 전체 실행을 막지 않으며, 결과에 성공/실패 건수가 집계되어 반환됩니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/photo/slack-sync")
     ResponseEntity<SlackProfileSyncResponse> syncAllPhotosFromSlack();
 
     @ApiResponses(value = {
@@ -230,7 +214,6 @@ public interface AdminMemberApi {
     @Operation(summary = "Slack ID 수정", description = "회비 Slack 알림 수신자로 쓰는 Slack 회원 ID(U 또는 W로 시작하는 영문 대문자·숫자 9~20자)를 "
             + "저장합니다. null이면 지웁니다. 다른 회원이 사용 중인 값이면 409이며 메시지에 그 회원 이름이 포함됩니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{memberId}/slack-id")
     ResponseEntity<Void> updateSlackId(@PathVariable Long memberId, @RequestBody @Valid SlackIdUpdateRequest request);
 
     @ApiResponses(value = {
@@ -243,6 +226,5 @@ public interface AdminMemberApi {
             + "회원별 결과(SAVED, NOT_FOUND, DUPLICATED, FAILED, MEMBER_NOT_FOUND)를 돌려주며 개별 실패가 전체를 막지 "
             + "않습니다. 이미 Slack ID가 있는 회원은 조회하지 않고 SAVED로 돌려줍니다. 다른 회원이 쓰는 값은 저장하지 않습니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/slack-ids/lookup")
     ResponseEntity<SlackIdLookupResponse> lookupSlackIds(@RequestBody @Valid SlackIdLookupRequest request);
 }
