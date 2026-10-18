@@ -28,7 +28,7 @@ public class GameBuildWebhookService {
             throw new GameException(GameExceptionType.GAME_BUILD_WEBHOOK_UNAUTHORIZED);
         }
 
-        GameBuild build = gameBuildRepository.findById(buildId)
+        GameBuild build = gameBuildRepository.findByIdForUpdate(buildId)
                 .orElseThrow(() -> new GameException(GameExceptionType.GAME_BUILD_NOT_FOUND));
 
         switch (request.status()) {
@@ -39,8 +39,11 @@ public class GameBuildWebhookService {
     }
 
     private void applyActive(GameBuild build, GameBuildWebhookRequest request) {
-        build.applyActive(request.canvasWidth(), request.canvasHeight(), request.storageBytes(),
+        boolean activated = build.applyActive(request.canvasWidth(), request.canvasHeight(), request.storageBytes(),
                 request.buildFileUrl());
+        if (!activated) {
+            return;
+        }
 
         Long gameId = build.getGame().getId();
         gameBuildRepository.findAllByGame_IdAndStatus(gameId, GameBuildStatus.ACTIVE).stream()
