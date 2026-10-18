@@ -5,8 +5,8 @@ import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackMasterUpd
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.response.TrackMasterResponse;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.TrackMasterRepository;
 import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackPageRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

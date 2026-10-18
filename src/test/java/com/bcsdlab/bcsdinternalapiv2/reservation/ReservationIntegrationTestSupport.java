@@ -9,7 +9,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
 import com.bcsdlab.bcsdinternalapiv2.reservation.repository.ReservationGroupRepository;
 import com.bcsdlab.bcsdinternalapiv2.reservation.repository.ReservationRepository;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.TrackMasterRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
