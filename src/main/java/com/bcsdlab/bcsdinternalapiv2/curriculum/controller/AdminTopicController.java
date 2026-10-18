@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.curriculum.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.TopicDetailsReplaceRequest;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.request.TopicRequest;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.controller.dto.response.CurriculumTopicResponse;
@@ -8,8 +9,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,21 +26,21 @@ public class AdminTopicController implements AdminTopicApi {
     @Override
     @PutMapping("/{id}")
     public CurriculumTopicResponse updateTopic(@PathVariable Long id, @Valid @RequestBody TopicRequest request,
-                                                @AuthenticationPrincipal Jwt jwt) {
-        return adminCurriculumTreeService.updateTopic(id, request, Long.valueOf(jwt.getSubject()));
+                                                @LoginMemberId Long loginMemberId) {
+        return adminCurriculumTreeService.updateTopic(id, request, loginMemberId);
     }
 
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTopic(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        adminCurriculumTreeService.deleteTopic(id, Long.valueOf(jwt.getSubject()));
+    public ResponseEntity<Void> deleteTopic(@PathVariable Long id, @LoginMemberId Long loginMemberId) {
+        adminCurriculumTreeService.deleteTopic(id, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PutMapping("/{id}/details")
     public List<String> replaceDetails(@PathVariable Long id, @Valid @RequestBody TopicDetailsReplaceRequest request,
-                                        @AuthenticationPrincipal Jwt jwt) {
-        return adminCurriculumTreeService.replaceDetails(id, request, Long.valueOf(jwt.getSubject()));
+                                        @LoginMemberId Long loginMemberId) {
+        return adminCurriculumTreeService.replaceDetails(id, request, loginMemberId);
     }
 }

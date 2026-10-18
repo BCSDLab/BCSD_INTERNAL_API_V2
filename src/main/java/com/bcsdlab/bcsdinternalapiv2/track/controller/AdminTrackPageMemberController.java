@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.track.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.MemberVisibilityRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageMembersAttachRequest;
@@ -9,8 +10,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -37,15 +36,15 @@ public class AdminTrackPageMemberController implements AdminTrackPageMemberApi {
     @PostMapping
     public List<AdminTrackPageMemberResponse> attachMembers(@PathVariable Long trackPageId,
                                                               @Valid @RequestBody TrackPageMembersAttachRequest request,
-                                                              @AuthenticationPrincipal Jwt jwt) {
-        return adminTrackPageMemberService.attachMembers(trackPageId, request, Long.valueOf(jwt.getSubject()));
+                                                              @LoginMemberId Long loginMemberId) {
+        return adminTrackPageMemberService.attachMembers(trackPageId, request, loginMemberId);
     }
 
     @Override
     @DeleteMapping("/{memberId}")
     public ResponseEntity<Void> detachMember(@PathVariable Long trackPageId, @PathVariable Long memberId,
-                                              @AuthenticationPrincipal Jwt jwt) {
-        adminTrackPageMemberService.detachMember(trackPageId, memberId, Long.valueOf(jwt.getSubject()));
+                                              @LoginMemberId Long loginMemberId) {
+        adminTrackPageMemberService.detachMember(trackPageId, memberId, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
@@ -53,16 +52,16 @@ public class AdminTrackPageMemberController implements AdminTrackPageMemberApi {
     @PatchMapping("/{memberId}/visibility")
     public ResponseEntity<Void> updateVisibility(@PathVariable Long trackPageId, @PathVariable Long memberId,
                                                   @Valid @RequestBody MemberVisibilityRequest request,
-                                                  @AuthenticationPrincipal Jwt jwt) {
-        adminTrackPageMemberService.updateVisibility(trackPageId, memberId, request, Long.valueOf(jwt.getSubject()));
+                                                  @LoginMemberId Long loginMemberId) {
+        adminTrackPageMemberService.updateVisibility(trackPageId, memberId, request, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/order")
     public ResponseEntity<Void> reorder(@PathVariable Long trackPageId, @Valid @RequestBody OrderRequest request,
-                                         @AuthenticationPrincipal Jwt jwt) {
-        adminTrackPageMemberService.reorder(trackPageId, request, Long.valueOf(jwt.getSubject()));
+                                         @LoginMemberId Long loginMemberId) {
+        adminTrackPageMemberService.reorder(trackPageId, request, loginMemberId);
         return ResponseEntity.noContent().build();
     }
 }

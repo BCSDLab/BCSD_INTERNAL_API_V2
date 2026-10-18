@@ -10,5 +10,8 @@ public interface BcsdExceptionType {
 
     String getMessage();
 
-    BcsdExceptionType withDetail(String detailMessage);
+    /** 디버그용 상세를 메시지 뒤에 덧붙인다. 상태 코드는 그대로다. */
+    default BcsdExceptionType withDetail(String detailMessage) {
+        return new DetailedExceptionType(this, detailMessage);
+    }
 }

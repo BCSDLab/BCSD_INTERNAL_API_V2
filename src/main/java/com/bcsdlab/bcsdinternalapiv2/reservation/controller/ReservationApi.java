@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.reservation.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.reservation.controller.dto.request.ReservationCreateRequest;
 import com.bcsdlab.bcsdinternalapiv2.reservation.controller.dto.response.DailyReservationResponse;
 import com.bcsdlab.bcsdinternalapiv2.reservation.controller.dto.response.MonthlyOccupancyResponse;
@@ -18,8 +19,6 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +44,7 @@ public interface ReservationApi {
     @GetMapping("/daily")
     ResponseEntity<DailyReservationResponse> getDaily(
             @Parameter(example = "2026-09-01") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
+            @LoginMemberId(required = false) Long viewerMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),
@@ -58,7 +57,7 @@ public interface ReservationApi {
     @SecurityRequirement(name = "JWT")
     @PostMapping
     ResponseEntity<ReservationCreateResponse> createReservation(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
+            @LoginMemberId Long loginMemberId,
             @RequestBody @Valid ReservationCreateRequest request);
 
     @ApiResponses(value = {
@@ -71,7 +70,7 @@ public interface ReservationApi {
     @SecurityRequirement(name = "JWT")
     @GetMapping("/{reservationId}")
     ResponseEntity<ReservationDetailResponse> getReservationDetail(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt, @PathVariable Long reservationId);
+            @LoginMemberId Long loginMemberId, @PathVariable Long reservationId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -84,5 +83,5 @@ public interface ReservationApi {
     @SecurityRequirement(name = "JWT")
     @DeleteMapping("/{reservationId}")
     ResponseEntity<Void> cancelReservation(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt, @PathVariable Long reservationId);
+            @LoginMemberId Long loginMemberId, @PathVariable Long reservationId);
 }

@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.track.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.MemberVisibilityRequest;
 import com.bcsdlab.bcsdinternalapiv2.track.controller.dto.request.TrackPageMembersAttachRequest;
@@ -11,8 +12,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 @Tag(name = "관리자 트랙 멤버 API")
 public interface AdminTrackPageMemberApi {
@@ -32,14 +31,14 @@ public interface AdminTrackPageMemberApi {
     @Operation(summary = "부원 배정")
     List<AdminTrackPageMemberResponse> attachMembers(Long trackPageId,
                                                        @Valid TrackPageMembersAttachRequest request,
-                                                       @AuthenticationPrincipal Jwt jwt);
+                                                       @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
             @ApiResponse(responseCode = "404", description = "배정되지 않은 부원"),
     })
     @Operation(summary = "배정 해제")
-    ResponseEntity<Void> detachMember(Long trackPageId, Long memberId, @AuthenticationPrincipal Jwt jwt);
+    ResponseEntity<Void> detachMember(Long trackPageId, Long memberId, @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
@@ -48,12 +47,12 @@ public interface AdminTrackPageMemberApi {
     @Operation(summary = "숨김/공개 전환")
     ResponseEntity<Void> updateVisibility(Long trackPageId, Long memberId,
                                            @Valid MemberVisibilityRequest request,
-                                           @AuthenticationPrincipal Jwt jwt);
+                                           @LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204"),
             @ApiResponse(responseCode = "400", description = "id 집합 불일치(INV-4)"),
     })
     @Operation(summary = "순서 변경")
-    ResponseEntity<Void> reorder(Long trackPageId, @Valid OrderRequest request, @AuthenticationPrincipal Jwt jwt);
+    ResponseEntity<Void> reorder(Long trackPageId, @Valid OrderRequest request, @LoginMemberId Long loginMemberId);
 }

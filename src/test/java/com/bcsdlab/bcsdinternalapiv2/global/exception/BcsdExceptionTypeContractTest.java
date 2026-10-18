@@ -38,6 +38,14 @@ class BcsdExceptionTypeContractTest {
     }
 
     @Test
+    @DisplayName("상세가 붙은 타입에 다시 withDetail하면 이전 상세를 대체한다")
+    void withDetail을_다시_하면_상세를_대체한다() {
+        BcsdExceptionType detailed = GlobalExceptionType.ORDER_IDS_MISMATCH.withDetail("weekId=42").withDetail("weekId=7");
+
+        assertThat(detailed.getMessage()).contains("weekId=7").doesNotContain("weekId=42");
+    }
+
+    @Test
     @DisplayName("TrackExceptionType.TRACK_NOT_FOUND는 404다")
     void trackExceptionType() {
         assertThat(TrackExceptionType.TRACK_NOT_FOUND.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
