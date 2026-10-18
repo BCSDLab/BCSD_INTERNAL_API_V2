@@ -108,7 +108,7 @@ public final class ImportSequencer {
     public record Movement(LocalDateTime occurredAt, EntryType type, long amount, long bankBalance) {
 
         long signedAmount() {
-            return type == EntryType.DEPOSIT ? amount : -amount;
+            return type.signed(amount);
         }
     }
 
