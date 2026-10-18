@@ -23,9 +23,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "회원 API")
@@ -38,7 +35,6 @@ public interface MemberApi {
     })
     @Operation(summary = "내 정보 확인")
     @SecurityRequirement(name = "JWT")
-    @GetMapping
     ResponseEntity<MemberResponse> getMe(@LoginMemberId Long loginMemberId);
 
     @ApiResponses(value = {
@@ -48,7 +44,6 @@ public interface MemberApi {
     })
     @Operation(summary = "최초 로그인 - 정보 확인", description = "관리자 등록 정보(읽기 전용)와 기존 연락처/이메일/깃허브 아이디를 조회합니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping("/initial-setup")
     ResponseEntity<MemberResponse> getInitialSetupInfo(@LoginMemberId Long loginMemberId,
                                                        @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt);
 
@@ -60,7 +55,6 @@ public interface MemberApi {
     })
     @Operation(summary = "최초 로그인 - 정보 저장", description = "전화번호/이메일/비밀번호 등을 저장하고 계정을 활성화합니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/initial-setup")
     ResponseEntity<LoginResponse> completeInitialSetup(
             @LoginMemberId Long loginMemberId,
             @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
@@ -77,7 +71,6 @@ public interface MemberApi {
     })
     @Operation(summary = "내 정보 수정", description = "연락처(전화번호/이메일/깃허브 아이디)를 수정합니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping
     ResponseEntity<Void> updateContact(
             @LoginMemberId Long loginMemberId,
             @RequestBody @Valid MemberContactUpdateRequest request
@@ -90,7 +83,6 @@ public interface MemberApi {
     })
     @Operation(summary = "비밀번호 변경", description = "현재 비밀번호를 확인한 뒤 비밀번호를 변경합니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/password")
     ResponseEntity<Void> changePassword(
             @LoginMemberId Long loginMemberId,
             @RequestBody @Valid PasswordChangeRequest request
@@ -103,7 +95,6 @@ public interface MemberApi {
     })
     @Operation(summary = "내 프로필 사진 업로드 URL 발급", description = "S3에 직접 PUT할 presigned URL을 발급합니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping("/photo/presigned-url")
     ResponseEntity<PhotoPresignedUrlResponse> issuePhotoPresignedUrl(
             @LoginMemberId Long loginMemberId,
             @RequestBody @Valid PhotoPresignedUrlRequest request
@@ -116,7 +107,6 @@ public interface MemberApi {
     })
     @Operation(summary = "내 프로필 사진 등록", description = "S3에 직접 PUT을 마친 뒤, 그 결과 publicUrl을 내 프로필에 저장합니다.")
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/photo")
     ResponseEntity<Void> updatePhotoUrl(
             @LoginMemberId Long loginMemberId,
             @RequestBody @Valid PhotoUrlUpdateRequest request

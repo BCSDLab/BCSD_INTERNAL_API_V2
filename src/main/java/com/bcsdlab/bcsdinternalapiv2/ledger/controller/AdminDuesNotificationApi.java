@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -34,7 +33,6 @@ public interface AdminDuesNotificationApi {
             + "Idempotency-Key가 필수이며, 같은 키로 다시 보내면 이미 보낸 회원은 건너뜁니다. 부분 실패도 200입니다. "
             + "testToSelf가 true면 첫 번째 본문만 내 Slack으로 1건 보냅니다(요청 키 불필요).")
     @SecurityRequirement(name = "JWT")
-    @PostMapping
     ResponseEntity<DuesNotificationResponse> send(
             @PathVariable String semesterId,
             @Parameter(description = "발송 한 건마다 만드는 요청 키(UUID 권장, 8~64자). testToSelf면 무시합니다.")

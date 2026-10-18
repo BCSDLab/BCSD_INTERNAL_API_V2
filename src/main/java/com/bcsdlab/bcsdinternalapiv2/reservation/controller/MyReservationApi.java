@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.YearMonth;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "동아리방 예약 API")
@@ -26,7 +25,6 @@ public interface MyReservationApi {
     })
     @Operation(summary = "내 월별 예약 현황", description = "해당 월의 날짜별 내 예약 시간(분)을 반환합니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping("/monthly-occupancy")
     ResponseEntity<MonthlyOccupancyResponse> getMyMonthlyOccupancy(
             @LoginMemberId Long loginMemberId,
             @Parameter(example = "2026-09") @RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth month);
@@ -38,7 +36,6 @@ public interface MyReservationApi {
     @Operation(summary = "내 예약 목록", description = "예정된(upcoming) 또는 지난(past) 내 예약 목록을 반환합니다. "
             + "반복 예약은 그룹당 대표 1건만 포함됩니다.")
     @SecurityRequirement(name = "JWT")
-    @GetMapping
     ResponseEntity<MyReservationResponse> getMyReservations(
             @LoginMemberId Long loginMemberId,
             @Parameter(example = "upcoming") @RequestParam(defaultValue = "upcoming") String status);
