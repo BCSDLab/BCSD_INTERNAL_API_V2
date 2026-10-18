@@ -36,7 +36,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
@@ -76,9 +75,6 @@ public abstract class LedgerIntegrationTestSupport extends IntegrationTestSuppor
     /** S3는 실제로 부르지 않는다. 모든 ledger 테스트가 같은 mock 구성을 써서 컨텍스트를 하나로 유지한다. */
     @MockitoBean
     protected S3Presigner s3Presigner;
-
-    @MockitoBean
-    protected S3Client s3Client;
 
     /** Slack에는 실제로 보내지 않는다. */
     @MockitoBean

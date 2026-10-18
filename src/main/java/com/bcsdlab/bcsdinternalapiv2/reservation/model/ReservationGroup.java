@@ -70,8 +70,4 @@ public class ReservationGroup {
                 .map(DayOfWeek::valueOf)
                 .toList();
     }
-
-    public boolean includesWeekday(DayOfWeek dayOfWeek) {
-        return getWeekdayList().contains(dayOfWeek);
-    }
 }
