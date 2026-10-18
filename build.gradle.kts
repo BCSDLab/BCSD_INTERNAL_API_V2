@@ -54,4 +54,6 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	// fork마다 IntegrationTestSupport의 Postgres 컨테이너를 따로 띄우므로 DB 상태를 공유하지 않는다.
+	maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 }
