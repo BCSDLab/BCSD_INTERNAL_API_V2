@@ -16,12 +16,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.mail.transport", havingValue = "sendmail")
-public class SendmailMailSender implements MailSender {
+public class SendmailMailSender extends TemplateMailSender {
 
     private static final String MIME_BOUNDARY = "----=_BCSD_Internal_Mail_Boundary";
-
-    private static final String PASSWORD_RESET_HTML_TEMPLATE = MailTemplates.load("password-reset-email.html");
-    private static final String ACCOUNT_CREATED_HTML_TEMPLATE = MailTemplates.load("account-creation-email.html");
 
     private final MailProperties mailProperties;
 
@@ -34,29 +31,10 @@ public class SendmailMailSender implements MailSender {
     }
 
     @Override
-    public void sendPasswordResetLink(String toEmail, String resetUrl) {
-        String subject = "[BCSD Internal] 비밀번호 재설정 안내";
-        String text = "비밀번호를 재설정하려면 아래 링크를 열어주세요.\n\n" + resetUrl
-                + "\n\n이 링크는 30분간 유효합니다. 본인이 요청하지 않았다면 이 메일을 무시하세요.";
-        String html = PASSWORD_RESET_HTML_TEMPLATE.replace("{resetUrl}", resetUrl);
-        send(toEmail, subject, text, html);
-    }
-
-    @Override
-    public void sendAccountCreated(String toEmail, String studentNumber, String temporaryPassword, String loginUrl) {
-        String subject = "[BCSD Internal] 계정이 생성되었습니다";
-        String text = "학번: " + studentNumber
-                + "\n임시 비밀번호: " + temporaryPassword
-                + "\n로그인: " + loginUrl
-                + "\n\n로그인 후 반드시 비밀번호를 변경해주세요.";
-        String html = ACCOUNT_CREATED_HTML_TEMPLATE
-                .replace("{studentNumber}", MailTemplates.escapeHtml(studentNumber))
-                .replace("{temporaryPassword}", MailTemplates.escapeHtml(temporaryPassword))
-                .replace("{loginUrl}", loginUrl);
-        send(toEmail, subject, text, html);
-    }
-
-    private void send(String toEmail, String subject, String text, String html) {
+    protected void deliver(String toEmail, MailMessage mail) {
+        String subject = mail.subject();
+        String text = mail.text();
+        String html = mail.html();
         String message = "From: " + mailProperties.from() + "\r\n"
                 + "To: " + toEmail + "\r\n"
                 + "Subject: " + subject + "\r\n"
