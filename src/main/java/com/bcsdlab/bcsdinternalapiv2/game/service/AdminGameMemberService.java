@@ -12,8 +12,8 @@ import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.OrderRequest;
 import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard.AccessErrors;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +33,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminGameMemberService {
 
-    private static final String GAME_TRACK_CODE = "GAME";
+    private static final AccessErrors ACCESS_ERRORS = new AccessErrors(
+            GameException::new, GameExceptionType.MEMBER_NOT_FOUND, GameExceptionType.GAME_ACCESS_DENIED);
 
     private final GameRepository gameRepository;
     private final GameMemberRepository gameMemberRepository;
     private final MemberRepository memberRepository;
-    private final TrackMasterRepository trackMasterRepository;
+    private final TrackAccessGuard trackAccessGuard;
 
     public List<AdminGameMemberResponse> getMembers(Long gameId) {
         findGameOrThrow(gameId);
@@ -106,15 +107,6 @@ public class AdminGameMemberService {
     }
 
     private void requireGameAccess(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new GameException(GameExceptionType.MEMBER_NOT_FOUND));
-        if (member.isAdmin()) {
-            return;
-        }
-        TrackMaster gameTrack = trackMasterRepository.findByCode(GAME_TRACK_CODE)
-                .orElseThrow(() -> new GameException(GameExceptionType.GAME_ACCESS_DENIED));
-        if (!member.canManage(gameTrack)) {
-            throw new GameException(GameExceptionType.GAME_ACCESS_DENIED);
-        }
+        trackAccessGuard.requireGameManager(memberId, ACCESS_ERRORS);
     }
 }
