@@ -8,6 +8,7 @@ import com.bcsdlab.bcsdinternalapiv2.curriculum.exception.CurriculumExceptionTyp
 import com.bcsdlab.bcsdinternalapiv2.curriculum.model.Curriculum;
 import com.bcsdlab.bcsdinternalapiv2.curriculum.repository.CurriculumRepository;
 import com.bcsdlab.bcsdinternalapiv2.global.controller.dto.request.PublishRequest;
+import com.bcsdlab.bcsdinternalapiv2.global.util.DisplayOrders;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
 import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.track.model.TrackPage;
@@ -59,7 +60,9 @@ public class AdminCurriculumService {
             throw new CurriculumException(CurriculumExceptionType.NAME_REQUIRED);
         }
 
-        int displayOrder = curriculumRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId).size();
+        int displayOrder = DisplayOrders.next(
+                curriculumRepository.findAllByTrackPage_IdOrderByDisplayOrderAsc(trackPageId),
+                Curriculum::getDisplayOrder);
         Curriculum curriculum = curriculumRepository.save(Curriculum.builder()
                 .trackPage(trackPage)
                 .name(name)

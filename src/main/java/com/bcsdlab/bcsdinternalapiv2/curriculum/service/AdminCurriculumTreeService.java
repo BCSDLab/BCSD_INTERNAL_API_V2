@@ -80,7 +80,9 @@ public class AdminCurriculumTreeService {
                 .orElseThrow(() -> new CurriculumException(CurriculumExceptionType.CURRICULUM_NOT_FOUND));
         requireCurriculumAccess(memberId, curriculum.getTrackPage());
 
-        int displayOrder = curriculumWeekRepository.findAllByCurriculum_IdOrderByDisplayOrderAsc(curriculumId).size();
+        int displayOrder = DisplayOrders.next(
+                curriculumWeekRepository.findAllByCurriculum_IdOrderByDisplayOrderAsc(curriculumId),
+                CurriculumWeek::getDisplayOrder);
         CurriculumWeek week = curriculumWeekRepository.save(CurriculumWeek.builder()
                 .curriculum(curriculum)
                 .weekFrom(request.weekFrom())
@@ -124,7 +126,8 @@ public class AdminCurriculumTreeService {
     public CurriculumTopicResponse createTopic(Long weekId, TopicRequest request, Long memberId) {
         CurriculumWeek week = findWeekOrThrow(weekId);
         requireCurriculumAccess(memberId, week.getCurriculum().getTrackPage());
-        int displayOrder = curriculumTopicRepository.findAllByWeek_IdOrderByDisplayOrderAsc(weekId).size();
+        int displayOrder = DisplayOrders.next(curriculumTopicRepository.findAllByWeek_IdOrderByDisplayOrderAsc(weekId),
+                CurriculumTopic::getDisplayOrder);
         CurriculumTopic topic = curriculumTopicRepository.save(CurriculumTopic.builder()
                 .week(week)
                 .title(request.title())

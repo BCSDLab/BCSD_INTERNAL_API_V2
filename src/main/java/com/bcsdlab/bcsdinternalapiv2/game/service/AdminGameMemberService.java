@@ -69,7 +69,8 @@ public class AdminGameMemberService {
             }
         }
 
-        int nextOrder = gameMemberRepository.findAllByGame_IdOrderByDisplayOrderAsc(gameId).size();
+        int nextOrder = DisplayOrders.next(gameMemberRepository.findAllByGame_IdOrderByDisplayOrderAsc(gameId),
+                GameMember::getDisplayOrder);
         for (Long memberId : memberIds) {
             gameMemberRepository.save(GameMember.builder()
                     .game(game)
