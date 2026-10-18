@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +33,6 @@ public interface AdminLedgerImportApi {
             + "파싱만 하고 저장하지 않습니다. 이미 장부에 있는 거래는 빠집니다. 파트의 Content-Type은 보지 않고 확장자와 "
             + "xlsx 구조로 판단합니다. 최근 학기 명단에 이름이 한 명만 같은 회원이 있으면 그 회원과 DUES를 추천합니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping(value = "/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<ImportPreviewResponse> preview(
             @Parameter(description = "신한은행 거래내역 .xlsx", content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE))
             @RequestPart("file") MultipartFile file);
@@ -50,7 +48,6 @@ public interface AdminLedgerImportApi {
             + "다르면 400입니다. 이미 있는 거래는 건너뛰고 skippedDuplicateCount로 셉니다. 전부 반영하거나 전부 롤백합니다. "
             + "장부 잔액(balance)은 은행 잔액(bankBalance) 그대로입니다. 거래마다 evidenceLinks로 구글 드라이브 링크 0~5개를 붙입니다.")
     @SecurityRequirement(name = "JWT")
-    @PostMapping
     ResponseEntity<ImportCommitResponse> commit(@RequestBody @Valid ImportCommitRequest request,
                                                 @LoginMemberId Long loginMemberId);
 }
