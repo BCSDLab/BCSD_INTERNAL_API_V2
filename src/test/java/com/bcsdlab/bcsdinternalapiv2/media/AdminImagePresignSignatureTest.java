@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.bcsdlab.bcsdinternalapiv2.global.config.S3Properties;
+import com.bcsdlab.bcsdinternalapiv2.global.storage.S3UploadUrlSigner;
 import com.bcsdlab.bcsdinternalapiv2.media.controller.dto.request.PresignedUrlRequest;
 import com.bcsdlab.bcsdinternalapiv2.media.model.ImageAsset;
 import com.bcsdlab.bcsdinternalapiv2.media.model.ImagePurpose;
@@ -38,8 +39,8 @@ class AdminImagePresignSignatureTest {
                 .build();
         ImageAssetRepository repository = mock(ImageAssetRepository.class);
         when(repository.save(any(ImageAsset.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        service = new AdminImageService(repository, presigner,
-                new S3Properties("us-west-2", "test-bucket", "https://image.example.com"));
+        service = new AdminImageService(repository, new S3UploadUrlSigner(presigner,
+                new S3Properties("us-west-2", "test-bucket", "https://image.example.com")));
     }
 
     @AfterEach
