@@ -18,10 +18,8 @@ import com.bcsdlab.bcsdinternalapiv2.member.repository.PositionRepository;
 import com.bcsdlab.bcsdinternalapiv2.member.util.CompanyNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.util.GithubIdNormalizer;
 import com.bcsdlab.bcsdinternalapiv2.member.util.PhoneNumberNormalizer;
-import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackException;
-import com.bcsdlab.bcsdinternalapiv2.track.exception.TrackExceptionType;
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.model.TrackMaster;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.TrackMasterRepository;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -93,7 +91,7 @@ public class MemberDirectoryService {
                 : PhoneNumberNormalizer.normalize(request.phoneNumber());
         String normalizedGithubId = GithubIdNormalizer.normalize(request.githubId());
         TrackMaster track = trackMasterRepository.findByCode(request.track().name())
-                .orElseThrow(() -> new TrackException(TrackExceptionType.TRACK_NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberExceptionType.TRACK_NOT_FOUND));
         List<Position> positions = positionRepository.findAllByCodeIn(request.positionCodes());
         if (positions.size() != Set.copyOf(request.positionCodes()).size()) {
             throw new MemberException(MemberExceptionType.POSITION_NOT_FOUND);

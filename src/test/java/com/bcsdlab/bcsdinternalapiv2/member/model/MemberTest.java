@@ -2,7 +2,6 @@ package com.bcsdlab.bcsdinternalapiv2.member.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;

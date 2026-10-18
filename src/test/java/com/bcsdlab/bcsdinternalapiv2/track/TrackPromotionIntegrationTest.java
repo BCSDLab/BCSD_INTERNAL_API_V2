@@ -9,7 +9,7 @@ import com.bcsdlab.bcsdinternalapiv2.member.model.Member;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberStatus;
 import com.bcsdlab.bcsdinternalapiv2.member.model.MemberType;
 import com.bcsdlab.bcsdinternalapiv2.member.repository.MemberRepository;
-import com.bcsdlab.bcsdinternalapiv2.track.repository.TrackMasterRepository;
+import com.bcsdlab.bcsdinternalapiv2.member.repository.TrackMasterRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -105,7 +105,7 @@ class TrackPromotionIntegrationTest extends IntegrationTestSupport {
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
-    private Member newMember(com.bcsdlab.bcsdinternalapiv2.track.model.TrackMaster track) {
+    private Member newMember(com.bcsdlab.bcsdinternalapiv2.member.model.TrackMaster track) {
         return Member.builder()
                 .studentNumber("2023" + (int) (Math.random() * 9000 + 1000))
                 .password(passwordEncoder.encode("Temp1234"))
