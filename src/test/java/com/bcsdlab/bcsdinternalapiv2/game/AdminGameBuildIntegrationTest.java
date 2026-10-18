@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.ResultActions;
 
 @TestPropertySource(properties = "app.game-build.secret=test-only-game-build-secret")
 class AdminGameBuildIntegrationTest extends IntegrationTestSupport {
@@ -261,5 +262,65 @@ class AdminGameBuildIntegrationTest extends IntegrationTestSupport {
                                 .formatted(studentNumber, RAW_PASSWORD)))
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(body).get("accessToken").asText();
+    }
+
+    @Test
+    @DisplayName("보관된 옛 빌드의 ACTIVE 웹훅이 다시 와도 409이고 현재 활성 빌드는 그대로다")
+    void 보관된_빌드의_ACTIVE_재전송은_409() throws Exception {
+        long firstBuildId = createBuild("1.0.0");
+        issueUploadToken(firstBuildId);
+        activateBuild(firstBuildId, "https://bcsdlab.com/games/neon-drift/index.html");
+        long secondBuildId = createBuild("1.1.0");
+        issueUploadToken(secondBuildId);
+        activateBuild(secondBuildId, "https://bcsdlab.com/games/neon-drift/index.html");
+
+        postWebhook(firstBuildId, "{\"status\":\"ACTIVE\"}").andExpect(status().isConflict());
+
+        mockMvc.perform(get("/v1/games/neon-drift"))
+                .andExpect(jsonPath("$.activeBuild.version").value("1.1.0"));
+    }
+
+    @Test
+    @DisplayName("활성 빌드에 늦게 도착한 FAILED 웹훅은 409이고 빌드는 활성 상태로 남는다")
+    void 활성_빌드의_늦은_FAILED는_409() throws Exception {
+        long buildId = createBuild("1.0.0");
+        issueUploadToken(buildId);
+        activateBuild(buildId, "https://bcsdlab.com/games/neon-drift/index.html");
+
+        postWebhook(buildId, "{\"status\":\"FAILED\",\"failureReason\":\"late\"}")
+                .andExpect(status().isConflict());
+
+        mockMvc.perform(get("/v1/admin/games/" + game.getId() + "/builds")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(jsonPath("$[0].status").value("ACTIVE"));
+    }
+
+    @Test
+    @DisplayName("같은 ACTIVE 웹훅을 다시 보내면 204이고 아무것도 바뀌지 않는다")
+    void 같은_ACTIVE_재전송은_멱등하다() throws Exception {
+        long buildId = createBuild("1.0.0");
+        issueUploadToken(buildId);
+        activateBuild(buildId, "https://bcsdlab.com/games/neon-drift/index.html");
+
+        activateBuild(buildId, "https://bcsdlab.com/games/neon-drift/other.html");
+
+        mockMvc.perform(get("/v1/games/neon-drift"))
+                .andExpect(jsonPath("$.activeBuild.buildFileUrl")
+                        .value("https://bcsdlab.com/games/neon-drift/index.html"));
+    }
+
+    @Test
+    @DisplayName("업로드 토큰을 받지 않은 PENDING 빌드에는 ACTIVE 웹훅이 409다")
+    void PENDING_빌드의_ACTIVE는_409() throws Exception {
+        long buildId = createBuild("1.0.0");
+
+        postWebhook(buildId, "{\"status\":\"ACTIVE\"}").andExpect(status().isConflict());
+    }
+
+    private ResultActions postWebhook(long buildId, String body) throws Exception {
+        return mockMvc.perform(post("/v1/games/builds/" + buildId + "/webhook")
+                .header("X-Game-Build-Secret", gameBuildProperties.secret())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
     }
 }
