@@ -16,6 +16,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # 지연 로딩 연관(회원의 직책·트랙 등)을 목록 크기만큼 한 번에 읽는다(N+1 방지).
+        default_batch_fetch_size: 100
     open-in-view: false
 
   # 배포는 컨테이너를 내렸다 올린다. 처리 중인 요청과 큐에 남은 비동기 메일(@Async)을 마치고 종료한다.
