@@ -48,7 +48,7 @@ public final class DuesCalculator {
         long assessed = chargeableMonths * monthlyAmount;
 
         long net = links.stream()
-                .mapToLong(link -> link.type() == EntryType.DEPOSIT ? link.amount() : -link.amount())
+                .mapToLong(link -> link.type().signed(link.amount()))
                 .sum();
         long diff = net - assessed;
 

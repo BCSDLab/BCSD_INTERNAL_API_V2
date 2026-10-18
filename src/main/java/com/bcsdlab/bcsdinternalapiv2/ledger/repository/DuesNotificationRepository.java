@@ -1,6 +1,8 @@
 package com.bcsdlab.bcsdinternalapiv2.ledger.repository;
 
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.NotificationBatchStatus;
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.NotificationFailureReason;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.NotificationRecipientStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -44,13 +46,13 @@ public class DuesNotificationRepository {
                 FROM dues_notification_batch WHERE idempotency_key = :key FOR UPDATE
                 """, new MapSqlParameterSource().addValue("key", idempotencyKey).addValue("window", IN_PROGRESS_WINDOW),
                 (rs, i) -> new BatchRow(rs.getLong("id"), rs.getString("request_hash").strip(),
-                        rs.getString("status"), rs.getBoolean("recently_updated")));
+                        NotificationBatchStatus.valueOf(rs.getString("status")), rs.getBoolean("recently_updated")));
         return rows.stream().findFirst();
     }
 
-    public void updateBatchStatus(long batchId, String status) {
+    public void updateBatchStatus(long batchId, NotificationBatchStatus status) {
         jdbcTemplate.update("UPDATE dues_notification_batch SET status = :status, updated_at = now() WHERE id = :id",
-                new MapSqlParameterSource().addValue("status", status).addValue("id", batchId));
+                new MapSqlParameterSource().addValue("status", status.name()).addValue("id", batchId));
     }
 
     public void insertRecipient(long batchId, Long memberId) {
@@ -63,7 +65,8 @@ public class DuesNotificationRepository {
         return jdbcTemplate.query("""
                 SELECT member_id, status, failure_reason FROM dues_notification_recipient WHERE batch_id = :batchId
                 """, new MapSqlParameterSource("batchId", batchId),
-                (rs, i) -> new RecipientRow(rs.getLong("member_id"), rs.getString("status"),
+                (rs, i) -> new RecipientRow(rs.getLong("member_id"),
+                        NotificationRecipientStatus.valueOf(rs.getString("status")),
                         rs.getString("failure_reason") == null ? null
                                 : NotificationFailureReason.valueOf(rs.getString("failure_reason"))));
     }
@@ -94,9 +97,9 @@ public class DuesNotificationRepository {
                 new MapSqlParameterSource("id", batchId));
     }
 
-    public record BatchRow(long id, String requestHash, String status, boolean recentlyUpdated) {
+    public record BatchRow(long id, String requestHash, NotificationBatchStatus status, boolean recentlyUpdated) {
     }
 
-    public record RecipientRow(long memberId, String status, NotificationFailureReason failureReason) {
+    public record RecipientRow(long memberId, NotificationRecipientStatus status, NotificationFailureReason failureReason) {
     }
 }

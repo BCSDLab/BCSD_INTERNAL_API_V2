@@ -2,7 +2,9 @@ package com.bcsdlab.bcsdinternalapiv2.ledger.service;
 
 import com.bcsdlab.bcsdinternalapiv2.ledger.exception.LedgerException;
 import com.bcsdlab.bcsdinternalapiv2.ledger.exception.LedgerExceptionType;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.NotificationBatchStatus;
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.NotificationFailureReason;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.NotificationRecipientStatus;
 import com.bcsdlab.bcsdinternalapiv2.ledger.repository.DuesNotificationRepository;
 import com.bcsdlab.bcsdinternalapiv2.ledger.repository.DuesNotificationRepository.BatchRow;
 import java.util.List;
@@ -37,12 +39,12 @@ public class DuesNotificationWriter {
             if (!batch.requestHash().equals(requestHash)) {
                 throw new LedgerException(LedgerExceptionType.IDEMPOTENCY_KEY_REUSED);
             }
-            if ("IN_PROGRESS".equals(batch.status()) && batch.recentlyUpdated()) {
+            if (batch.status() == NotificationBatchStatus.IN_PROGRESS && batch.recentlyUpdated()) {
                 throw new LedgerException(LedgerExceptionType.NOTIFICATION_IN_PROGRESS);
             }
-            repository.updateBatchStatus(batch.id(), "IN_PROGRESS");
+            repository.updateBatchStatus(batch.id(), NotificationBatchStatus.IN_PROGRESS);
             Set<Long> sent = repository.findRecipients(batch.id()).stream()
-                    .filter(row -> "SENT".equals(row.status()))
+                    .filter(row -> row.status() == NotificationRecipientStatus.SENT)
                     .map(DuesNotificationRepository.RecipientRow::memberId)
                     .collect(Collectors.toSet());
             return new Started(batch.id(), sent);
@@ -78,7 +80,7 @@ public class DuesNotificationWriter {
 
     @Transactional
     public void finish(long batchId) {
-        repository.updateBatchStatus(batchId, "DONE");
+        repository.updateBatchStatus(batchId, NotificationBatchStatus.DONE);
     }
 
     public record Started(long batchId, Set<Long> alreadySent) {

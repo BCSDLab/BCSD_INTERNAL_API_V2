@@ -5,6 +5,7 @@ import com.bcsdlab.bcsdinternalapiv2.ledger.controller.dto.response.DuesNotifica
 import com.bcsdlab.bcsdinternalapiv2.ledger.exception.LedgerException;
 import com.bcsdlab.bcsdinternalapiv2.ledger.exception.LedgerExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.ledger.model.NotificationFailureReason;
+import com.bcsdlab.bcsdinternalapiv2.ledger.model.NotificationRecipientStatus;
 import com.bcsdlab.bcsdinternalapiv2.ledger.repository.DuesNotificationRepository;
 import com.bcsdlab.bcsdinternalapiv2.ledger.repository.DuesNotificationRepository.RecipientRow;
 import com.bcsdlab.bcsdinternalapiv2.ledger.service.DuesNotificationReader.Context;
@@ -173,11 +174,11 @@ public class DuesNotificationService {
     private DuesNotificationResponse response(long batchId, List<Long> order) {
         Map<Long, RecipientRow> rows = repository.findRecipients(batchId).stream()
                 .collect(Collectors.toMap(RecipientRow::memberId, Function.identity()));
-        int sent = (int) rows.values().stream().filter(row -> "SENT".equals(row.status())).count();
+        int sent = (int) rows.values().stream().filter(row -> row.status() == NotificationRecipientStatus.SENT).count();
         List<DuesNotificationResponse.Failed> failed = new ArrayList<>();
         for (Long memberId : order) {
             RecipientRow row = rows.get(memberId);
-            if (row != null && "FAILED".equals(row.status())) {
+            if (row != null && row.status() == NotificationRecipientStatus.FAILED) {
                 failed.add(new DuesNotificationResponse.Failed(memberId, row.failureReason()));
             }
         }
