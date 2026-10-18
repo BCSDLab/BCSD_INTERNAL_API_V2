@@ -39,7 +39,8 @@ public class AdminActivityCategoryService {
             throw new ActivityException(ActivityExceptionType.CATEGORY_SLUG_DUPLICATED);
         }
 
-        int displayOrder = activityCategoryRepository.findAllByOrderByDisplayOrderAsc().size();
+        int displayOrder = DisplayOrders.next(activityCategoryRepository.findAllByOrderByDisplayOrderAsc(),
+                ActivityCategory::getDisplayOrder);
         ActivityCategory category = activityCategoryRepository.save(ActivityCategory.builder()
                 .slug(request.slug())
                 .name(request.name())

@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToIntFunction;
 
 /**
  * {@code display_order} 재부여 순수 함수. 특정 엔티티 타입에 의존하지 않는다 —
@@ -20,6 +21,19 @@ import java.util.Set;
 public final class DisplayOrders {
 
     private DisplayOrders() {
+    }
+
+    /**
+     * 새 항목의 display_order. 삭제가 순서를 다시 매기지 않아 번호에 빈칸이 생기므로, 개수가 아니라
+     * 마지막 순서 + 1이다(개수를 쓰면 기존 항목과 순서가 겹친다).
+     *
+     * @param siblingsInOrder 같은 부모 아래 형제 항목, display_order 오름차순
+     */
+    public static <T> int next(List<T> siblingsInOrder, ToIntFunction<T> displayOrder) {
+        if (siblingsInOrder.isEmpty()) {
+            return 0;
+        }
+        return displayOrder.applyAsInt(siblingsInOrder.getLast()) + 1;
     }
 
     /**

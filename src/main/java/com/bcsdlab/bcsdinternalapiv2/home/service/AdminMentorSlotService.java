@@ -44,7 +44,8 @@ public class AdminMentorSlotService {
             throw new HomeException(HomeExceptionType.MENTOR_ALREADY_ASSIGNED);
         }
 
-        int nextOrder = (int) mentorSlotRepository.count();
+        int nextOrder = DisplayOrders.next(mentorSlotRepository.findAllByOrderByDisplayOrderAsc(),
+                MentorSlot::getDisplayOrder);
         mentorSlotRepository.save(MentorSlot.builder().member(member).displayOrder(nextOrder).build());
         return getSlots();
     }
