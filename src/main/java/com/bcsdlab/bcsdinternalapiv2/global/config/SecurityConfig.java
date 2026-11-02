@@ -102,6 +102,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/v1/reservations/monthly-occupancy", "/v1/reservations/daily")
                         .permitAll()
                         .requestMatchers("/v1/admin/games/**").hasAuthority("SCOPE_FULL")
+                        .requestMatchers("/v1/admin/images/**").hasAuthority("SCOPE_FULL")
                         .requestMatchers("/v1/admin/track-pages/**").hasAuthority("SCOPE_FULL")
                         .requestMatchers("/v1/admin/curriculums/**").hasAuthority("SCOPE_FULL")
                         .requestMatchers("/v1/admin/weeks/**").hasAuthority("SCOPE_FULL")

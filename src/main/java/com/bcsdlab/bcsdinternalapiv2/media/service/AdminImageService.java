@@ -11,6 +11,8 @@ import com.bcsdlab.bcsdinternalapiv2.media.exception.MediaExceptionType;
 import com.bcsdlab.bcsdinternalapiv2.media.model.ImageAsset;
 import com.bcsdlab.bcsdinternalapiv2.media.model.ImagePurpose;
 import com.bcsdlab.bcsdinternalapiv2.media.repository.ImageAssetRepository;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard.AccessErrors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,12 +29,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminImageService {
 
+    private static final AccessErrors ACCESS_ERRORS = new AccessErrors(
+            MediaException::new, MediaExceptionType.MEMBER_NOT_FOUND, MediaExceptionType.IMAGE_ACCESS_DENIED);
+
     private final ImageAssetRepository imageAssetRepository;
     private final S3UploadUrlSigner s3UploadUrlSigner;
+    private final TrackAccessGuard trackAccessGuard;
 
     @Transactional
-    public PresignedUrlResponse issuePresignedUrl(PresignedUrlRequest request) {
+    public PresignedUrlResponse issuePresignedUrl(PresignedUrlRequest request, Long memberId) {
         requireLibraryPurpose(request.purpose());
+        requireUploadAccess(request.purpose(), memberId);
         return issueUpload(request.purpose(), request.fileName(), request.contentType(), request.byteSize(), null,
                 false);
     }
@@ -62,18 +69,20 @@ public class AdminImageService {
     }
 
     @Transactional
-    public ImageCompleteResponse complete(Long id) {
+    public ImageCompleteResponse complete(Long id, Long memberId) {
         ImageAsset image = findOrThrow(id);
         if (image.getPurpose().isLibraryRestricted()) {
             // 장부 증빙은 업로드 확인을 거치는 장부 API로만 확정한다.
             throw new MediaException(MediaExceptionType.IMAGE_NOT_FOUND);
         }
+        requireUploadAccess(image.getPurpose(), memberId);
         image.confirm();
         return new ImageCompleteResponse(image.getUrl());
     }
 
-    public Page<ImageAssetResponse> getImages(ImagePurpose purpose, Pageable pageable) {
+    public Page<ImageAssetResponse> getImages(ImagePurpose purpose, Pageable pageable, Long memberId) {
         requireLibraryPurpose(purpose);
+        requireUploadAccess(purpose, memberId);
         return imageAssetRepository.findAllByPurposeAndConfirmedTrueOrderByCreatedAtDesc(purpose, pageable)
                 .map(ImageAssetResponse::from);
     }
@@ -84,6 +93,13 @@ public class AdminImageService {
         }
     }
 
+    private void requireUploadAccess(ImagePurpose purpose, Long memberId) {
+        switch (purpose.uploadAccess()) {
+            case ADMIN -> trackAccessGuard.requireAdmin(memberId, ACCESS_ERRORS);
+            case GAME_TRACK -> trackAccessGuard.requireGameManager(memberId, ACCESS_ERRORS);
+            case OWN_TRACK -> trackAccessGuard.requireOwnTrackManager(memberId, ACCESS_ERRORS);
+        }
+    }
 
     private ImageAsset findOrThrow(Long id) {
         return imageAssetRepository.findById(id)

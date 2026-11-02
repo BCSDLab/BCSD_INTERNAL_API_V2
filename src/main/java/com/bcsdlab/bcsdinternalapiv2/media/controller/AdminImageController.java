@@ -1,5 +1,6 @@
 package com.bcsdlab.bcsdinternalapiv2.media.controller;
 
+import com.bcsdlab.bcsdinternalapiv2.auth.security.LoginMemberId;
 import com.bcsdlab.bcsdinternalapiv2.media.controller.dto.request.PresignedUrlRequest;
 import com.bcsdlab.bcsdinternalapiv2.media.controller.dto.response.ImageAssetResponse;
 import com.bcsdlab.bcsdinternalapiv2.media.controller.dto.response.ImageCompleteResponse;
@@ -28,19 +29,21 @@ public class AdminImageController implements AdminImageApi {
 
     @Override
     @PostMapping("/presigned-url")
-    public ResponseEntity<PresignedUrlResponse> issuePresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
-        return ResponseEntity.ok(adminImageService.issuePresignedUrl(request));
+    public ResponseEntity<PresignedUrlResponse> issuePresignedUrl(@Valid @RequestBody PresignedUrlRequest request,
+                                                                  @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminImageService.issuePresignedUrl(request, loginMemberId));
     }
 
     @Override
     @PostMapping("/{id}/complete")
-    public ResponseEntity<ImageCompleteResponse> complete(@PathVariable Long id) {
-        return ResponseEntity.ok(adminImageService.complete(id));
+    public ResponseEntity<ImageCompleteResponse> complete(@PathVariable Long id, @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminImageService.complete(id, loginMemberId));
     }
 
     @Override
     @GetMapping
-    public ResponseEntity<Page<ImageAssetResponse>> getImages(@RequestParam ImagePurpose purpose, Pageable pageable) {
-        return ResponseEntity.ok(adminImageService.getImages(purpose, pageable));
+    public ResponseEntity<Page<ImageAssetResponse>> getImages(@RequestParam ImagePurpose purpose, Pageable pageable,
+                                                              @LoginMemberId Long loginMemberId) {
+        return ResponseEntity.ok(adminImageService.getImages(purpose, pageable, loginMemberId));
     }
 }

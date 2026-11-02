@@ -23,8 +23,7 @@ public class TrackAccessGuard {
     private final TrackMasterRepository trackMasterRepository;
 
     public void requireManager(Long memberId, TrackMaster track, AccessErrors errors) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> errors.exception().apply(errors.memberNotFound()));
+        Member member = findMemberOrThrow(memberId, errors);
         if (!member.canManage(track)) {
             throw errors.exception().apply(errors.accessDenied());
         }
@@ -34,6 +33,26 @@ public class TrackAccessGuard {
     public void requireGameManager(Long memberId, AccessErrors errors) {
         TrackMaster gameTrack = trackMasterRepository.findByCode(Track.GAME.name()).orElse(null);
         requireManager(memberId, gameTrack, errors);
+    }
+
+    /** 자기 트랙을 관리할 수 있는 회원만 통과한다. 어느 트랙에 쓸지 요청에 없는 경우(이미지 업로드)에 쓴다. */
+    public void requireOwnTrackManager(Long memberId, AccessErrors errors) {
+        Member member = findMemberOrThrow(memberId, errors);
+        if (!member.canManage(member.getTrack())) {
+            throw errors.exception().apply(errors.accessDenied());
+        }
+    }
+
+    public void requireAdmin(Long memberId, AccessErrors errors) {
+        Member member = findMemberOrThrow(memberId, errors);
+        if (!member.isAdmin()) {
+            throw errors.exception().apply(errors.accessDenied());
+        }
+    }
+
+    private Member findMemberOrThrow(Long memberId, AccessErrors errors) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> errors.exception().apply(errors.memberNotFound()));
     }
 
     /** 도메인별 예외 생성자와 "회원 없음"·"권한 없음" 예외 타입. */
