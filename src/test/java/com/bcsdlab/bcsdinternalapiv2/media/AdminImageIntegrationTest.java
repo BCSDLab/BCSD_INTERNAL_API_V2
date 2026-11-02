@@ -65,6 +65,9 @@ class AdminImageIntegrationTest extends IntegrationTestSupport {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private String adminToken;
+    private String gameRegularToken;
+    private String backendRegularToken;
+    private String backendBeginnerToken;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -91,6 +94,11 @@ class AdminImageIntegrationTest extends IntegrationTestSupport {
                 .andReturn().getResponse().getContentAsString();
         adminToken = objectMapper.readTree(body).get("accessToken").asText();
         memberRepository.updateRole(admin.getId(), MemberRole.ADMIN);
+
+        TrackMaster game = trackMasterRepository.findByCode("GAME").orElseThrow();
+        gameRegularToken = saveAndLogin(game, MemberType.REGULAR, "20232222");
+        backendRegularToken = saveAndLogin(backend, MemberType.REGULAR, "20233333");
+        backendBeginnerToken = saveAndLogin(backend, MemberType.BEGINNER, "20234444");
 
         PresignedPutObjectRequest presigned = mock(PresignedPutObjectRequest.class);
         when(presigned.url()).thenReturn(URI.create("https://s3.example.com/upload?X-Amz-Signature=fake").toURL());
@@ -247,5 +255,91 @@ class AdminImageIntegrationTest extends IntegrationTestSupport {
                         .queryParam("purpose", "TRACK_HERO")
                         .queryParam("sort", "noSuchField,desc"))
                 .andExpect(status().isBadRequest());
+    }
+
+    // ---------- 유형별 권한: 게임·트랙 페이지 이미지는 해당 트랙 멘토·정회원도 다룬다 ----------
+
+    @Test
+    @DisplayName("게임트랙 REGULAR는 게임 이미지 업로드 URL을 발급받고 확정할 수 있다")
+    void 게임트랙_정회원은_게임_이미지를_올린다() throws Exception {
+        long imageId = issue(gameRegularToken, "GAME", 200);
+        issue(gameRegularToken, "GAME_CONTENT", 200);
+
+        mockMvc.perform(post("/v1/admin/images/" + imageId + "/complete")
+                        .header("Authorization", "Bearer " + gameRegularToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/v1/admin/images")
+                        .header("Authorization", "Bearer " + gameRegularToken)
+                        .queryParam("purpose", "GAME"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("다른 트랙 REGULAR가 게임 이미지 업로드 URL을 요청하면 403이고 행을 만들지 않는다")
+    void 다른_트랙은_게임_이미지_403() throws Exception {
+        issue(backendRegularToken, "GAME", 403);
+        assertThat(imageAssetRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("자기 트랙 REGULAR는 트랙 페이지 이미지를 올릴 수 있고, BEGINNER는 403이다")
+    void 트랙_페이지_이미지는_자기_트랙_정회원만() throws Exception {
+        issue(backendRegularToken, "TRACK_HERO", 200);
+        issue(backendRegularToken, "STUDY_ICON", 200);
+        issue(backendBeginnerToken, "TRACK_HERO", 403);
+    }
+
+    @Test
+    @DisplayName("관리자 전용 유형은 트랙 정회원이 요청하면 403이다")
+    void 관리자_전용_유형은_403() throws Exception {
+        issue(gameRegularToken, "ACTIVITY", 403);
+        issue(backendRegularToken, "TECH_ICON", 403);
+        mockMvc.perform(get("/v1/admin/images")
+                        .header("Authorization", "Bearer " + gameRegularToken)
+                        .queryParam("purpose", "ACTIVITY"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("다른 트랙 회원은 게임 이미지를 complete할 수 없다")
+    void 다른_트랙은_게임_이미지_complete_403() throws Exception {
+        long imageId = issue(gameRegularToken, "GAME", 200);
+
+        mockMvc.perform(post("/v1/admin/images/" + imageId + "/complete")
+                        .header("Authorization", "Bearer " + backendRegularToken))
+                .andExpect(status().isForbidden());
+        assertThat(imageAssetRepository.findById(imageId).orElseThrow().isConfirmed()).isFalse();
+    }
+
+    private long issue(String token, String purpose, int expectedStatus) throws Exception {
+        String body = mockMvc.perform(post("/v1/admin/images/presigned-url")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fileName\":\"shot.png\",\"contentType\":\"image/png\","
+                                + "\"byteSize\":1000,\"purpose\":\"%s\"}".formatted(purpose)))
+                .andExpect(status().is(expectedStatus))
+                .andReturn().getResponse().getContentAsString();
+        return expectedStatus == 200 ? objectMapper.readTree(body).get("imageId").asLong() : -1;
+    }
+
+    private String saveAndLogin(TrackMaster track, MemberType memberType, String studentNumber) throws Exception {
+        memberRepository.save(Member.builder()
+                .studentNumber(studentNumber)
+                .password(passwordEncoder.encode(RAW_PASSWORD))
+                .name("부원" + studentNumber)
+                .track(track)
+                .generation("24-하")
+                .memberType(memberType)
+                .university("OO대학교")
+                .email(studentNumber + "@bcsd.club")
+                .status(MemberStatus.ACTIVE)
+                .build());
+        String body = mockMvc.perform(post("/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"studentNumber\":\"%s\",\"password\":\"%s\",\"rememberMe\":false}"
+                                .formatted(studentNumber, RAW_PASSWORD)))
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(body).get("accessToken").asText();
     }
 }

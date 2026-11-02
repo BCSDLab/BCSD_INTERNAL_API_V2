@@ -12,6 +12,7 @@ import com.bcsdlab.bcsdinternalapiv2.media.model.ImageAsset;
 import com.bcsdlab.bcsdinternalapiv2.media.model.ImagePurpose;
 import com.bcsdlab.bcsdinternalapiv2.media.repository.ImageAssetRepository;
 import com.bcsdlab.bcsdinternalapiv2.media.service.AdminImageService;
+import com.bcsdlab.bcsdinternalapiv2.track.service.TrackAccessGuard;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.AfterEach;
@@ -40,7 +41,8 @@ class AdminImagePresignSignatureTest {
         ImageAssetRepository repository = mock(ImageAssetRepository.class);
         when(repository.save(any(ImageAsset.class))).thenAnswer(invocation -> invocation.getArgument(0));
         service = new AdminImageService(repository, new S3UploadUrlSigner(presigner,
-                new S3Properties("us-west-2", "test-bucket", "https://image.example.com")));
+                new S3Properties("us-west-2", "test-bucket", "https://image.example.com")),
+                mock(TrackAccessGuard.class));
     }
 
     @AfterEach
@@ -60,7 +62,7 @@ class AdminImagePresignSignatureTest {
     @Test
     void 기존_미디어_URL은_예전처럼_형식만_서명한다() {
         String url = service.issuePresignedUrl(
-                new PresignedUrlRequest("hero.png", "image/png", 1000L, ImagePurpose.TRACK_HERO)).uploadUrl();
+                new PresignedUrlRequest("hero.png", "image/png", 1000L, ImagePurpose.TRACK_HERO), 1L).uploadUrl();
 
         assertThat(signedHeaders(url)).contains("content-type").doesNotContain("content-length");
     }
